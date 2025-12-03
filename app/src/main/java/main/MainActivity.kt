@@ -10,14 +10,14 @@ import gui.LoginScreen
 import gui.ProgettoIngswTheme
 import gui.RegisterScreen
 import gui.UtenteScreen
+import navigation.Navigation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             ProgettoIngswTheme {
-                UtenteScreen()
+                Navigation()
             }
         }
     }

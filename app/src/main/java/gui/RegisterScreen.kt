@@ -315,9 +315,3 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
     }
 }
 
-@Preview
-@Composable
-fun SimpleComposablePreview() {
-    val navController = rememberNavController()
-    RegisterScreen(painterResource(id = R.drawable.logo),"Logo", navController)
-}
