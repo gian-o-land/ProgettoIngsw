@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -33,19 +31,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import org.intellij.lang.annotations.JdkConstants
+import navigation.Screen
 
 @Composable
-fun LoginScreen(painter: Painter, descrizione: String?){
+fun LoginScreen(painter: Painter, descrizione: String?, navController : NavController){
     var textFieldState1 by remember {
         mutableStateOf("")
     }
@@ -174,7 +171,9 @@ fun LoginScreen(painter: Painter, descrizione: String?){
         )
         Spacer(modifier = Modifier.height(10.dp))
         Button(
-            {},
+            {
+                navController.navigate(Screen.RegisterScreen.route)
+            },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFF2CB05),
                 contentColor = Color(0xFF000000)
