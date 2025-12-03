@@ -9,6 +9,7 @@ import com.example.progettoingsw.R
 import gui.LoginScreen
 import gui.ProgettoIngswTheme
 import gui.RegisterScreen
+import gui.UtenteScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ProgettoIngswTheme {
-                RegisterScreen(painterResource(id = R.drawable.logo), "Logo")
+                UtenteScreen()
             }
         }
     }

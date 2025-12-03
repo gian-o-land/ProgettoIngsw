@@ -59,8 +59,13 @@ fun LoginScreen(painter: Painter, descrizione: String?){
     ){
         Card(modifier = Modifier
             .fillMaxWidth()
-            .height(215.dp),
-            shape = RoundedCornerShape(18.dp),
+            .height(180.dp),
+            shape = RoundedCornerShape(
+                topStart = 0.dp,    // Angolo in alto a sinistra: dritto
+                topEnd = 0.dp,      // Angolo in alto a destra: dritto
+                bottomStart = 18.dp, // Angolo in basso a sinistra: arrotondato
+                bottomEnd = 18.dp   // Angolo in basso a destra: arrotondato
+            ),
             colors = CardDefaults.cardColors(Color(0xFF00409C))
         ){
             Row(modifier = Modifier
@@ -118,7 +123,8 @@ fun LoginScreen(painter: Painter, descrizione: String?){
                 unfocusedTextColor = Color.Black,
                 focusedTextColor = Color.Black,
                 focusedLabelColor = Color(0xFF04198C),
-                unfocusedLabelColor = Color.Gray
+                unfocusedLabelColor = Color.Gray,
+                cursorColor=Color.Black
             ),
             label = {
                 Text("Email/Username")
@@ -139,7 +145,9 @@ fun LoginScreen(painter: Painter, descrizione: String?){
                 unfocusedTextColor = Color.Black,
                 focusedTextColor = Color.Black,
                 focusedLabelColor = Color(0xFF04198C),
-                unfocusedLabelColor = Color.Gray
+                unfocusedLabelColor = Color.Gray,
+                cursorColor=Color.Black
+
             ),
             label = {
                 Text("Password")
