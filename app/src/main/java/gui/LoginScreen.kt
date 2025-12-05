@@ -18,8 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,37 +31,32 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
+import gui.template.myTextField
+import gui.template.myTextField_Password
 import navigation.Screen
 
 @Composable
 fun LoginScreen(painter: Painter, descrizione: String?, navController : NavController){
-    var textFieldState1 by remember {
+    var textFieldEmail by remember {
         mutableStateOf("")
     }
-    var textFieldState2 by remember {
+    var textFieldPassword by remember {
         mutableStateOf("")
     }
 
     Column (modifier = Modifier
         .fillMaxSize()
-        .background(color = Color.White)
+        .background(color = mioBluScuro)
     ){
         Card(modifier = Modifier
             .fillMaxWidth()
             .height(180.dp),
-            shape = RoundedCornerShape(
-                topStart = 0.dp,    // Angolo in alto a sinistra: dritto
-                topEnd = 0.dp,      // Angolo in alto a destra: dritto
-                bottomStart = 18.dp, // Angolo in basso a sinistra: arrotondato
-                bottomEnd = 18.dp   // Angolo in basso a destra: arrotondato
-            ),
-            colors = CardDefaults.cardColors(Color(0xFF00409C))
+            colors = CardDefaults.cardColors(mioBluScuro)
         ){
             Row(modifier = Modifier
                 .fillMaxWidth(),
@@ -73,126 +66,102 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 Image(painter = painter, contentDescription = descrizione)
             }
         }
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(text = "Accedi per trovare la casa dei tuoi sogni",
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            modifier = Modifier.fillMaxWidth()
-                .padding(horizontal = 40.dp),
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(
-            onClick = {},
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = Color(0xFF000000),
-            ),
-            border = BorderStroke(1.dp, Color.Gray),
-            shape = RectangleShape,
-            modifier = Modifier.padding(horizontal = 35.dp)
-                .width(400.dp)
-                .height(45.dp)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .background(color = mioBluScuro),
+            shape = RoundedCornerShape(bottomEnd = 0.dp, bottomStart = 0.dp, topStart = 15.dp, topEnd = 15.dp),
+            colors = CardDefaults.cardColors(Color.White)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Image(
-                    painter = painterResource(id = R.drawable.google_logo),
-                    contentDescription = null,
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = Modifier.width(25.dp))
-                Text("Accedi con Google", textAlign = TextAlign.Center, fontSize = 17.sp)
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(text = "Accedi per trovare la casa dei tuoi sogni",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = mieScritte,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 40.dp),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioBackgroung,
+                    contentColor = mieScritte,
+                ),
+                border = BorderStroke(1.dp, Color.Gray),
+                shape = RectangleShape,
+                modifier = Modifier.padding(horizontal = 35.dp)
+                    .width(400.dp)
+                    .height(45.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Image(
+                        painter = painterResource(id = R.drawable.google_logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Spacer(modifier = Modifier.width(25.dp))
+                    Text("Accedi con Google", textAlign = TextAlign.Center, fontSize = 17.sp)
+                }
             }
-        }
-        Spacer(modifier = Modifier.height(15.dp))
-        Text(
-            text = "oppure",
-            color = Color.Black,
-            modifier = Modifier.padding(horizontal = 154.dp)
-                .fillMaxWidth())
-        Spacer(modifier = Modifier.height(10.dp))
-        OutlinedTextField(
-            value = textFieldState1,
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color.White,
-                focusedBorderColor = Color(0xFF04198C),
-                unfocusedBorderColor = Color.Gray,
-                unfocusedTextColor = Color.Black,
-                focusedTextColor = Color.Black,
-                focusedLabelColor = Color(0xFF04198C),
-                unfocusedLabelColor = Color.Gray,
-                cursorColor=Color.Black
-            ),
-            label = {
-                Text("Email/Username")
-            },
-            onValueChange = {
-                textFieldState1 = it
-            },
-            singleLine = true,
-            modifier = Modifier.padding(horizontal = 35.dp)
-        )
-        Spacer(modifier = Modifier.height(15.dp))
-        OutlinedTextField(
-            value = textFieldState2,
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color.White,
-                focusedBorderColor = Color(0xFF04198C),
-                unfocusedBorderColor = Color.Gray,
-                unfocusedTextColor = Color.Black,
-                focusedTextColor = Color.Black,
-                focusedLabelColor = Color(0xFF04198C),
-                unfocusedLabelColor = Color.Gray,
-                cursorColor=Color.Black
-
-            ),
-            label = {
-                Text("Password")
-            },
-            onValueChange = {
-                textFieldState2 = it
-            },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-            modifier = Modifier.padding(horizontal = 35.dp)
-        )
-        Spacer(modifier = Modifier.height(30.dp))
-        Button(
-            {
-                navController.navigate(Screen.UtenteScreen.route)//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF2CB05),
-                contentColor = Color(0xFF000000)
-            ),
-            modifier = Modifier.height(50.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 80.dp)
-        ) {
-            Text("Accedi", fontSize = 17.sp)
-        }
-        Spacer(modifier = Modifier.height(40.dp))
-        Text(
-            text = "Non hai un account?",
-            color = Color.Black,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            fontSize = 17.sp
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Button(
-            {
-                navController.navigate(Screen.RegisterScreen.route)
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF2CB05),
-                contentColor = Color(0xFF000000)
-            ),
-            modifier = Modifier.height(50.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 80.dp)
-        ) {
-            Text("Registrati", fontSize = 17.sp)
+            Spacer(modifier = Modifier.height(15.dp))
+            Text(
+                text = "oppure",
+                color = mieScritte,
+                modifier = Modifier.padding(horizontal = 154.dp)
+                    .fillMaxWidth())
+            Spacer(modifier = Modifier.height(10.dp))
+            myTextField(
+                Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
+                "Email/Username",
+                textFieldEmail,
+                {nuovoTesto -> textFieldEmail = nuovoTesto}
+            )
+            Spacer(modifier = Modifier.height(15.dp))
+            myTextField_Password(
+                Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
+                "Password",
+                textFieldPassword,
+                {nuovoTesto -> textFieldPassword = nuovoTesto}
+            )
+            Spacer(modifier = Modifier.height(30.dp))
+            Button(
+                {},
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioGialloOcra,
+                    contentColor = mieScritte
+                ),
+                modifier = Modifier.height(50.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 80.dp)
+            ) {
+                Text("Accedi", fontSize = 17.sp)
+            }
+            Spacer(modifier = Modifier.height(40.dp))
+            Text(
+                text = "Non hai un account?",
+                color = mieScritte,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                fontSize = 17.sp
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                {
+                    navController.navigate(Screen.RegisterScreen.route)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioGialloOcra,
+                    contentColor = mieScritte
+                ),
+                modifier = Modifier.height(50.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 80.dp)
+            ) {
+                Text("Registrati", fontSize = 17.sp)
+            }
         }
     }
 }
