@@ -20,6 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
+import gui.mioBluScuro
+import gui.mioGialloOcra
+
 @Composable
 fun myBottomNavBar() {
 
@@ -35,7 +38,7 @@ fun myBottomNavBar() {
 
     var selectedItemIndex by remember { mutableIntStateOf(0) }
 
-            NavigationBar(containerColor=Color(0xFF00409C),
+            NavigationBar(containerColor= mioBluScuro,
                 modifier =
                     Modifier.clip(
                         shape= RoundedCornerShape(
@@ -53,9 +56,9 @@ fun myBottomNavBar() {
 
                             selectedIconColor = Color.Black,
 
-                            selectedTextColor = Color(0xFFF2CB05),
+                            selectedTextColor = mioGialloOcra,
 
-                            indicatorColor = Color(0xFFF2CB05),//.copy(alpha = 0.1f),
+                            indicatorColor = mioGialloOcra,//.copy(alpha = 0.1f),
 
                             unselectedIconColor = Color.White,
                             unselectedTextColor = Color.White
