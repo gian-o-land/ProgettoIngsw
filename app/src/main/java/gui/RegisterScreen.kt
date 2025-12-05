@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -80,6 +81,7 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
     Column(
         modifier = Modifier.fillMaxSize()
             .background(mioBluScuro)
+            .imePadding()
     ) {
         Card(
             modifier = Modifier
