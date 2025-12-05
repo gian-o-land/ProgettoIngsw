@@ -10,6 +10,10 @@ import gui.LoginScreen
 import gui.RegisterScreen
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import gui.UtenteScreen
+import java.util.Map.entry
 
 @Composable
 fun Navigation() {
@@ -31,5 +35,17 @@ fun Navigation() {
         composable(route = Screen.RegisterScreen.route){
             RegisterScreen(painterResource(id = R.drawable.logo),"Logo", navController)
         }
+
+        composable(
+            route = Screen.UtenteScreen.route + "?mailUtente={mailUtente}",//route = Screen.UtenteScreen.route + "/{mailUtente}",
+            arguments = listOf(navArgument("mailUtente"){
+                type = NavType.StringType;
+                defaultValue = "<NomeCognomeUtente>"
+                nullable = true
+            })
+        ){ entry->
+            UtenteScreen(emailUtente = entry.arguments?.getString("mailUtente")?:"<NomeCognomeUtente>", navController=navController)
+        }
+
     }
 }
