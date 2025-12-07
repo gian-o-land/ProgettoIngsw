@@ -252,7 +252,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                         // horizontalArrangement = Arrangement.Absolute.Center
                     ){
                         Image(painterResource(
-                            id = R.drawable.anteprima_napoli),
+                            id = R.drawable.anteprima_milano),
                             contentDescription = "anteprima milano",
                             contentScale = ContentScale.FillWidth,
                             modifier = Modifier.fillMaxWidth()
@@ -281,7 +281,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                         // horizontalArrangement = Arrangement.Absolute.Center
                     ){
                         Image(painterResource(
-                            id = R.drawable.anteprima_napoli),
+                            id = R.drawable.anteprima_roma),
                             contentDescription = "anteprima roma",
                             contentScale = ContentScale.FillWidth,
                             modifier = Modifier.fillMaxWidth()
