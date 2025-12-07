@@ -1,10 +1,11 @@
 package gui
 
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,6 +40,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.progettoingsw.R
+import com.google.android.gms.maps.model.LatLng
+import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +55,9 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
         mutableStateOf("")
     }
     val scrollState = rememberScrollState()
-
+    val locationRoma = LatLng(41.9028, 12.4964)
+    val locationMilano = LatLng(45.4642, 9.1900)
+    val locationNapoli = LatLng(40.8518, 14.2681)
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -56,7 +65,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
         containerColor =  Color.White,
         topBar = { CenterAlignedTopAppBar(
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor =  Color(0xFF00409C)
+                containerColor =  mioBluScuro
             ),
             title = {
                 Text(text="Ciao, " + emailUtente,
@@ -66,149 +75,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
             }
         )
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Spacer(modifier = Modifier.height(120.dp))
-                Text(
-                    text = "Incomincia a cercare la tua futura casa",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                        //.padding(vertical = 20.dp),
-                    textAlign = TextAlign.Center,
-                    color = Color.Black
-                )
-               Spacer(modifier = Modifier.height(10.dp))
-                OutlinedTextField(
-                    value = textFieldRicerca,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = Color(0xFF04198C),
-                        unfocusedBorderColor = Color.Gray,
-                        unfocusedTextColor = Color.Black,
-                        focusedTextColor = Color.Black,
-                        focusedLabelColor = Color(0xFF04198C),
-                        unfocusedLabelColor = Color.Gray,
-                        cursorColor = Color.Black
-                    ),
-                    label = {
-                        Text("Cerca")
-                    },
-                    onValueChange = {
-                        textFieldRicerca = it
-                    },
-                    singleLine = true,
-                    modifier = Modifier.padding(horizontal = 35.dp)
-                        .fillMaxWidth(),
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Cerca",
-                        )
-                    }
-                )
 
-                Spacer(modifier = Modifier.height(15.dp))
-
-                Row(modifier = Modifier
-                    //.fillMaxWidth(),
-                    .padding(start = 30.dp), // Padding esterno per allineamento
-                    verticalAlignment = Alignment.CenterVertically,
-                    // Distribuisce gli elementi, mettendo il Text a sinistra e l'Icona a destra
-                    horizontalArrangement = Arrangement.SpaceBetween){
-
-
-                    Icon(
-                        imageVector = Icons.Default.TrendingUp,
-                        contentDescription = "Grafico crescente",
-                        tint = mioGialloOcra,
-                        modifier = Modifier.size(24.dp)
-                            .background(color = mioBluScuro, shape = RoundedCornerShape(8.dp))
-
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-
-                    Text(
-                    text = "Ricerche frequenti",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-
-                    textAlign = TextAlign.Left,
-                    color = Color.Black
-                )
-
-
-                }
-
-                // ROW SCORRIBILE IN ORIZZONTALE
-
-                Row(
-                    // Riempi la larghezza del contenitore e aggiungi un padding verticale esterno
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .horizontalScroll(scrollState),
-
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-
-                    ) {
-                    Card(
-                        modifier = Modifier
-                            // Forza la larghezza per assicurare che sia scorrevole
-                            .width(150.dp)
-                            .height(100.dp),
-
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.Red),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        // Contenuto della Card
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(10.dp)
-                        ) {
-                            Text(text = "PROVA", color = Color.White)
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier
-                            .width(150.dp)
-                            .height(100.dp),
-
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.Red),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        // Contenuto della Card
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(10.dp)
-                        ) {
-                            Text(text = "PROVA", color = Color.White)
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier
-                            // Forza la larghezza per assicurare che sia scorrevole
-                            .width(150.dp)
-                            .height(100.dp),
-
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.Red),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        // Contenuto della Card
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(10.dp)
-                        ) {
-                            Text(text = "PROVA", color = Color.White)
-                        }
-                    }
-
-                }
-            }
          },
         bottomBar = {
             myBottomNavBar()
@@ -218,12 +85,235 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
         Column(
             modifier = Modifier
-
                 .padding(innerPadding)
-                .fillMaxSize()
-        ) {}
+
+        ) {
+            Spacer(modifier = Modifier.height(30.dp))
+            Text(
+                text = "Incomincia a cercare la tua futura casa",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                //.padding(vertical = 20.dp),
+                textAlign = TextAlign.Center,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Button(
+                onClick = { navController.navigate(Screen.MappaScreen.withLocation(
+                    locationRoma //placeholder
+                )) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioBackgroung,
+                    contentColor = mieScritte,
+                ),
+                border = BorderStroke(1.dp, Color.Gray),
+                shape = RectangleShape,
+                modifier = Modifier.padding(horizontal = 35.dp)
+                    .width(400.dp)
+                    .height(45.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Cerca",
+                    )
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Text("Cerca", textAlign = TextAlign.Center, fontSize = 17.sp)
+                }
+            }
+            /*
+            OutlinedTextField(
+                value = textFieldRicerca,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = mioBluScuro,
+                    unfocusedBorderColor = Color.Gray,
+                    unfocusedTextColor = Color.Black,
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = mioBluScuro,
+                    unfocusedLabelColor = Color.Gray,
+                    cursorColor = Color.Black
+                ),
+                label = {
+                    Text("Cerca")
+                },
+                onValueChange = {
+                    textFieldRicerca = it
+                },
+                singleLine = true,
+                modifier = Modifier.padding(horizontal = 35.dp)
+                    .fillMaxWidth(),
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Cerca",
+                    )
+                }
+            )
+            */
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Row(modifier = Modifier
+                //.fillMaxWidth(),
+                .padding(start = 30.dp), // Padding esterno per allineamento
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween){
+
+
+                Icon(
+                    imageVector = Icons.Default.TrendingUp,
+                    contentDescription = "Grafico crescente",
+                    tint = mioGialloOcra,
+                    modifier = Modifier.size(24.dp)
+                        .background(color = mioBluScuro, shape = RoundedCornerShape(8.dp))
+
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Text(
+                    text = "Ricerche frequenti",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+
+                    textAlign = TextAlign.Left,
+                    color = Color.Black
+                )
+
+
+            }
+            Spacer(modifier = Modifier.height(15.dp))
+
+            // ROW SCORRIBILE IN ORIZZONTALE
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    //.padding(start = 30.dp, end = 30.dp)
+                    .horizontalScroll(scrollState),
+
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+
+                ) {
+                Spacer(modifier = Modifier.width(20.dp))
+
+                Card(
+                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                        locationNapoli //placeholder
+                    ))},
+                    modifier = Modifier
+                        .width(280.dp)
+                        .height(165.dp),
+
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(width = 1.dp, color = Color.Black),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                        Column(modifier = Modifier
+                            .fillMaxWidth(),
+                           // verticalAlignment = Alignment.CenterVertically,
+                           // horizontalArrangement = Arrangement.Absolute.Center
+                        ){
+                            Image(painterResource(
+                                id = R.drawable.anteprima_napoli),
+                                contentDescription = "anteprima napoli",
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Text(text = "Cerca a NAPOLI", color = Color.Black, fontSize = 15.sp, modifier = Modifier.padding(10.dp) )
+                        }
+                    }
+
+
+                Card(
+                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                        locationMilano //placeholder
+                    ))},
+                    modifier = Modifier
+                        .width(280.dp)
+                        .height(165.dp),
+
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(width = 1.dp, color = Color.Black),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(modifier = Modifier
+                        .fillMaxWidth(),
+                        // verticalAlignment = Alignment.CenterVertically,
+                        // horizontalArrangement = Arrangement.Absolute.Center
+                    ){
+                        Image(painterResource(
+                            id = R.drawable.anteprima_napoli),
+                            contentDescription = "anteprima milano",
+                            contentScale = ContentScale.FillWidth,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Text(text = "Cerca a MILANO", color = Color.Black, fontSize = 15.sp, modifier = Modifier.padding(10.dp) )
+                    }
+                }
+
+                Card(
+                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                        locationRoma //placeholder, deve aprire pagina con filtri etc
+                    ))},
+                    modifier = Modifier
+                        .width(280.dp)
+                        .height(165.dp),
+
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(width = 1.dp, color = Color.Black),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(modifier = Modifier
+                        .fillMaxWidth(),
+                        // verticalAlignment = Alignment.CenterVertically,
+                        // horizontalArrangement = Arrangement.Absolute.Center
+                    ){
+                        Image(painterResource(
+                            id = R.drawable.anteprima_napoli),
+                            contentDescription = "anteprima roma",
+                            contentScale = ContentScale.FillWidth,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Text(text = "Cerca a ROMA", color = Color.Black, fontSize = 15.sp,modifier = Modifier.padding(10.dp) )
+                    }
+                }
+                Spacer(modifier = Modifier.width(20.dp))
+
+                }
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Button(
+                onClick = {
+                    //navController.navigate(Screen.MappaScreen.route)//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioGialloOcra,
+                    contentColor = mieScritte
+                ),
+                modifier = Modifier.height(50.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 80.dp)
+            ) {
+                Text("Cerca sulla mappa", fontSize = 17.sp)
+            }
+            }
+
+        }
     }
-}
+
 /*
 @Preview
 @Composable

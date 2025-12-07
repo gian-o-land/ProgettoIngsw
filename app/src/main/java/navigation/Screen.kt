@@ -1,6 +1,7 @@
 package navigation
 
 import android.net.Uri
+import com.google.android.gms.maps.model.LatLng
 
 sealed class Screen(val route: String) {
     data object LoginScreen: Screen("login_screen")
@@ -12,5 +13,15 @@ sealed class Screen(val route: String) {
             return "$route?mailUtente=${Uri.encode(mailUtente)}"//return "$route/${Uri.encode(mailUtente)}"
         }
     }
+    data object MappaScreen : Screen("mappa_screen") {
 
-}
+        // 1. Questa variabile serve al NavHost per sapere COSA aspettarsi
+        // Corrisponde a: "mappa_screen?lat={lat}&lng={lng}"
+        val routeWithArgs = "$route?lat={lat}&lng={lng}"
+
+        // 2. Questa funzione serve al NavController per sapere DOVE andare
+        fun withLocation(location: LatLng): String {
+            // Estraiamo i double e li mettiamo nella stringa
+            return "$route?lat=${location.latitude}&lng=${location.longitude}"
+        }
+    }}

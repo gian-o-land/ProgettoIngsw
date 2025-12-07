@@ -12,6 +12,8 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.google.android.gms.maps.model.LatLng
+import gui.MappaScreen
 import gui.UtenteScreen
 import java.util.Map.entry
 
@@ -45,6 +47,30 @@ fun Navigation() {
             })
         ){ entry->
             UtenteScreen(emailUtente = entry.arguments?.getString("mailUtente")?:"<NomeCognomeUtente>", navController=navController)
+        }
+
+        composable(
+            route = Screen.MappaScreen.route + "?lat={lat}&lng={lng}",
+            arguments = listOf(
+                navArgument("lat") {// non supporta tipo double quindi uso prima string e poi lo converto
+                    type = NavType.StringType
+                    defaultValue = "0.0"
+                },
+                navArgument("lng") {
+                    type = NavType.StringType
+                    defaultValue = "0.0"
+                }
+            )
+        ) { entry ->
+            val lat = entry.arguments?.getString("lat")?.toDoubleOrNull() ?: 0.0
+            val lng = entry.arguments?.getString("lng")?.toDoubleOrNull() ?: 0.0
+
+            val locationObj = LatLng(lat, lng)
+
+            MappaScreen(
+                location = locationObj,
+                navController = navController
+            )
         }
 
     }

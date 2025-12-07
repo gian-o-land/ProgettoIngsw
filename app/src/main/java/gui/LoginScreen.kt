@@ -128,7 +128,9 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
             )
             Spacer(modifier = Modifier.height(30.dp))
             Button(
-                {},
+                {
+                    navController.navigate(Screen.UtenteScreen.route)//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioGialloOcra,
                     contentColor = mieScritte
