@@ -40,9 +40,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import com.example.progettoingsw.R
+import com.google.android.gms.maps.model.LatLng
+import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +55,9 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
         mutableStateOf("")
     }
     val scrollState = rememberScrollState()
-
+    val locationRoma = LatLng(41.9028, 12.4964)
+    val locationMilano = LatLng(45.4642, 9.1900)
+    val locationNapoli = LatLng(40.8518, 14.2681)
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -95,6 +100,34 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(10.dp))
+
+            Button(
+                onClick = { navController.navigate(Screen.MappaScreen.withLocation(
+                    locationRoma //placeholder
+                )) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioBackgroung,
+                    contentColor = mieScritte,
+                ),
+                border = BorderStroke(1.dp, Color.Gray),
+                shape = RectangleShape,
+                modifier = Modifier.padding(horizontal = 35.dp)
+                    .width(400.dp)
+                    .height(45.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Cerca",
+                    )
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Text("Cerca", textAlign = TextAlign.Center, fontSize = 17.sp)
+                }
+            }
+            /*
             OutlinedTextField(
                 value = textFieldRicerca,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -123,6 +156,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                     )
                 }
             )
+            */
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -170,7 +204,9 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 Spacer(modifier = Modifier.width(20.dp))
 
                 Card(
-                    onClick = {},
+                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                        locationNapoli //placeholder
+                    ))},
                     modifier = Modifier
                         .width(280.dp)
                         .height(165.dp),
@@ -198,7 +234,9 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
 
                 Card(
-                    onClick = {},
+                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                        locationMilano //placeholder
+                    ))},
                     modifier = Modifier
                         .width(280.dp)
                         .height(165.dp),
@@ -225,7 +263,9 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 }
 
                 Card(
-                    onClick = {},
+                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                        locationRoma //placeholder, deve aprire pagina con filtri etc
+                    ))},
                     modifier = Modifier
                         .width(280.dp)
                         .height(165.dp),
