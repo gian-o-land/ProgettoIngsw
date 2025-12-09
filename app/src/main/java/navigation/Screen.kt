@@ -13,6 +13,12 @@ sealed class Screen(val route: String) {
             return "$route?mailUtente=${Uri.encode(mailUtente)}"//return "$route/${Uri.encode(mailUtente)}"
         }
     }
+
+    data object AdminScreen: Screen("admin_screen"){
+        fun withMailAdmin(usernameAdmin: String): String{
+            return "$route?usernameAdmin=${Uri.encode(usernameAdmin)}"
+        }
+    }
     data object MappaScreen : Screen("mappa_screen") {
 
         // 1. Questa variabile serve al NavHost per sapere COSA aspettarsi

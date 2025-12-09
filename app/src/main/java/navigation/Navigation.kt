@@ -13,9 +13,9 @@ import androidx.compose.animation.ExitTransition
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.maps.model.LatLng
+import gui.AdminScreen
 import gui.MappaScreen
 import gui.UtenteScreen
-import java.util.Map.entry
 
 @Composable
 fun Navigation() {
@@ -47,6 +47,17 @@ fun Navigation() {
             })
         ){ entry->
             UtenteScreen(emailUtente = entry.arguments?.getString("mailUtente")?:"<NomeCognomeUtente>", navController=navController)
+        }
+
+        composable(
+            route = Screen.AdminScreen.route + "?usernameAdmin={usernameAdmin}",
+            arguments = listOf(navArgument("usernameAdmin"){
+                type = NavType.StringType;
+                defaultValue = "<UsernameAdmin>"
+                nullable = true
+            })
+        ){ entry ->
+            AdminScreen(usernameAdmin = entry.arguments?.getString("usernameAdmin")?:"<UsernameAdmin>", navController)
         }
 
         composable(

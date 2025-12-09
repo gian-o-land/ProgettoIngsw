@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.ui.unit.dp
 import gui.mioBluScuro
 import gui.mioGialloOcra
@@ -80,5 +82,64 @@ fun myBottomNavBar() {
                     )
                 }
             }
+
+}
+
+@Composable
+fun myBottomNavBar_Admin() {
+
+    data class BottomNavItem(
+        val label: String,
+        val icon: ImageVector
+    )
+    val items = listOf(
+        BottomNavItem("Crea", Icons.Default.AddCircleOutline),
+        BottomNavItem("Profilo", Icons.Default.Person)
+    )
+
+    var selectedItemIndex by remember { mutableIntStateOf(0) }
+
+    NavigationBar(containerColor= mioBluScuro,
+        modifier =
+            Modifier.clip(
+                shape= RoundedCornerShape(
+                    topStart = 16.dp,
+                    topEnd = 16.dp,
+                    bottomStart = 0.dp,
+                    bottomEnd = 0.dp
+                )
+            )
+    ) {
+
+        items.forEachIndexed { index, item ->
+            NavigationBarItem(
+                colors = NavigationBarItemDefaults.colors(
+
+                    selectedIconColor = Color.Black,
+
+                    selectedTextColor = mioGialloOcra,
+
+                    indicatorColor = mioGialloOcra,//.copy(alpha = 0.1f),
+
+                    unselectedIconColor = Color.White,
+                    unselectedTextColor = Color.White
+                ),
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label
+                    )
+                },
+                // Label (testo sotto)
+                label = { Text(item.label) },
+                // Logica di selezione visiva
+                selected = selectedItemIndex == index,
+                onClick = {
+                    selectedItemIndex = index
+                    // Qui in futuro metterai: navController.navigate(...)
+                }
+            )
+        }
+    }
 
 }

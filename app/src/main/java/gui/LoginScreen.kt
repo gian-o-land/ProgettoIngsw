@@ -86,7 +86,9 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
             )
             Spacer(modifier = Modifier.height(20.dp))
             Button(
-                onClick = {},
+                onClick = {
+                    navController.navigate(Screen.AdminScreen.route)
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioBackgroung,
                     contentColor = mieScritte,
@@ -129,7 +131,11 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
             )
             Spacer(modifier = Modifier.height(30.dp))
             myButton(
-                myClick = {navController.navigate(Screen.UtenteScreen.route)},//withMailUtente(emailUtente)
+                myClick = {navController.navigate(Screen.UtenteScreen.route){
+                    popUpTo(0){
+                        inclusive = true
+                    }
+                } },//withMailUtente(emailUtente)
                 testo = "Accedi"
             )
             Spacer(modifier = Modifier.height(40.dp))
