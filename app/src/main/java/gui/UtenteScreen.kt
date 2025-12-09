@@ -102,9 +102,8 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
             Spacer(modifier = Modifier.height(10.dp))
 
             Button(
-                onClick = { navController.navigate(Screen.MappaScreen.withLocation(
-                    locationRoma //placeholder
-                )) },
+                onClick = { navController.navigate(Screen.RicercaScreen.route
+                ) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioBackgroung,
                     contentColor = mieScritte,
@@ -121,42 +120,12 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 ) {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Cerca",
+                        contentDescription = "Cerca per comune o città",
                     )
                     Spacer(modifier = Modifier.width(15.dp))
-                    Text("Cerca", textAlign = TextAlign.Center, fontSize = 17.sp)
+                    Text("Cerca per comune o città", textAlign = TextAlign.Center, fontSize = 17.sp)
                 }
             }
-            /*
-            OutlinedTextField(
-                value = textFieldRicerca,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = mioBluScuro,
-                    unfocusedBorderColor = Color.Gray,
-                    unfocusedTextColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    focusedLabelColor = mioBluScuro,
-                    unfocusedLabelColor = Color.Gray,
-                    cursorColor = Color.Black
-                ),
-                label = {
-                    Text("Cerca")
-                },
-                onValueChange = {
-                    textFieldRicerca = it
-                },
-                singleLine = true,
-                modifier = Modifier.padding(horizontal = 35.dp)
-                    .fillMaxWidth(),
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Cerca",
-                    )
-                }
-            )
-            */
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -213,7 +182,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(width = 1.dp, color = Color.Black),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = mioBluScuro),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                         Column(modifier = Modifier
@@ -228,7 +197,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            Text(text = "Cerca a NAPOLI", color = Color.Black, fontSize = 15.sp, modifier = Modifier.padding(10.dp) )
+                            Text(text = "Cerca a NAPOLI", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(10.dp) )
                         }
                     }
 
@@ -243,7 +212,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(width = 1.dp, color = Color.Black),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = mioBluScuro),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Column(modifier = Modifier
@@ -252,13 +221,13 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                         // horizontalArrangement = Arrangement.Absolute.Center
                     ){
                         Image(painterResource(
-                            id = R.drawable.anteprima_napoli),
+                            id = R.drawable.anteprima_milano),
                             contentDescription = "anteprima milano",
                             contentScale = ContentScale.FillWidth,
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        Text(text = "Cerca a MILANO", color = Color.Black, fontSize = 15.sp, modifier = Modifier.padding(10.dp) )
+                        Text(text = "Cerca a MILANO", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(10.dp) )
                     }
                 }
 
@@ -272,7 +241,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(width = 1.dp, color = Color.Black),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = mioBluScuro),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Column(modifier = Modifier
@@ -281,13 +250,13 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                         // horizontalArrangement = Arrangement.Absolute.Center
                     ){
                         Image(painterResource(
-                            id = R.drawable.anteprima_napoli),
+                            id = R.drawable.anteprima_roma),
                             contentDescription = "anteprima roma",
                             contentScale = ContentScale.FillWidth,
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        Text(text = "Cerca a ROMA", color = Color.Black, fontSize = 15.sp,modifier = Modifier.padding(10.dp) )
+                        Text(text = "Cerca a ROMA", color = Color.White, fontSize = 15.sp,modifier = Modifier.padding(10.dp) )
                     }
                 }
                 Spacer(modifier = Modifier.width(20.dp))
@@ -297,7 +266,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
             Button(
                 onClick = {
-                    //navController.navigate(Screen.MappaScreen.route)//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
+                    navController.navigate(Screen.RicercaMappaScreen.route)//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioGialloOcra,

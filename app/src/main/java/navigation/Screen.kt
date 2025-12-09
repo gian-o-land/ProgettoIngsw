@@ -24,4 +24,7 @@ sealed class Screen(val route: String) {
             // Estraiamo i double e li mettiamo nella stringa
             return "$route?lat=${location.latitude}&lng=${location.longitude}"
         }
-    }}
+    }
+    data object RicercaScreen: Screen("ricerca_screen")
+    data object RicercaMappaScreen: Screen("ricerca_mappa_screen")
+}

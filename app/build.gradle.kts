@@ -67,4 +67,5 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:4.3.3")    // Google Maps per Compose
     implementation("com.google.android.gms:play-services-maps:18.2.0")    // Google Play Services Maps
     implementation(libs.google.maps)
+    implementation("androidx.compose.material3:material3:1.3.1")
 }

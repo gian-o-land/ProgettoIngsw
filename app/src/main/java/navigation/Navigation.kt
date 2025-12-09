@@ -14,6 +14,8 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.maps.model.LatLng
 import gui.MappaScreen
+import gui.RicercaMappaScreen
+import gui.RicercaScreen
 import gui.UtenteScreen
 import java.util.Map.entry
 
@@ -73,5 +75,11 @@ fun Navigation() {
             )
         }
 
+        composable(route = Screen.RicercaScreen.route){
+            RicercaScreen(navController)
+        }
+        composable(route = Screen.RicercaMappaScreen.route){
+            RicercaMappaScreen(navController)
+        }
     }
 }
