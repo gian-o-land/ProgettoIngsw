@@ -68,9 +68,10 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 containerColor =  mioBluScuro
             ),
             title = {
-                Text(text="Ciao, " + emailUtente,
+                Text(text="Ciao,\n" + emailUtente,
                     fontWeight = FontWeight.Bold,
-                    color = mieiTitoli
+                    color = mieiTitoli,
+                    textAlign = TextAlign.Center
                 )
 
             }
