@@ -54,6 +54,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import gui.template.myButton
 import gui.template.myTextField
 import gui.template.myTextField_Password
 import model.source.*
@@ -308,19 +309,10 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                         { nuovoTesto -> testPassword = nuovoTesto }
                     )
                     Spacer(modifier = Modifier.height(40.dp))
-                    Button(
-                        {},
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = mioGialloOcra,
-                            contentColor = mieScritte
-                        ),
-                        modifier = Modifier
-                            .height(50.dp)
-                            .fillMaxWidth()
-                            .padding(horizontal = 80.dp)
-                    ) {
-                        Text("Registrati", fontSize = 17.sp)
-                    }
+                    myButton(
+                        myClick = {},
+                        testo = "Registrati"
+                    )
                     // Aggiungiamo un extra spazio in fondo per scrollare comodamente
                     Spacer(modifier = Modifier.height(100.dp))
                 }

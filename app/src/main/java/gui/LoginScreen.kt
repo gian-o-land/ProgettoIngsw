@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
+import gui.template.myButton
 import gui.template.myTextField
 import gui.template.myTextField_Password
 import navigation.Screen
@@ -127,20 +128,10 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 {nuovoTesto -> textFieldPassword = nuovoTesto}
             )
             Spacer(modifier = Modifier.height(30.dp))
-            Button(
-                {
-                    navController.navigate(Screen.UtenteScreen.route)//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mieScritte
-                ),
-                modifier = Modifier.height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 80.dp)
-            ) {
-                Text("Accedi", fontSize = 17.sp)
-            }
+            myButton(
+                myClick = {navController.navigate(Screen.UtenteScreen.route)},//withMailUtente(emailUtente)
+                testo = "Accedi"
+            )
             Spacer(modifier = Modifier.height(40.dp))
             Text(
                 text = "Non hai un account?",
@@ -150,20 +141,12 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 fontSize = 17.sp
             )
             Spacer(modifier = Modifier.height(10.dp))
-            Button(
-                {
+            myButton(
+                myClick = {
                     navController.navigate(Screen.RegisterScreen.route)
                 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mieScritte
-                ),
-                modifier = Modifier.height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 80.dp)
-            ) {
-                Text("Registrati", fontSize = 17.sp)
-            }
+                testo = "Registrati"
+            )
         }
     }
 }
