@@ -64,7 +64,10 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Absolute.Center
             ){
-                Image(painter = painter, contentDescription = descrizione)
+                Image(
+                    painter = painter,
+                    contentDescription = descrizione,
+                    modifier = Modifier.height(180.dp))
             }
         }
         Card(

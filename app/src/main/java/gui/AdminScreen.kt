@@ -59,7 +59,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
         Column(
             modifier = Modifier.padding(innerPadding)
         ) {
-            Spacer(Modifier.height(30.dp))
+            Spacer(Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -71,7 +71,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                     textAlign = TextAlign.Center
                 )
             }
-            Spacer(Modifier.height(140.dp))
+            Spacer(Modifier.height(50.dp))
             myButton({}, "Crea Sottoadmin")
             Spacer(Modifier.height(60.dp))
             myButton({}, "Crea Agente")
