@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.google.maps.android.SphericalUtil
 
 // Funzione sospesa per non bloccare la UI mentre cerca
 suspend fun cercaCoordinate(context: Context, locationName: String): LatLng? {
@@ -49,5 +50,18 @@ fun eseguiRicerca(luogo:String, scope: CoroutineScope, context:Context, cameraPo
             // Qui potresti mostrare un Toast "Città non trovata"
             Toast.makeText(context, "Luogo non trovato", Toast.LENGTH_SHORT).show()
         }
+    }
+}
+
+
+// Restituisce la distanza in Metri (o Km se dividi)
+fun calcolaDistanza(puntoA: LatLng, puntoB: LatLng): String {
+    // Questa funzione calcola la distanza sulla curvatura della terra
+    val distanzaMetri = SphericalUtil.computeDistanceBetween(puntoA, puntoB)
+
+    return if (distanzaMetri > 1000) {
+        String.format("%.2f km", distanzaMetri / 1000)
+    } else {
+        "${distanzaMetri.toInt()} metri"
     }
 }

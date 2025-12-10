@@ -1,10 +1,12 @@
 package gui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -20,9 +22,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.SearchBarDefaults.inputFieldColors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
@@ -32,6 +36,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,17 +58,14 @@ fun RicercaMappaScreen(navController : NavController) {
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // 1. LA MAPPA (Deve chiudersi PRIMA della SearchBar)
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            // Assicurati che jsonStyleChiaro sia definito o rimuovi questa riga se non ce l'hai
             properties = remember { MapProperties(mapStyleOptions = MapStyleOptions(jsonStyleChiaro)) },
             onMapClick = { coordinataCliccata ->
                 puntoSelezionato = coordinataCliccata
             }
         ) {
-            // DENTRO la mappa ci vanno solo i Marker
             puntoSelezionato?.let { punto ->
                 Marker(
                     state = MarkerState(position = punto),
@@ -73,28 +75,26 @@ fun RicercaMappaScreen(navController : NavController) {
 
                 Circle(
                     center = punto,
-                    // Convertiamo km in metri perché Maps usa i metri
-                    radius = (raggioKm * 1000).toDouble(),
-                    strokeColor = androidx.compose.ui.graphics.Color.Blue, // Bordo Blu
-                    strokeWidth = 3f, // Spessore bordo
-                    fillColor = androidx.compose.ui.graphics.Color.Blue.copy(alpha = 0.2f) // Interno azzurro trasparente
+                    radius = (raggioKm * 1000).toDouble(), // converto km in metri perché Maps usa i metri
+                    strokeColor = Color.Blue,
+                    strokeWidth = 3f,
+                    fillColor = Color.Blue.copy(alpha = 0.2f)
                 )
 
             }
-        } // <--- QUESTA PARENTESI CHIUSA QUI È FONDAMENTALE!
+        }
 
-        // 2. LA BARRA DI RICERCA (Fuori dalla mappa, ma dentro il Box)
         SearchBar(
+            //colors = SearchBarDefaults.colors(containerColor = Color.Transparent),// inputField= inputFieldColors () ),
             query = query,
             onQueryChange = { query = it },
             onSearch = {
                 active = false
-                // Assicurati di avere la funzione eseguiRicerca definita
                 eseguiRicerca(it, scope, context, cameraPositionState)
             },
             active = active,
             onActiveChange = { active = it },
-            placeholder = { Text("Cerca città (es. Milano)...") },
+            placeholder = { Text("Cerca città") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             trailingIcon = {
                 if (active) {
@@ -105,7 +105,8 @@ fun RicercaMappaScreen(navController : NavController) {
                     }
                 }
             },
-            modifier = Modifier.align(Alignment.TopCenter) // Ora funziona perché è figlio diretto di Box
+            modifier = Modifier.align(Alignment.TopCenter)
+            //.padding(horizontal = 12.dp)
         ) {
             val suggerimenti = listOf("Roma", "Milano", "Napoli")
             val suggerimentiFiltrati = suggerimenti.filter { it.contains(query, ignoreCase = true) }
@@ -124,19 +125,19 @@ fun RicercaMappaScreen(navController : NavController) {
         }
         if (puntoSelezionato != null) {
             Surface(
+                border = BorderStroke(width = 1.dp, color = Color.Black),
                 modifier = Modifier
-                    .align(Alignment.BottomCenter) // Incolla in basso
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(16.dp), // Un po' di margine dai bordi
-                shape = MaterialTheme.shapes.medium, // Angoli arrotondati
-                shadowElevation = 8.dp, // Ombretta per farla "galleggiare"
+                    .padding(16.dp),
+                shape = MaterialTheme.shapes.medium, // angoli arrotondati
+                shadowElevation = 8.dp,
                 color = mioBluScuro
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Testo che cambia mentre muovi lo slider
                     Text(
                         text = "Raggio di ricerca: ${raggioKm.toInt()} km",
                         style = MaterialTheme.typography.titleMedium,
@@ -154,10 +155,32 @@ fun RicercaMappaScreen(navController : NavController) {
                         onValueChange = { nuovoValore ->
                             raggioKm = nuovoValore
                         },
-                        valueRange = 1f..20f, // Da 1km a 20km
-                        steps = 99, // (Opzionale) Fa scattare lo slider di 1 in 1
+                        valueRange = 1f..20f, // da 1km a 20km
+                        steps = 99, //fa scattare lo slider di 1 in 1
                         modifier = Modifier.padding(top = 8.dp)
                     )
+
+                    Button(
+                        /*
+                        deve trovare tutte le case a distanza di massimo "raggioKM" km dal "puntoCliccato"
+                        le case sono locate a "Inserzione.indirizzo", bisogna calcolare la distanza tra tutte le case
+                        e paragonare quella distanza agli "raggioKM" km
+                        SERVE FUNZIONE calcolaDistanza(context, location1, location2)
+                            con location1=puntoCliccato e location2=cercaCoordinate(context, Inserzione.indirizzo)
+                         SOLUZIONE PRE-DATABASE: lista di indirizzi come sostituto a location2, cosi da poter testare
+                        */
+                        onClick={
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = mioGialloOcra,
+                            contentColor = mieScritte
+                        ),
+                        modifier = Modifier.height(50.dp)
+                            .fillMaxWidth()
+                            .padding(vertical=5.dp,horizontal = 80.dp)
+                    ) {
+                        Text("Conferma", fontSize = 17.sp)
+                    }
                 }
             }
     }
