@@ -3,7 +3,9 @@ package model
 class Inserzione(private val idInserzione: String, private val quadratura: Int, private val nBagni: Int, private val nLocali: Int, private val piano: Int,
                  private val categoria: D_catInser, private val arredamento: D_arred, private val balcone: Boolean, private val ascensore: Boolean,
                  private val terrazzo: Boolean, private val cantina: Boolean, private val piscina: Boolean, private val cucina: Boolean, private val prezzo: Float,
-                 private val classeEnergetica: D_energ, private val citta: String, private val comune: String, private val indirizzo: String, private val agenteCreatore: String) {
+                 private val classeEnergetica: D_energ, private val citta: String, private val comune: String, private val indirizzo: String, private val agenteCreatore: String,
+                 private val latitudine: Double, private val longitudine: Double
+) {
 
     fun getIdInserzione(): String{
         return idInserzione
@@ -79,5 +81,13 @@ class Inserzione(private val idInserzione: String, private val quadratura: Int, 
 
     fun getAgenteCreatore(): String {
         return agenteCreatore
+    }
+
+    fun getLatitudine(): Double {
+        return latitudine
+    }
+
+    fun getLongitudine(): Double {
+        return longitudine
     }
 }

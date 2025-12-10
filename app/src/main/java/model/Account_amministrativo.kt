@@ -1,6 +1,9 @@
 package model
 
-class Account_amministrativo(private var username: String, private var password: String, private var ruolo: D_ruolo, private var adminCreatore: String?) {
+class Account_amministrativo(private var username: String,
+                             private var password: String,
+                             private var ruolo: D_ruolo,
+                             private var adminCreatore: String?) {
 
     fun getUsername(): String{
         return username
