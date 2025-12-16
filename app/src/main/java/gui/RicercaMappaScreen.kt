@@ -2,15 +2,11 @@ package gui
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -36,17 +33,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.SearchBarDefaults.inputFieldColors
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.progettoingsw.R
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -61,7 +54,6 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import kotlinx.coroutines.launch
-import navigation.Screen
 import model.InserzioneTemp
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
@@ -77,11 +69,9 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // STATI
     var query by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
 
-    // STATO DELLA CAMERA
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(location, 10f)
     }
@@ -90,8 +80,6 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
     var raggioKm by remember { mutableFloatStateOf(10f) }
     var listaInserzioniNelCerchio by remember { mutableStateOf<List<InserzioneTemp>>(emptyList()) }
     var isPannelloSliderVisibile by remember { mutableStateOf(false) }
-    //var isPannelloVisualizzaInserzioniVisibile by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.Hidden, // Parte nascosto
@@ -108,29 +96,86 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
     val placesClient = remember { Places.createClient(context) }
     val sessionToken = remember { AutocompleteSessionToken.newInstance() }
 
+    var listaSuggerimenti by remember { mutableStateOf<List<SuggerimentoPlace>>(emptyList()) }
+
+    var currentPeekHeight by remember { mutableStateOf(0.dp) }
+
+    LaunchedEffect(query) {
+
+        if (query.length > 1) { //scrivi almeno 2 lettere
+
+            delay(300)
+
+            val request = FindAutocompletePredictionsRequest.builder()
+                .setSessionToken(sessionToken)
+                .setQuery(query)
+                .setCountries("IT")
+                .build()
+
+            placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener { response ->
+
+                    listaSuggerimenti = response.autocompletePredictions.map {
+                        SuggerimentoPlace(
+                            it.placeId,
+                            it.getPrimaryText(null).toString(),
+                            it.getSecondaryText(null).toString()
+                        )
+                    }
+                }
+                .addOnFailureListener { exception ->
+
+                    listaSuggerimenti = emptyList()
+                }
+        }
+    }
+
     LaunchedEffect(pagerState.currentPage) {
-        // Controllo di sicurezza: procediamo solo se la lista non è vuota
         if (listaInserzioniNelCerchio.isNotEmpty()) {
 
-            // 1. Prendo l'inserzione corrispondente alla pagina corrente
-            val inserzioneSelezionata = listaInserzioniNelCerchio[pagerState.currentPage]
+            val inserzioneSelezionata = listaInserzioniNelCerchio[pagerState.currentPage]//prendo l'inserzione corrispondente alla pagina corrente
 
-            // 2. Sposto la telecamera su quel punto (Animazione fluida)
-            cameraPositionState.animate(
+
+            cameraPositionState.animate( // sposto la telecamera su quel punto (Animazione fluida)
+
                 update = CameraUpdateFactory.newLatLng(inserzioneSelezionata.coordinate),
-                durationMs = 800 // Durata animazione in millisecondi (meno di 1 sec è ideale)
+                durationMs = 800
             )
         }
     }
+
+    fun vaiAlLuogo(placeId: String, descrizione: String) {
+        val fields = listOf(Place.Field.LAT_LNG)
+        val request = FetchPlaceRequest.builder(placeId, fields).setSessionToken(sessionToken).build()
+
+        placesClient.fetchPlace(request).addOnSuccessListener { response ->
+            val coordinate = response.place.latLng
+            if (coordinate != null) {
+                scope.launch { cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(coordinate, 12f)) }
+
+                puntoSelezionato = coordinate
+                query = descrizione
+                active = false
+
+                // Reset interfaccia per nuova selezione
+                listaInserzioniNelCerchio = emptyList()
+                isPannelloSliderVisibile = true
+                isBottomSheetEnabled = false
+                currentPeekHeight = 0.dp // Nascondo la sheet
+                scope.launch { scaffoldState.bottomSheetState.partialExpand() }
+            }
+        }
+    }
+
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContainerColor = Color.White,
         sheetContentColor = Color.White,
 
-        // 1. INVISIBILE QUANDO CHIUSA
-       // sheetPeekHeight = 0.dp,
+
+        sheetPeekHeight = currentPeekHeight,
         sheetDragHandle = null,
-        // 2. BLOCCATA FINCHÉ NON DAI L'OK
         sheetSwipeEnabled = isBottomSheetEnabled,
 
         sheetContent = {
@@ -217,9 +262,9 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                 val markerState = rememberMarkerState(position = inserzione.coordinate)
                 LaunchedEffect(isSelezionato) {
                     if (isSelezionato) {
-                        markerState.showInfoWindow() // <--- FORZA L'APERTURA DEL TITOLO
+                        markerState.showInfoWindow()
                     } else {
-                        markerState.hideInfoWindow() // Chiude quelli non selezionati (pulizia)
+                        markerState.hideInfoWindow()
                     }
                 }
                 Marker(
@@ -244,10 +289,7 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                         }
                         false
                     },
-                    //state = MarkerState(position = inserzione.coordinate),
-                    //title = inserzione.nome,
-                   // snippet = "Toccata!",
-                   // icon = BitmapDescriptorFactory.defaultMarker(50f)//.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)
+
                 )
             }
 
@@ -273,12 +315,20 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
         }
 
         SearchBar(
-            //colors = SearchBarDefaults.colors(containerColor = Color.Transparent),// inputField= inputFieldColors () ),
             query = query,
             onQueryChange = { query = it },
             onSearch = {
                 active = false
-                eseguiRicerca(it, scope, context, cameraPositionState)
+
+                isBottomSheetEnabled = false
+                currentPeekHeight = 0.dp
+                scope.launch {
+                    scaffoldState.bottomSheetState.partialExpand() // La chiudo visivamente
+                }
+
+                listaInserzioniNelCerchio = emptyList()
+
+                eseguiRicerca(query, scope, context, cameraPositionState)
             },
             active = active,
             onActiveChange = { active = it },
@@ -293,23 +343,27 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                     }
                 }
             },
-            //modifier = Modifier.align(Alignment.TopCenter)
         ) {
-            val suggerimenti = listOf("Roma", "Milano", "Napoli")
-            val suggerimentiFiltrati = suggerimenti.filter { it.contains(query, ignoreCase = true) }
 
-            suggerimentiFiltrati.forEach { item ->
-                ListItem(
-                    headlineContent = { Text(item) },
-                    leadingContent = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                    modifier = Modifier.clickable {
-                        query = item
-                        active = false
-                        eseguiRicerca(item, scope, context, cameraPositionState)
-                    }
-                )
+            LazyColumn {
+                items(listaSuggerimenti) { luogo ->
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                luogo.testoPrincipale,
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        supportingContent = { Text(luogo.testoSecondario) },
+                        leadingContent = { Icon(Icons.Default.LocationOn, null) },
+                        modifier = Modifier.clickable {
+                            vaiAlLuogo(luogo.id, luogo.testoPrincipale)
+                        }
+                    )
+                }
             }
         }
+
         if (puntoSelezionato != null) {
             if (isPannelloSliderVisibile) {
                 Box(modifier=Modifier.fillMaxSize()){
