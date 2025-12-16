@@ -40,12 +40,11 @@ import gui.showPopup_Sottoadmin
 import gui.simpleVerticalScrollbar
 
 @Composable
-fun myExpandableCard_Sottoadmin(
+fun MyExpandableCard_Sottoadmin(
     animatedHeight: Dp,
     headerHeight: Dp,
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    onSelectedChange: (String?) -> Unit,
     listState: LazyListState,
     lista: List<String>,
     titolo: String,
@@ -106,16 +105,6 @@ fun myExpandableCard_Sottoadmin(
                         .height(50.dp)
                         .clickable {
                             popupSelection = itemLista
-                            onSelectedChange(itemLista) // Apre il popup
-                            /*var oggetto : String? = itemLista
-                            if (oggetto != null){
-                                showPopup_Sottoadmin(
-                                    oggetto,
-                                    {nuovoValore -> oggetto = nuovoValore},
-                                    listaPopup,
-                                    itemHeight
-                                )
-                            }*/
                         },
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
