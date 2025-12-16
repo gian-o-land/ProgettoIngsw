@@ -89,8 +89,31 @@ fun Navigation() {
         composable(route = Screen.RicercaScreen.route){
             RicercaScreen(navController)
         }
-        composable(route = Screen.RicercaMappaScreen.route){
-            RicercaMappaScreen(navController)
+        composable(
+            route = Screen.RicercaMappaScreen.route + "?lat={lat}&lng={lng}",
+            arguments = listOf(
+                navArgument("lat") {// non supporta tipo double quindi uso prima string e poi lo converto
+                    type = NavType.StringType
+                    defaultValue = "0.0"
+                },
+                navArgument("lng") {
+                    type = NavType.StringType
+                    defaultValue = "0.0"
+                }
+            )
+        ) { entry ->
+            val lat = entry.arguments?.getString("lat")?.toDoubleOrNull() ?: 0.0
+            val lng = entry.arguments?.getString("lng")?.toDoubleOrNull() ?: 0.0
+
+            val locationObj = LatLng(lat, lng)
+
+            RicercaMappaScreen(
+                location = locationObj,
+                navController = navController
+            )
+        }
+        composable(route = Screen.RicercaScreen.route){
+            RicercaScreen(navController)
         }
     }
 }

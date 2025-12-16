@@ -32,5 +32,19 @@ sealed class Screen(val route: String) {
         }
     }
     data object RicercaScreen: Screen("ricerca_screen")
-    data object RicercaMappaScreen: Screen("ricerca_mappa_screen")
+    data object RicercaMappaScreen : Screen("ricerca_mappa_screen") {
+
+        // 1. Questa variabile serve al NavHost per sapere COSA aspettarsi
+        // Corrisponde a: "mappa_screen?lat={lat}&lng={lng}"
+        val routeWithArgs = "$route?lat={lat}&lng={lng}"
+
+        // 2. Questa funzione serve al NavController per sapere DOVE andare
+        fun withLocation(location: LatLng): String {
+            // Estraiamo i double e li mettiamo nella stringa
+            return "$route?lat=${location.latitude}&lng=${location.longitude}"
+        }
+
+    }
+    data object FiltriScreen: Screen("filtri_screen")
+
 }

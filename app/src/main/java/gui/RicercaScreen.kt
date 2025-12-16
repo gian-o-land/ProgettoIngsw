@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.foundation.layout.Box
+import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -35,7 +36,7 @@ fun RicercaScreen(navController : NavController) {
     var query by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(true) } //la barra si apre subito
     // Lista finta di risultati per l'esempio
-    val searchHistory = listOf("Roma", "Milano", "Napoli", "Pizzeria da Michele")
+    val searchHistory = listOf("Roma", "Milano", "Napoli")
 
     Scaffold(
         modifier = Modifier
@@ -50,6 +51,9 @@ fun RicercaScreen(navController : NavController) {
                     active = false // Chiude la lista quando premi invio
                     // QUI FAI PARTIRE LA LOGICA DI GEOCODING O NAVIGAZIONE
                     println("Cercando: $it")
+
+                    navController.navigate(Screen.FiltriScreen.route)
+
                 },
                 active = active,
                 onActiveChange = { active = it },

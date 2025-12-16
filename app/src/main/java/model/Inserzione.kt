@@ -1,4 +1,5 @@
 package model
+import com.google.android.gms.maps.model.LatLng
 
 class Inserzione(private val idInserzione: String, private val quadratura: Int, private val nBagni: Int, private val nLocali: Int, private val piano: Int,
                  private val categoria: D_catInser, private val arredamento: D_arred, private val balcone: Boolean, private val ascensore: Boolean,
@@ -90,4 +91,13 @@ class Inserzione(private val idInserzione: String, private val quadratura: Int, 
     fun getLongitudine(): Double {
         return longitudine
     }
+
 }
+
+
+
+data class InserzioneTemp(
+    val nome: String,
+    val coordinate: LatLng,
+    val nomeImmagine:String //per inserzione temporanea è solo 1 immagine
+)

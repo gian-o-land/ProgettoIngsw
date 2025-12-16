@@ -126,7 +126,6 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
         }
     }
 
-    // CALCOLI GRAFICI
     val currentHeaderHeightDp = with(density) { currentHeaderHeightPx.toDp() }
 
     // Tiriamo su la lista per coprire lo spazio lasciato dal padding fisso

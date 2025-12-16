@@ -74,6 +74,13 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                     textAlign = TextAlign.Center
                 )
 
+            },
+                    navigationIcon = {
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    "Logo",
+                    modifier = Modifier.height(50.dp).width(50.dp)
+                )
             }
         )
 
@@ -174,7 +181,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 Spacer(modifier = Modifier.width(20.dp))
 
                 Card(
-                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                    onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
                         locationNapoli //placeholder
                     ))},
                     modifier = Modifier
@@ -204,7 +211,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
 
                 Card(
-                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                    onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
                         locationMilano //placeholder
                     ))},
                     modifier = Modifier
@@ -233,7 +240,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 }
 
                 Card(
-                    onClick = {navController.navigate(Screen.MappaScreen.withLocation(
+                    onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
                         locationRoma //placeholder, deve aprire pagina con filtri etc
                     ))},
                     modifier = Modifier
@@ -267,7 +274,9 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
             Button(
                 onClick = {
-                    navController.navigate(Screen.RicercaMappaScreen.route)//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
+                    navController.navigate(Screen.RicercaMappaScreen.withLocation(
+                        locationRoma ))//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
+                   // navController.navigate(Screen.RicercaMappaScreen.route)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioGialloOcra,
