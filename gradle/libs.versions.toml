@@ -14,6 +14,8 @@ material3 = "1.4.0"
 navigationCompose = "2.9.6"
 fragment = "1.8.9"
 foundationLayout = "1.10.0"
+foundation = "1.10.0"
+runtime = "1.10.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +37,8 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 google-maps={ group = "com.google.android.gms", name = "play-services-maps", version.ref = "googleMaps" }
 androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
