@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.runtime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,5 +72,4 @@ dependencies {
     implementation(libs.google.maps)
     implementation("androidx.compose.material3:material3:1.3.1")
     implementation("com.google.maps.android:android-maps-utils:3.8.0") // per calcolaDistanza
-    implementation("com.google.android.libraries.places:places:3.3.0")
 }
