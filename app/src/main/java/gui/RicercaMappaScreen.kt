@@ -61,11 +61,13 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import kotlinx.coroutines.delay
+import navigation.Screen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RicercaMappaScreen(location: LatLng, navController : NavController) {
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -102,7 +104,7 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
 
     LaunchedEffect(query) {
 
-        if (query.length > 1) { //scrivi almeno 2 lettere
+        if (query.length > 0) { //scrivo almeno 1 lettera
 
             delay(300)
 
@@ -214,6 +216,7 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                     pageIndex ->
                 val inserzione = listaInserzioniNelCerchio[pageIndex]
                 Card(
+                    onClick = {navController.navigate(Screen.InserzioneScreen.withIdInserzione("inserzione.nome"))}, // QUANDO CI SARA' IL DB, AL POSTO DI inserzione.nome CI ANDRA' L' idInserzione, passato solo lui perche possono essere passate solo stringhe tramite NAVIGATION
                     modifier = Modifier
                         .fillMaxWidth() // La larghezza è gestita dal Pager
                         .height(165.dp),
@@ -221,7 +224,7 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                     colors = CardDefaults.cardColors(containerColor = Color.Red), // Usa i tuoi colori
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {Column {
-                    // Immagine (se ce l'hai nell'oggetto InserzioneTemp)
+                    // QUI DA AGGIUNGERE IMMAGINE (se ce l'hai nell'oggetto InserzioneTemp)
                     // Image(...)
 
                     Text(

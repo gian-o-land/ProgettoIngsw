@@ -14,6 +14,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.maps.model.LatLng
 import gui.AdminScreen
+import gui.InserzioneScreen
 import gui.MappaScreen
 import gui.RicercaMappaScreen
 import gui.RicercaScreen
@@ -114,6 +115,17 @@ fun Navigation() {
         }
         composable(route = Screen.RicercaScreen.route){
             RicercaScreen(navController)
+        }
+
+        composable(
+            route = Screen.InserzioneScreen.route + "?idInserzione={IdInserzione}",
+            arguments = listOf(navArgument("idInserzione"){
+                type = NavType.StringType;
+                defaultValue = "<IdInserzione>"
+                nullable = true
+            })
+        ){ entry->
+            InserzioneScreen(idInserzione = entry.arguments?.getString("idInserzione")?:"<IdInserzione>", navController=navController)
         }
     }
 }

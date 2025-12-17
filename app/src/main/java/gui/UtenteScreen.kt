@@ -293,10 +293,3 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
         }
     }
 
-/*
-@Preview
-@Composable
-fun SimpleComposablePreview() {
-    UtenteScreen(
-    )
-}*/
