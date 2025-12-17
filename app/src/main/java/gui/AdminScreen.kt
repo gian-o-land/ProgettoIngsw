@@ -53,6 +53,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.window.Dialog
 import gui.template.myExpandableCard_Agenti
 import gui.template.MyExpandableCard_Sottoadmin
+import gui.template.myCardInserzione
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,9 +91,10 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
     var isExpandedAgenti by remember { mutableStateOf(false) }
     val animatedHeightAgenti = animatedHeight(listaAgenti, isExpandedAgenti, headerHeight, itemHeight)
 
+    val indirizzo = "via sal cazzo, Piscitielli, Ita"
     //popup agente
     val listaImmobili = mapOf(
-            "immobile_esempio_1" to R.drawable.immobile_esempio_1,
+            "Via:$indirizzo\nquadratura: 30m^2\nprezzo: 200000€" to R.drawable.immobile_esempio_1,
             "immobile_esempio_2" to R.drawable.immobile_esempio_2,
             "immobile_esempio_3" to R.drawable.immobile_esempio_3,
             "immobile_esempio_4" to R.drawable.immobile_esempio_4,
@@ -101,7 +103,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
     val listState_Agente_PopUp = rememberLazyListState()
     val maxItemsToShow = 1
     val visibleItemsCount = minOf(listaImmobili.size, maxItemsToShow)
-    val height_Column_PopUp = 190.dp * visibleItemsCount
+    val height_Column_PopUp = 200.dp * visibleItemsCount
 
     Scaffold(
         modifier = Modifier
@@ -241,11 +243,60 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                             items(listaImmobili.entries.toList()){ immobile ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
-                                        .height(190.dp),
+                                        .height(200.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Card(
+                                    myCardInserzione(
+                                        myModifier = Modifier
+                                            .height(180.dp)
+                                            .width(250.dp),
+                                        immobile = immobile
+                                    )
+                                    /*Card(
+                                        modifier = Modifier
+                                            .height(180.dp)
+                                            .width(250.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                                        border = BorderStroke(2.dp, mioBluScuro)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            // PRIMA ROW: 65% dell'altezza
+                                            Row(
+                                                modifier = Modifier
+                                                    .weight(0.65f) // Qui definisci il 65%
+                                                    .fillMaxWidth()
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(immobile.value),
+                                                    contentDescription = "Casa",
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+
+                                            // SECONDA ROW: 35% dell'altezza
+                                            Row(
+                                                modifier = Modifier
+                                                    .weight(0.35f) // Qui definisci il restante 35%
+                                                    .fillMaxWidth()
+                                                    .background(mioBluScuro),
+                                                horizontalArrangement = Arrangement.Start,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = immobile.key,
+                                                    fontSize = 16.sp,
+                                                    color = mieiTitoli,
+                                                    modifier = Modifier.padding(start = 15.dp)
+                                                )
+                                            }
+                                        }
+                                    }*/
+                                    /*Card(
                                         modifier = Modifier.height(165.dp)
                                             .width(220.dp),
                                         shape = RoundedCornerShape(12.dp),
@@ -277,7 +328,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                                                 modifier = Modifier.padding(start = 15.dp)
                                             )
                                         }
-                                    }
+                                    }*/
                                 }
                             }
                         }
