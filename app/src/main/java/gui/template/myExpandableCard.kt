@@ -32,11 +32,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import gui.ShowPopup_Agente
+import gui.ShowPopup_Sottoadmin
 import gui.mieScritte
 import gui.mieiTitoli
 import gui.mioBackgroung
 import gui.mioBluScuro
-import gui.showPopup_Sottoadmin
 import gui.simpleVerticalScrollbar
 
 @Composable
@@ -120,7 +121,7 @@ fun MyExpandableCard_Sottoadmin(
         }
     }
     if (popupSelection != null) {
-        showPopup_Sottoadmin(
+        ShowPopup_Sottoadmin(
             selected = popupSelection,
             onSelectedChange = { nuovoValore ->
                 // Se nuovoValore è null (chiusura), aggiorniamo lo stato locale
@@ -133,16 +134,19 @@ fun MyExpandableCard_Sottoadmin(
 }
 
 @Composable
-fun myExpandableCard_Agenti(
+fun MyExpandableCard_Agenti(
     animatedHeight: Dp,
     headerHeight: Dp,
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    onSelectedChange: (String?) -> Unit,
     listState: LazyListState,
     lista: List<String>,
-    titolo: String
+    titolo: String,
+    listaPopup: Map<String, Int>,
+    itemHeight: Dp
 ){
+    var popupSelection by remember { mutableStateOf<String?>(null) }
+
     Card(
         modifier = Modifier
             .height(animatedHeight)
@@ -194,7 +198,7 @@ fun myExpandableCard_Agenti(
                     modifier = Modifier.fillMaxWidth()
                         .height(50.dp)
                         .clickable {
-                            onSelectedChange(itemLista) // Apre il popup
+                            popupSelection = itemLista
                         },
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
@@ -208,5 +212,16 @@ fun myExpandableCard_Agenti(
                 }
             }
         }
+    }
+    if (popupSelection != null){
+        ShowPopup_Agente(
+            selected = popupSelection,
+            onSelectedChange = { nuovoValore ->
+                // Se nuovoValore è null (chiusura), aggiorniamo lo stato locale
+                popupSelection = nuovoValore
+            },
+            listaImmobili = listaPopup,
+            itemHeight = itemHeight
+        )
     }
 }

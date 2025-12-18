@@ -1,8 +1,7 @@
 package gui
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,21 +37,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.graphics.RectangleShape
+import gui.template.myCardInserzione
 
+@SuppressLint("UnnecessaryComposedModifier")
 fun Modifier.simpleVerticalScrollbar(
     state: LazyListState,
     width: Dp = 4.dp,
     color: Color = Color.Gray
 ): Modifier = composed {
-    val targetAlpha = if (state.isScrollInProgress) 1f else 0f
-    // Opzionale: Animazione di dissolvenza. Se la vuoi sempre visibile, imposta alpha a 1f fisso.
-    val duration = if (state.isScrollInProgress) 150 else 500
-
-    val alpha by animateFloatAsState(
-        targetValue = targetAlpha,
-        animationSpec = tween(durationMillis = duration),
-        label = "ScrollbarAlpha"
-    )
 
     drawWithContent {
         drawContent()
@@ -115,16 +107,16 @@ fun animatedHeight(
 }
 
 @Composable
-fun showPopup_Sottoadmin(
+fun ShowPopup_Sottoadmin(
     selected: String?,
     onSelectedChange: (String?) -> Unit,
     listaAgenti: List<String>,
     itemHeight: Dp
 ){
-    val listState_Sottoadmin_PopUp = rememberLazyListState()
+    val liststateSottoadminPopup = rememberLazyListState()
     val maxItemsToShow = 3
     val visibleItemsCount = minOf(listaAgenti.size, maxItemsToShow)
-    val height_Column_PopUp = itemHeight * visibleItemsCount
+    val heightColumnPopup = itemHeight * visibleItemsCount
 
     Dialog(onDismissRequest = {
         onSelectedChange(null)
@@ -167,7 +159,7 @@ fun showPopup_Sottoadmin(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(height_Column_PopUp),
+                    .height(heightColumnPopup),
                 colors = CardDefaults.cardColors(
                     containerColor = mioBackgroung
                 ),
@@ -175,12 +167,12 @@ fun showPopup_Sottoadmin(
                 elevation = CardDefaults.cardElevation(8.dp)
             ) {
                 LazyColumn(
-                    state = listState_Sottoadmin_PopUp,
+                    state = liststateSottoadminPopup,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(end = 2.dp)
                         .simpleVerticalScrollbar(
-                            state = listState_Sottoadmin_PopUp
+                            state = liststateSottoadminPopup
                         )
                 ) {
                     items(listaAgenti){ agenti ->
@@ -200,6 +192,93 @@ fun showPopup_Sottoadmin(
                                 fontSize = 16.sp,
                                 color = mieScritte,
                                 modifier = Modifier.padding(start = 15.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ShowPopup_Agente(
+    selected: String?,
+    onSelectedChange: (String?) -> Unit,
+    listaImmobili: Map<String, Int>,
+    itemHeight: Dp
+){
+    val liststateAgentePopup = rememberLazyListState()
+    val maxItemsToShow = 1
+    val visibleItemsCount = minOf(listaImmobili.size, maxItemsToShow)
+    val heightColumnPopup = itemHeight * visibleItemsCount
+
+    Dialog(onDismissRequest = {}) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = mioBackgroung
+            ),
+            border = BorderStroke(2.dp, mioBluScuro),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ){
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(mioBluScuro),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Inserzioni create da:\n$selected",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = mieiTitoli,
+                    modifier = Modifier.padding(start = 15.dp)
+                )
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Chiudi",
+                    tint = mioGialloOcra,
+                    modifier = Modifier.padding(end = 10.dp)
+                        .height(25.dp)
+                        .width(25.dp)
+                        .clickable{onSelectedChange(null)}
+                )
+            }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(heightColumnPopup),
+                colors = CardDefaults.cardColors(
+                    containerColor = mioBackgroung
+                ),
+                shape = RectangleShape,
+                elevation = CardDefaults.cardElevation(8.dp)
+            ) {
+                LazyColumn(
+                    state = liststateAgentePopup,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 2.dp)
+                        .simpleVerticalScrollbar(
+                            state = liststateAgentePopup
+                        )
+                ) {
+                    items(listaImmobili.entries.toList()){ immobile ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .height(200.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            myCardInserzione(
+                                myModifier = Modifier
+                                    .height(180.dp)
+                                    .width(250.dp),
+                                immobile = immobile
                             )
                         }
                     }
