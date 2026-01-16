@@ -54,6 +54,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
     var textFieldRicerca by remember {
         mutableStateOf("")
     }
+
     val scrollState = rememberScrollState()
     val locationRoma = LatLng(41.9028, 12.4964)
     val locationMilano = LatLng(45.4642, 9.1900)
@@ -86,7 +87,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
          },
         bottomBar = {
-            myBottomNavBar()
+            myBottomNavBar(navController)
         }
 
     ) { innerPadding ->
@@ -110,8 +111,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
             Spacer(modifier = Modifier.height(10.dp))
 
             Button(
-                onClick = { navController.navigate(Screen.RicercaScreen.route
-                ) },
+                onClick = { navController.navigate(Screen.RicercaScreen.route) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioBackgroung,
                     contentColor = mieScritte,
@@ -182,7 +182,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
                 Card(
                     onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationNapoli //placeholder
+                        locationNapoli
                     ))},
                     modifier = Modifier
                         .width(280.dp)
@@ -212,7 +212,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
                 Card(
                     onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationMilano //placeholder
+                        locationMilano
                     ))},
                     modifier = Modifier
                         .width(280.dp)
@@ -276,11 +276,10 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 onClick = {
                     navController.navigate(Screen.RicercaMappaScreen.withLocation(
                         locationRoma ))//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
-                   // navController.navigate(Screen.RicercaMappaScreen.route)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioGialloOcra,
-                    contentColor = mieScritte
+                    contentColor = mioBluScuro
                 ),
                 modifier = Modifier.height(50.dp)
                     .fillMaxWidth()

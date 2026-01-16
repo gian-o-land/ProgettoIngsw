@@ -20,64 +20,64 @@ import com.google.android.libraries.places.api.Places
 
 val listaInserzioniFintoDB = listOf(
     // 1. Centro Storico
-    InserzioneTemp("Pantheon", LatLng(41.8986, 12.4769),"PLACEHOLDER"),
+    InserzioneTemp("Pantheon", LatLng(41.8986, 12.4769),"PLACEHOLDER","1"),
 
     // 2. Snodo Ferroviario
-    InserzioneTemp("Stazione Termini", LatLng(41.9009, 12.5020),"PLACEHOLDER"),
+    InserzioneTemp("Stazione Termini", LatLng(41.9009, 12.5020),"PLACEHOLDER","2"),
 
     // 3. Monumento Iconico
-    InserzioneTemp("Colosseo", LatLng(41.8902, 12.4922),"PLACEHOLDER"),
+    InserzioneTemp("Colosseo", LatLng(41.8902, 12.4922),"PLACEHOLDER","3"),
 
     // 4. Area Vaticano
-    InserzioneTemp("San Pietro / Vaticano", LatLng(41.9029, 12.4534),"PLACEHOLDER"),
+    InserzioneTemp("San Pietro / Vaticano", LatLng(41.9029, 12.4534),"PLACEHOLDER", "4" ),
 
     // 5. Movida / Centro Storico
-    InserzioneTemp("Trastevere", LatLng(41.8883, 12.4701),"PLACEHOLDER"),
+    InserzioneTemp("Trastevere", LatLng(41.8883, 12.4701),"PLACEHOLDER","?"),
 
     // 6. Parco Principale
-    InserzioneTemp("Villa Borghese", LatLng(41.9129, 12.4877),"PLACEHOLDER"),
+    InserzioneTemp("Villa Borghese", LatLng(41.9129, 12.4877),"PLACEHOLDER","?"),
 
     // 7. Centro Nord
-    InserzioneTemp("Piazza del Popolo", LatLng(41.9107, 12.4763),"PLACEHOLDER"),
+    InserzioneTemp("Piazza del Popolo", LatLng(41.9107, 12.4763),"PLACEHOLDER","?"),
 
     // 8. Basilica Sud-Est
-    InserzioneTemp("San Giovanni in Laterano", LatLng(41.8863, 12.5097),"PLACEHOLDER"),
+    InserzioneTemp("San Giovanni in Laterano", LatLng(41.8863, 12.5097),"PLACEHOLDER","?"),
 
     // 9. Quartiere Tipico
-    InserzioneTemp("Testaccio", LatLng(41.8767, 12.4745),"PLACEHOLDER"),
+    InserzioneTemp("Testaccio", LatLng(41.8767, 12.4745),"PLACEHOLDER","?"),
 
     // 10. Quartiere Moderno/Industriale
-    InserzioneTemp("Ostiense / Garbatella", LatLng(41.8710, 12.4820),"PLACEHOLDER"),
+    InserzioneTemp("Ostiense / Garbatella", LatLng(41.8710, 12.4820),"PLACEHOLDER","?"),
 
     // 11. Quartiere Residenziale/Uffici
-    InserzioneTemp("Prati", LatLng(41.9100, 12.4630),"PLACEHOLDER"),
+    InserzioneTemp("Prati", LatLng(41.9100, 12.4630),"PLACEHOLDER","?"),
 
     // 12. Quartiere "Bene" Nord
-    InserzioneTemp("Parioli", LatLng(41.9271, 12.4938),"PLACEHOLDER"),
+    InserzioneTemp("Parioli", LatLng(41.9271, 12.4938),"PLACEHOLDER","?"),
 
     // 13. Punto Panoramico Nord-Ovest
-    InserzioneTemp("Monte Mario", LatLng(41.9248, 12.4455),"PLACEHOLDER"),
+    InserzioneTemp("Monte Mario", LatLng(41.9248, 12.4455),"PLACEHOLDER","?"),
 
     // 14. Quartiere Business Sud
-    InserzioneTemp("Laghetto dell'EUR", LatLng(41.8286, 12.4646),"PLACEHOLDER"),
+    InserzioneTemp("Laghetto dell'EUR", LatLng(41.8286, 12.4646),"PLACEHOLDER","?"),
 
     // 15. Zona Universitaria / Residenziale
-    InserzioneTemp("Piazza Bologna / Nomentano", LatLng(41.9180, 12.5180),"PLACEHOLDER"),
+    InserzioneTemp("Piazza Bologna / Nomentano", LatLng(41.9180, 12.5180),"PLACEHOLDER","?"),
 
     // 16. Quartiere Alternativo Est
-    InserzioneTemp("Pigneto", LatLng(41.8890, 12.5280),"PLACEHOLDER"),
+    InserzioneTemp("Pigneto", LatLng(41.8890, 12.5280),"PLACEHOLDER","?"),
 
     // 17. Residenziale Ovest
-    InserzioneTemp("Monteverde", LatLng(41.8760, 12.4550),"PLACEHOLDER"),
+    InserzioneTemp("Monteverde", LatLng(41.8760, 12.4550),"PLACEHOLDER","?"),
 
     // 18. Sport / Nord
-    InserzioneTemp("Stadio Olimpico", LatLng(41.9340, 12.4547),"PLACEHOLDER"),
+    InserzioneTemp("Stadio Olimpico", LatLng(41.9340, 12.4547),"PLACEHOLDER","?"),
 
     // 19. Zona Universitaria Sapienza
-    InserzioneTemp("San Lorenzo", LatLng(41.8990, 12.5150),"PLACEHOLDER"),
+    InserzioneTemp("San Lorenzo", LatLng(41.8990, 12.5150),"PLACEHOLDER","?"),
 
     // 20. Parco Archeologico Sud
-    InserzioneTemp("Parco dell'Appia Antica", LatLng(41.8550, 12.5300),"PLACEHOLDER")
+    InserzioneTemp("Parco dell'Appia Antica", LatLng(41.8550, 12.5300),"PLACEHOLDER","?")
 )
 // Funzione sospesa per non bloccare la UI mentre cerca
 suspend fun cercaCoordinate(context: Context, locationName: String): LatLng? {

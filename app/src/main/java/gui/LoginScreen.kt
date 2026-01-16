@@ -134,11 +134,29 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
             )
             Spacer(modifier = Modifier.height(30.dp))
             myButton(
-                myClick = {navController.navigate(Screen.UtenteScreen.route){
-                    popUpTo(0){
-                        inclusive = true
+                myClick = {
+                    // 1. Verifica che l'email non sia vuota (Opzionale ma consigliato)
+                    if (textFieldEmail.isNotBlank()) {
+
+                        // 2. GENERIAMO LA ROTTA CON I DATI
+                        // Usiamo la funzione creata nel file Screen.kt
+                        val rottaConDati = Screen.UtenteScreen.withMailUtente(textFieldEmail)
+
+                        // 3. NAVIGAZIONE
+                        navController.navigate(rottaConDati) {
+                            // Rimuoviamo il Login dalla storia (così back non torna al login)
+                            popUpTo(Screen.LoginScreen.route) {
+                                inclusive = true
+                            }
+                        }
+                    } else {
+                        // Qui potresti mostrare un errore tipo "Inserisci l'email"
+                        // Per ora navighiamo comunque (passerà stringa vuota)
+                        navController.navigate(Screen.UtenteScreen.withMailUtente("utente@gmail.com")) {
+                            popUpTo(Screen.LoginScreen.route) { inclusive = true }
+                        }
                     }
-                } },//withMailUtente(emailUtente)
+                },
                 testo = "Accedi"
             )
             Spacer(modifier = Modifier.height(40.dp))

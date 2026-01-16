@@ -20,69 +20,93 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.AddCircleOutline
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.ui.unit.dp
 import gui.mioBluScuro
 import gui.mioGialloOcra
-
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState // Importante per l'evidenziazione automatica
+import navigation.Screen
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.currentBackStackEntryAsState
 @Composable
-fun myBottomNavBar() {
+fun myBottomNavBar(navController: NavController) {
 
     data class BottomNavItem(
         val label: String,
-        val icon: ImageVector
+        val icon: ImageVector,
+        val route: String
     )
+
+    // Assicurati che queste stringhe ("utente_screen", etc.) siano identiche
+    // a quelle che hai definito nel tuo NavHost
     val items = listOf(
-        BottomNavItem("Cerca", Icons.Default.Search),
-        BottomNavItem("Notifiche", Icons.Default.Notifications),
-        BottomNavItem("Profilo", Icons.Default.Person)
+        BottomNavItem("Cerca", Icons.Default.Search, Screen.UtenteScreen.route),
+        BottomNavItem("Notifiche", Icons.Default.Notifications, Screen.NotificheScreen.route),
+        BottomNavItem("Profilo", Icons.Default.Person, "profilo_screen")
     )
 
-    var selectedItemIndex by remember { mutableIntStateOf(0) }
+    // 2. LOGICA AUTOMATICA: Capiamo dove siamo guardando il NavController
+    // (Sostituisce la variabile selectedItemIndex)
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val currentDestination = navBackStackEntry?.destination
 
-            NavigationBar(containerColor= mioBluScuro,
-                modifier =
-                    Modifier.clip(
-                        shape= RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                    bottomStart = 0.dp,
-                    bottomEnd = 0.dp
-                )
+    NavigationBar(
+        containerColor = mioBluScuro,
+        modifier = Modifier.clip(
+            shape = RoundedCornerShape(
+                topStart = 0.dp,
+                topEnd = 0.dp,
+                bottomStart = 0.dp,
+                bottomEnd = 0.dp
+            )
+        )
+    ) {
+        items.forEach { item ->
+            // Controlla se la rotta dell'item è uguale alla rotta attuale
+            //val isSelected = currentRoute == item.route
+
+            val isSelected = currentDestination?.hierarchy?.any {
+                it.route == item.route
+            } == true
+            NavigationBarItem(
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color.Black,
+                    selectedTextColor = mioGialloOcra,
+                    indicatorColor = mioGialloOcra,
+                    unselectedIconColor = Color.White,
+                    unselectedTextColor = Color.White
+                ),
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label
                     )
-            ) {
+                },
+                label = { Text(item.label) },
 
-                items.forEachIndexed { index, item ->
-                    NavigationBarItem(
-                        colors = NavigationBarItemDefaults.colors(
+                // Usa la variabile calcolata automaticamente
+                selected = isSelected,
 
-                            selectedIconColor = Color.Black,
+                // 3. LOGICA DI NAVIGAZIONE
+                onClick = {
+                    if (isSelected) return@NavigationBarItem // Blocca il reload se sei già qui!
 
-                            selectedTextColor = mioGialloOcra,
-
-                            indicatorColor = mioGialloOcra,//.copy(alpha = 0.1f),
-
-                            unselectedIconColor = Color.White,
-                            unselectedTextColor = Color.White
-                        ),
-                        icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.label
-                            )
-                        },
-                        // Label (testo sotto)
-                        label = { Text(item.label) },
-                        // Logica di selezione visiva
-                        selected = selectedItemIndex == index,
-                        onClick = {
-                            selectedItemIndex = index
-                            // Qui in futuro metterai: navController.navigate(...)
+                    navController.navigate(item.route) {
+                        // INVECE DI 'findStartDestination', DICIAMOGLI ESPLICITAMENTE
+                        // DI TORNARE ALLA TUA HOME INTERNA ("Cerca")
+                        popUpTo(Screen.UtenteScreen.route) {
+                            saveState = true
                         }
-                    )
-                }
-            }
 
+                        // Queste servono per non duplicare le pagine
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -103,8 +127,8 @@ fun myBottomNavBar_Admin() {
         modifier =
             Modifier.clip(
                 shape= RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
+                    topStart = 0.dp,
+                    topEnd = 0.dp,
                     bottomStart = 0.dp,
                     bottomEnd = 0.dp
                 )
