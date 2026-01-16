@@ -1,6 +1,10 @@
 package model
 
-class Immagine(private var nomeFile: String, private var formato: D_formato, private var dimensione: Float, private var categoria: D_foto, private var codiceInserzione: String) {
+class Immagine(private var nomeFile: String,
+               private var formato: D_formato,
+               private var dimensione: Float,
+               private var categoria: D_foto, //planimetria o foto esterni-interni
+               private var codiceInserzione: String) {
 
     fun getNomeFile(): String{
         return nomeFile

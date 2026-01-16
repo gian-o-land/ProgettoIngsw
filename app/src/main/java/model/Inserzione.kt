@@ -99,5 +99,6 @@ class Inserzione(private val idInserzione: String, private val quadratura: Int, 
 data class InserzioneTemp(
     val nome: String,
     val coordinate: LatLng,
-    val nomeImmagine:String //per inserzione temporanea è solo 1 immagine
+    val nomeImmagine:String ,//per inserzione temporanea è solo 1 immagine
+    val idInserzione: String
 )

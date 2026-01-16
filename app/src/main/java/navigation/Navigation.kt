@@ -1,5 +1,7 @@
 package navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.compose.NavHost
@@ -16,10 +18,15 @@ import com.google.android.gms.maps.model.LatLng
 import gui.AdminScreen
 import gui.InserzioneScreen
 import gui.MappaScreen
+import gui.NotificheScreen
 import gui.RicercaMappaScreen
 import gui.RicercaScreen
 import gui.UtenteScreen
+import gui.PrenotazioneScreen
+import gui.ProfiloScreen
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
@@ -42,14 +49,26 @@ fun Navigation() {
         }
 
         composable(
-            route = Screen.UtenteScreen.route + "?mailUtente={mailUtente}",//route = Screen.UtenteScreen.route + "/{mailUtente}",
-            arguments = listOf(navArgument("mailUtente"){
-                type = NavType.StringType;
-                defaultValue = "<NomeCognomeUtente>"
-                nullable = true
-            })
-        ){ entry->
-            UtenteScreen(emailUtente = entry.arguments?.getString("mailUtente")?:"<NomeCognomeUtente>", navController=navController)
+            // MODIFICA QUI: Usa direttamente la route dell'oggetto.
+            // NON aggiungere + "?mailUtente={mailUtente}" se l'hai già messo nella classe Screen!
+            route = Screen.UtenteScreen.route,
+
+            arguments = listOf(
+                navArgument("mailUtente") {
+                    type = NavType.StringType
+                    defaultValue = "<NomeCognomeUtente>" // Valore se arrivi dalla Navbar (senza parametri)
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            // Recupera l'argomento
+            val mailRecuperata = entry.arguments?.getString("mailUtente") ?: "<NomeCognomeUtente>"
+
+            // Passalo alla schermata
+            UtenteScreen(
+                navController = navController,
+                emailUtente = mailRecuperata
+            )
         }
 
         composable(
@@ -118,7 +137,7 @@ fun Navigation() {
         }
 
         composable(
-            route = Screen.InserzioneScreen.route + "?idInserzione={IdInserzione}",
+            route = Screen.InserzioneScreen.route + "?idInserzione={idInserzione}",
             arguments = listOf(navArgument("idInserzione"){
                 type = NavType.StringType;
                 defaultValue = "<IdInserzione>"
@@ -126,6 +145,15 @@ fun Navigation() {
             })
         ){ entry->
             InserzioneScreen(idInserzione = entry.arguments?.getString("idInserzione")?:"<IdInserzione>", navController=navController)
+        }
+        composable(route = Screen.PrenotazioneScreen.route){
+            PrenotazioneScreen(navController)
+        }
+        composable(route = Screen.NotificheScreen.route){
+           NotificheScreen(navController)
+        }
+        composable(route = Screen.ProfiloScreen.route){
+            ProfiloScreen(navController)
         }
     }
 }

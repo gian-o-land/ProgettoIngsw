@@ -8,12 +8,15 @@ sealed class Screen(val route: String) {
 
     data object RegisterScreen: Screen("register_screen")
 
-    data object UtenteScreen: Screen("utente_screen"){
-        fun withMailUtente(mailUtente: String): String{
-            return "$route?mailUtente=${Uri.encode(mailUtente)}"//return "$route/${Uri.encode(mailUtente)}"
+    data object UtenteScreen : Screen("utente_screen?mailUtente={mailUtente}") {
+
+        // Funzione helper per navigare verso questa pagina
+        fun withMailUtente(mailUtente: String): String {
+            // NON usare "$route" qui, perché $route contiene "{mailUtente}" e faresti casino.
+            // Scrivi la base "pulita" manualmente:
+            return "utente_screen?mailUtente=${Uri.encode(mailUtente)}"
         }
     }
-
     data object AdminScreen: Screen("admin_screen"){
         fun withMailAdmin(usernameAdmin: String): String{
             return "$route?usernameAdmin=${Uri.encode(usernameAdmin)}"
@@ -52,5 +55,12 @@ sealed class Screen(val route: String) {
         }
     }
     data object FiltriScreen: Screen("filtri_screen")
+    data object PrenotazioneScreen: Screen("prenotazione_screen")
+
+    data object NotificheScreen: Screen("notifiche_screen")
+    data object ProfiloScreen: Screen("profilo_screen")
+
+
+
 
 }

@@ -62,7 +62,10 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import kotlinx.coroutines.delay
 import navigation.Screen
-
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,6 +104,38 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
     var listaSuggerimenti by remember { mutableStateOf<List<SuggerimentoPlace>>(emptyList()) }
 
     var currentPeekHeight by remember { mutableStateOf(0.dp) }
+
+    var pulisciAlRitorno by rememberSaveable { mutableStateOf(false) }
+
+    // --- 2. IL GUARDIANO: Scatta solo quando la pagina torna attiva ---
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            // Se l'app è tornata visibile (ON_RESUME) E dobbiamo pulire
+            if (event == Lifecycle.Event.ON_RESUME && pulisciAlRitorno) {
+
+                // RESETTA LE VARIABILI
+                isBottomSheetEnabled = false
+                currentPeekHeight = 0.dp
+                listaInserzioniNelCerchio = emptyList() // Opzionale: pulisce mappa
+                puntoSelezionato = null                 // Opzionale: toglie cerchio blu
+
+                // CHIUDE FISICAMENTE LA SHEET
+                scope.launch {
+                    try {
+                        scaffoldState.bottomSheetState.hide()
+                    } catch (e: Exception) {
+                        // Ignora errori se la sheet era già chiusa
+                    }
+                }
+
+                // IMPORTANTE: Rimettiamo a false per non farlo scattare a caso
+                pulisciAlRitorno = false
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(query) {
 
@@ -216,12 +251,17 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                     pageIndex ->
                 val inserzione = listaInserzioniNelCerchio[pageIndex]
                 Card(
-                    onClick = {navController.navigate(Screen.InserzioneScreen.withIdInserzione("inserzione.nome"))}, // QUANDO CI SARA' IL DB, AL POSTO DI inserzione.nome CI ANDRA' L' idInserzione, passato solo lui perche possono essere passate solo stringhe tramite NAVIGATION
+                    onClick = {
+                        pulisciAlRitorno = true
+                        navController.navigate(Screen.InserzioneScreen.withIdInserzione(inserzione.idInserzione))// QUANDO CI SARA' IL DB, AL POSTO DI inserzione.nome CI ANDRA' L' idInserzione, passato solo lui perche possono essere passate solo stringhe tramite NAVIGATION
+
+                    },
+
                     modifier = Modifier
                         .fillMaxWidth() // La larghezza è gestita dal Pager
                         .height(165.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.Red), // Usa i tuoi colori
+                    colors = CardDefaults.cardColors(containerColor = Color.Red),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {Column {
                     // QUI DA AGGIUNGERE IMMAGINE (se ce l'hai nell'oggetto InserzioneTemp)
@@ -369,6 +409,7 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
 
         if (puntoSelezionato != null) {
             if (isPannelloSliderVisibile) {
+
                 Box(modifier=Modifier.fillMaxSize()){
                 Surface(
                     border = BorderStroke(width = 1.dp, color = Color.Black),
@@ -445,14 +486,15 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                                     Toast.makeText(
                                         context,
                                         "Trovate ${risultati.size} case!",
-                                        Toast.LENGTH_SHORT
+                                        Toast.LENGTH_SHORT,
+
                                     ).show()
                                 }
 
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = mioGialloOcra,
-                                contentColor = mieScritte
+                                contentColor = mioBluScuro
                             ),
                             modifier = Modifier.height(50.dp)
                                 .fillMaxWidth()
