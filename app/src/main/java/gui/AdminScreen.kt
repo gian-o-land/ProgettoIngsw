@@ -138,7 +138,9 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                     lista = listaSottoadmin,
                     titolo = "I tuoi Sottoadmin",
                     listaPopup = listaAgenti,
-                    itemHeight = itemHeight
+                    itemHeight = itemHeight,
+                    listaImmobili = listaImmobili,
+                    itemHeightImmobile = 200.dp
                 )
             }
             Spacer(Modifier.height(10.dp))

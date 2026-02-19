@@ -28,6 +28,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -111,12 +114,15 @@ fun ShowPopup_Sottoadmin(
     selected: String?,
     onSelectedChange: (String?) -> Unit,
     listaAgenti: List<String>,
-    itemHeight: Dp
+    itemHeight: Dp,
+    listaImmobili: Map<String, Int>,
+    itemHeightImmobile: Dp
 ){
     val liststateSottoadminPopup = rememberLazyListState()
     val maxItemsToShow = 3
     val visibleItemsCount = minOf(listaAgenti.size, maxItemsToShow)
     val heightColumnPopup = itemHeight * visibleItemsCount
+    var popupSelection by remember { mutableStateOf<String?>(null) }
 
     Dialog(onDismissRequest = {
         onSelectedChange(null)
@@ -183,7 +189,10 @@ fun ShowPopup_Sottoadmin(
                         ) { }
                         Row(
                             modifier = Modifier.fillMaxWidth()
-                                .height(50.dp),
+                                .height(50.dp)
+                                .clickable {
+                                    popupSelection = agenti
+                                },
                             horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -198,6 +207,17 @@ fun ShowPopup_Sottoadmin(
                 }
             }
         }
+    }
+    if (popupSelection != null){
+        ShowPopup_Agente(
+            selected = popupSelection,
+            onSelectedChange = { nuovoValore ->
+                // Se nuovoValore è null (chiusura), aggiorniamo lo stato locale
+                popupSelection = nuovoValore
+            },
+            listaImmobili = listaImmobili,
+            itemHeight = itemHeightImmobile
+        )
     }
 }
 

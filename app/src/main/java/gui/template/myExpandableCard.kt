@@ -50,7 +50,9 @@ fun MyExpandableCard_Sottoadmin(
     lista: List<String>,
     titolo: String,
     listaPopup: List<String>,
-    itemHeight: Dp
+    itemHeight: Dp,
+    listaImmobili: Map<String, Int>,
+    itemHeightImmobile: Dp
 ){
     var popupSelection by remember { mutableStateOf<String?>(null) }
 
@@ -128,7 +130,9 @@ fun MyExpandableCard_Sottoadmin(
                 popupSelection = nuovoValore
             },
             listaAgenti = listaPopup,
-            itemHeight = itemHeight
+            itemHeight = itemHeight,
+            listaImmobili = listaImmobili,
+            itemHeightImmobile = itemHeightImmobile
         )
     }
 }
