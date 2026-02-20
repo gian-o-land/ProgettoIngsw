@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myBottomNavBar_Admin
+import gui.template.myBottomNavBar_Sottoadmin
 import gui.template.myButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -36,7 +36,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import gui.template.MyExpandableCard_Agenti
-import gui.template.MyExpandableCard_Sottoadmin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,7 +96,7 @@ fun SottoadminScreen(usernameSottoadmin : String, navController : NavController)
                     )
                 })
         },
-        bottomBar = { myBottomNavBar_Admin(navController) }
+        bottomBar = { myBottomNavBar_Sottoadmin(navController) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)

@@ -54,8 +54,6 @@ fun Navigation() {
         }
 
         composable(
-            // MODIFICA QUI: Usa direttamente la route dell'oggetto.
-            // NON aggiungere + "?mailUtente={mailUtente}" se l'hai già messo nella classe Screen!
             route = Screen.UtenteScreen.route,
 
             arguments = listOf(
@@ -77,36 +75,66 @@ fun Navigation() {
         }
 
         composable(
-            route = Screen.AdminScreen.route + "?usernameAdmin={usernameAdmin}",
-            arguments = listOf(navArgument("usernameAdmin"){
-                type = NavType.StringType;
-                defaultValue = "<UsernameAdmin>"
-                nullable = true
-            })
-        ){ entry ->
-            AdminScreen(usernameAdmin = entry.arguments?.getString("usernameAdmin")?:"<UsernameAdmin>", navController)
+            route = Screen.AdminScreen.route,
+
+            arguments = listOf(
+                navArgument("usernameAdmin") {
+                    type = NavType.StringType
+                    defaultValue = "<UsernameAdmin>" // Valore se arrivi dalla Navbar (senza parametri)
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            // Recupera l'argomento
+            val usernameRecuperato = entry.arguments?.getString("usernameAdmin") ?: "<UsernameAdmin>"
+
+            // Passalo alla schermata
+            AdminScreen(
+                navController = navController,
+                usernameAdmin = usernameRecuperato
+            )
         }
 
         composable(
-            route = Screen.SottoadminScreen.route + "?usernameSottoadmin={usernameSottoadmin}",
-            arguments = listOf(navArgument("usernameSottoadmin"){
-                type = NavType.StringType;
-                defaultValue = "<UsernameSottoadmin>"
-                nullable = true
-            })
-        ){ entry ->
-            SottoadminScreen(usernameSottoadmin = entry.arguments?.getString("usernameSottoadmin")?:"<UsernameSottoadmin>", navController)
+            route = Screen.SottoadminScreen.route,
+
+            arguments = listOf(
+                navArgument("usernameSottoadmin") {
+                    type = NavType.StringType
+                    defaultValue = "<UsernameSottoadmin>" // Valore se arrivi dalla Navbar (senza parametri)
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            // Recupera l'argomento
+            val usernameRecuperato = entry.arguments?.getString("usernameSottoadmin") ?: "<UsernameSottoadmin>"
+
+            // Passalo alla schermata
+            SottoadminScreen(
+                navController = navController,
+                usernameSottoadmin = usernameRecuperato
+            )
         }
 
         composable(
-            route = Screen.AgenteScreen.route + "?mailAgente={mailAgente}",
-            arguments = listOf(navArgument("mailAgente"){
-                type = NavType.StringType;
-                defaultValue = "<MailAgente>"
-                nullable = true
-            })
-        ){ entry ->
-            AgenteScreen(emailAgente = entry.arguments?.getString("mailAgente")?:"<MailAgente>", navController)
+            route = Screen.AgenteScreen.route,
+
+            arguments = listOf(
+                navArgument("mailAgente") {
+                    type = NavType.StringType
+                    defaultValue = "<MailAgente>" // Valore se arrivi dalla Navbar (senza parametri)
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            // Recupera l'argomento
+            val mailRecuperato = entry.arguments?.getString("mailAgente") ?: "<MailAgente>"
+
+            // Passalo alla schermata
+            AgenteScreen(
+                navController = navController,
+                emailAgente = mailRecuperato
+            )
         }
 
         composable(

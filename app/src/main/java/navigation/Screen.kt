@@ -12,24 +12,22 @@ sealed class Screen(val route: String) {
 
         // Funzione helper per navigare verso questa pagina
         fun withMailUtente(mailUtente: String): String {
-            // NON usare "$route" qui, perché $route contiene "{mailUtente}" e faresti casino.
-            // Scrivi la base "pulita" manualmente:
             return "utente_screen?mailUtente=${Uri.encode(mailUtente)}"
         }
     }
-    data object AdminScreen: Screen("admin_screen"){
+    data object AdminScreen: Screen("admin_screen?usernameAdmin={usernameAdmin}"){
         fun withMailAdmin(usernameAdmin: String): String{
-            return "$route?usernameAdmin=${Uri.encode(usernameAdmin)}"
+            return "admin_screen?usernameAdmin=${Uri.encode(usernameAdmin)}"
         }
     }
-    data object SottoadminScreen: Screen("sottoadmin_screen"){
+    data object SottoadminScreen: Screen("sottoadmin_screen?usernameSottoadmin={usernameSottoadmin}"){
         fun withMailSottoadmin(usernameSottoadmin: String): String{
-            return "$route?usernameSottoadmin=${Uri.encode(usernameSottoadmin)}"
+            return "sottoadmin_screen?usernameSottoadmin=${Uri.encode(usernameSottoadmin)}"
         }
     }
-    data object AgenteScreen: Screen("agente_screen"){
+    data object AgenteScreen: Screen("agente_screen?mailAgente={mailAgente}"){
         fun withMailAgente(mailAgente: String): String{
-            return "$route?mailAgente=${Uri.encode(mailAgente)}"
+            return "agente_screen?mailAgente=${Uri.encode(mailAgente)}"
         }
     }
     data object MappaScreen : Screen("mappa_screen") {
