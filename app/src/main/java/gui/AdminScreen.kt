@@ -107,7 +107,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                 )
             })
         },
-        bottomBar = { myBottomNavBar_Admin() }
+        bottomBar = { myBottomNavBar_Admin(navController) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)
@@ -166,7 +166,9 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                 )
             }
             Spacer(Modifier.height(10.dp))
-            myButton({}, "Crea Agente")
+            myButton({
+                navController.navigate(Screen.AgenteScreen.route)
+            }, "Crea Agente")
             Spacer(modifier = Modifier.height(30.dp))
         }
     }

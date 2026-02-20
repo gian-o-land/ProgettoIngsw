@@ -23,8 +23,13 @@ sealed class Screen(val route: String) {
         }
     }
     data object SottoadminScreen: Screen("sottoadmin_screen"){
-        fun withMailAdmin(usernameSottoadmin: String): String{
+        fun withMailSottoadmin(usernameSottoadmin: String): String{
             return "$route?usernameSottoadmin=${Uri.encode(usernameSottoadmin)}"
+        }
+    }
+    data object AgenteScreen: Screen("agente_screen"){
+        fun withMailAgente(mailAgente: String): String{
+            return "$route?mailAgente=${Uri.encode(mailAgente)}"
         }
     }
     data object MappaScreen : Screen("mappa_screen") {

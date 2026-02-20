@@ -25,6 +25,7 @@ import gui.UtenteScreen
 import gui.PrenotazioneScreen
 import gui.ProfiloScreen
 import gui.SottoadminScreen
+import gui.AgenteScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -92,6 +93,17 @@ fun Navigation() {
             })
         ){ entry ->
             SottoadminScreen(usernameSottoadmin = entry.arguments?.getString("usernameSottoadmin")?:"<UsernameSottoadmin>", navController)
+        }
+
+        composable(
+            route = Screen.AgenteScreen.route + "?mailAgente={mailAgente}",
+            arguments = listOf(navArgument("mailAgente"){
+                type = NavType.StringType;
+                defaultValue = "<MailAgente>"
+                nullable = true
+            })
+        ){ entry ->
+            AgenteScreen(emailAgente = entry.arguments?.getString("mailAgente")?:"<MailAgente>", navController)
         }
 
         composable(

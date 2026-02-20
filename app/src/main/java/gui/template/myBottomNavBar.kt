@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.ui.unit.dp
 import gui.mioBluScuro
 import gui.mioGialloOcra
@@ -27,7 +28,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState // Importante per l'evidenziazione automatica
 import navigation.Screen
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.compose.currentBackStackEntryAsState
+
 @Composable
 fun myBottomNavBar(navController: NavController) {
 
@@ -110,7 +111,7 @@ fun myBottomNavBar(navController: NavController) {
 }
 
 @Composable
-fun myBottomNavBar_Admin() {
+fun myBottomNavBar_Admin(navController: NavController) {
 
     data class BottomNavItem(
         val label: String,
@@ -166,4 +167,66 @@ fun myBottomNavBar_Admin() {
         }
     }
 
+}
+
+@Composable
+fun myBottomNavBar_Agente(navController: NavController) {
+
+    data class BottomNavItem(
+        val label: String,
+        val icon: ImageVector
+    )
+
+    // Assicurati che queste stringhe ("utente_screen", etc.) siano identiche
+    // a quelle che hai definito nel tuo NavHost
+    val items = listOf(
+        BottomNavItem("Immobili", Icons.Default.Apartment),
+        BottomNavItem("Notifiche", Icons.Default.Notifications),
+        BottomNavItem("Profilo", Icons.Default.Person)
+    )
+
+    var selectedItemIndex by remember { mutableIntStateOf(0) }
+
+    NavigationBar(containerColor= mioBluScuro,
+        modifier =
+            Modifier.clip(
+                shape= RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = 0.dp,
+                    bottomStart = 0.dp,
+                    bottomEnd = 0.dp
+                )
+            )
+    ) {
+
+        items.forEachIndexed { index, item ->
+            NavigationBarItem(
+                colors = NavigationBarItemDefaults.colors(
+
+                    selectedIconColor = Color.Black,
+
+                    selectedTextColor = mioGialloOcra,
+
+                    indicatorColor = mioGialloOcra,//.copy(alpha = 0.1f),
+
+                    unselectedIconColor = Color.White,
+                    unselectedTextColor = Color.White
+                ),
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label
+                    )
+                },
+                // Label (testo sotto)
+                label = { Text(item.label) },
+                // Logica di selezione visiva
+                selected = selectedItemIndex == index,
+                onClick = {
+                    selectedItemIndex = index
+                    // Qui in futuro metterai: navController.navigate(...)
+                }
+            )
+        }
+    }
 }
