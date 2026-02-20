@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import gui.template.MyExpandableCard_Agenti
 import gui.template.MyExpandableCard_Sottoadmin
+import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,7 +145,9 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                 )
             }
             Spacer(Modifier.height(10.dp))
-            myButton({}, "Crea Sottoadmin")
+            myButton({
+                navController.navigate(Screen.SottoadminScreen.route)
+            }, "Crea Sottoadmin")
             Spacer(Modifier.height(60.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),

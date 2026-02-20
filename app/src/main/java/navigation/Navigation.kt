@@ -24,6 +24,7 @@ import gui.RicercaScreen
 import gui.UtenteScreen
 import gui.PrenotazioneScreen
 import gui.ProfiloScreen
+import gui.SottoadminScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -80,6 +81,17 @@ fun Navigation() {
             })
         ){ entry ->
             AdminScreen(usernameAdmin = entry.arguments?.getString("usernameAdmin")?:"<UsernameAdmin>", navController)
+        }
+
+        composable(
+            route = Screen.SottoadminScreen.route + "?usernameSottoadmin={usernameSottoadmin}",
+            arguments = listOf(navArgument("usernameSottoadmin"){
+                type = NavType.StringType;
+                defaultValue = "<UsernameSottoadmin>"
+                nullable = true
+            })
+        ){ entry ->
+            SottoadminScreen(usernameSottoadmin = entry.arguments?.getString("usernameSottoadmin")?:"<UsernameSottoadmin>", navController)
         }
 
         composable(
