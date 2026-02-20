@@ -96,7 +96,7 @@ fun SottoadminScreen(usernameSottoadmin : String, navController : NavController)
                     )
                 })
         },
-        bottomBar = { myBottomNavBar_Sottoadmin(navController) }
+        bottomBar = { myBottomNavBar_Sottoadmin(navController, usernameSottoadmin) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)

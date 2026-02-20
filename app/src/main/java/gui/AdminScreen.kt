@@ -107,7 +107,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                 )
             })
         },
-        bottomBar = { myBottomNavBar_Admin(navController) }
+        bottomBar = { myBottomNavBar_Admin(navController, usernameAdmin) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)

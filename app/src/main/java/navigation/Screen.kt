@@ -69,7 +69,12 @@ sealed class Screen(val route: String) {
     data object ProfiloScreen: Screen("profilo_screen")
     data object ModificaCredenzialiScreen: Screen("modifica_credenziali_screen")
     data object ModificaPasswordScreen: Screen("modifica_password_screen")
-
+    data object ProfiloAdminScreen: Screen("profilo_admin_screen?username={username}") {
+        // Funzione helper per navigare verso questa pagina passando l'username
+        fun withUsername(username: String): String {
+            return "profilo_admin_screen?username=${Uri.encode(username)}"
+        }
+    }
 
 
 

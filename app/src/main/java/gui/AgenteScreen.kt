@@ -100,7 +100,7 @@ fun AgenteScreen(emailAgente: String, navController : NavController){
             )
         },
         bottomBar = {
-            myBottomNavBar_Agente(navController = navController)
+            myBottomNavBar_Agente(navController = navController, emailAgente)
         }
     ) { innerPadding ->
         Column(modifier = Modifier

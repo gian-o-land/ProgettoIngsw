@@ -29,6 +29,7 @@ import gui.PrenotazioneScreen
 import gui.ProfiloScreen
 import gui.SottoadminScreen
 import gui.AgenteScreen
+import gui.ProfiloAdminScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -218,6 +219,25 @@ fun Navigation() {
         }
         composable(route = Screen.FiltriScreen.route){
             FiltriScreen(navController)
+        }
+        composable(
+            route = Screen.ProfiloAdminScreen.route,
+            arguments = listOf(
+                navArgument("username") {
+                    type = NavType.StringType
+                    defaultValue = "<UsernameAdmin>" // Valore di default se arrivi dalla Navbar
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            // Recupera l'argomento
+            val usernameRecuperato = entry.arguments?.getString("username") ?: "<UsernameAdmin>"
+
+            // Passalo alla schermata
+            ProfiloAdminScreen(
+                username = usernameRecuperato,
+                navController = navController
+            )
         }
     }
 }

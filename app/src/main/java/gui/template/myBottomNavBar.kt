@@ -102,7 +102,7 @@ fun myBottomNavBar(navController: NavController) {
 }
 
 @Composable
-fun myBottomNavBar_Admin(navController: NavController) {
+fun myBottomNavBar_Admin(navController: NavController, username: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -110,8 +110,8 @@ fun myBottomNavBar_Admin(navController: NavController) {
         val route: String
     )
     val items = listOf(
-        BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.AdminScreen.route),
-        BottomNavItem("Profilo", Icons.Default.Person, "profiloAdmin_route")
+        BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.AdminScreen.withMailAdmin(username)),
+        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAdminScreen.withUsername(username))
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -131,7 +131,7 @@ fun myBottomNavBar_Admin(navController: NavController) {
 
         items.forEach { item ->
             val isSelected = currentDestination?.hierarchy?.any {
-                it.route == item.route
+                it.route?.substringBefore("?") == item.route.substringBefore("?")
             } == true
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
@@ -172,7 +172,7 @@ fun myBottomNavBar_Admin(navController: NavController) {
 }
 
 @Composable
-fun myBottomNavBar_Sottoadmin(navController: NavController) {
+fun myBottomNavBar_Sottoadmin(navController: NavController, username: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -180,7 +180,7 @@ fun myBottomNavBar_Sottoadmin(navController: NavController) {
         val route: String
     )
     val items = listOf(
-        BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.SottoadminScreen.route),
+        BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.SottoadminScreen.withMailSottoadmin(username)),
         BottomNavItem("Profilo", Icons.Default.Person, "profiloSottoadmin_route")
     )
 
@@ -201,7 +201,7 @@ fun myBottomNavBar_Sottoadmin(navController: NavController) {
 
         items.forEach { item ->
             val isSelected = currentDestination?.hierarchy?.any {
-                it.route == item.route
+                it.route?.substringBefore("?") == item.route.substringBefore("?")
             } == true
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
@@ -242,7 +242,7 @@ fun myBottomNavBar_Sottoadmin(navController: NavController) {
 }
 
 @Composable
-fun myBottomNavBar_Agente(navController: NavController) {
+fun myBottomNavBar_Agente(navController: NavController, mail: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -251,7 +251,7 @@ fun myBottomNavBar_Agente(navController: NavController) {
     )
 
     val items = listOf(
-        BottomNavItem("Immobili", Icons.Default.Apartment, Screen.AgenteScreen.route),
+        BottomNavItem("Immobili", Icons.Default.Apartment, Screen.AgenteScreen.withMailAgente(mail)),
         BottomNavItem("Notifiche", Icons.Default.Notifications, "notificheAgente_route"),
         BottomNavItem("Profilo", Icons.Default.Person, "profiloAgente_route")
     )
@@ -273,7 +273,7 @@ fun myBottomNavBar_Agente(navController: NavController) {
 
         items.forEach { item ->
             val isSelected = currentDestination?.hierarchy?.any {
-                it.route == item.route
+                it.route?.substringBefore("?") == item.route.substringBefore("?")
             } == true
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
@@ -298,7 +298,7 @@ fun myBottomNavBar_Agente(navController: NavController) {
                     if (isSelected) return@NavigationBarItem // Blocca il reload se sei già qui!
 
                     navController.navigate(item.route) {
-                        popUpTo(Screen.AdminScreen.route) {
+                        popUpTo(Screen.AgenteScreen.route) {
                             saveState = true
                         }
 
