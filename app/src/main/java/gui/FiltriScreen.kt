@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -26,6 +27,7 @@ import androidx.navigation.NavController
 import com.example.progettoingsw.R
 
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -33,6 +35,11 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.ui.text.input.KeyboardType
+import com.google.android.gms.maps.model.LatLng
+import gui.template.myButton
+import navigation.Screen
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -186,20 +193,15 @@ fun FiltriScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- BOTTONE CERCA ---
-            Button(
-                onClick = { /* Azione ricerca */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D2D2D)), // Colore scuro come da immagine
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .padding(bottom = 32.dp)
-                    .height(48.dp)
-                    .width(120.dp)
-            ) {
-                Text("Cerca", color = Color.White, fontSize = 16.sp)
-            }
-        } // Chiude la Column principale
-    } // Chiude il blocco content dello Scaffold
+            myButton(
+                myClick = {
+                    Screen.RicercaMappaScreen.withLocation(
+                        LatLng(41.9028, 12.4964) )// APRIRA' LA MAPPA CON I FILTRI APPLICATI (ZOOMATA SU TUTTA L'ITALIA) per ora roma
+                },
+                testo = "Cerca"
+            )
+        }
+    }
 }
 
 @Composable
@@ -260,6 +262,7 @@ fun RigaCliccabile(
                 modifier = Modifier
                     .heightIn(max = 192.dp)
                     .background(Color.White)
+
             ) {
                 opzioni.forEachIndexed { index, opzione ->
                     DropdownMenuItem(
@@ -311,23 +314,33 @@ fun RigaMinMax(icona: ImageVector, testo: String) {
 
 @Composable
 fun BoxInputMinMax(label: String) {
-    val bgColor = Color(0xFFEBE6ED)
-
     // Variabile di stato che salva ciò che l'utente digita
     var testoInserito by remember { mutableStateOf("") }
 
     BasicTextField(
         value = testoInserito,
-        onValueChange = { testoInserito = it },
+
+        // 1. FILTRO: Accetta solo i numeri
+        onValueChange = { nuovoTesto ->
+            testoInserito = nuovoTesto.filter { it.isDigit() }
+        },
+
         singleLine = true,
         textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
+
+        // 2. TASTIERA NUMERICA
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+
+        // --- MODIFICA ESTETICA QUI ---
         modifier = Modifier
             .width(90.dp)
             .height(45.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(bgColor),
+            // Imposta lo sfondo bianco con gli angoli arrotondati
+            .background(Color.White, RoundedCornerShape(4.dp))
+            // Aggiunge il bordino nero spesso 1.dp
+            .border(1.dp, Color.Black, RoundedCornerShape(4.dp)),
+        // -----------------------------
 
-        // "decorationBox" ci permette di disegnare il TUO design attorno al campo di testo
         decorationBox = { innerTextField ->
             Column(
                 modifier = Modifier
@@ -341,22 +354,22 @@ fun BoxInputMinMax(label: String) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
 
                     Box(modifier = Modifier.weight(1f)) {
-                        // Se è vuoto, mostriamo il placeholder finto "Input"
+                        // Placeholder "Input"
                         if (testoInserito.isEmpty()) {
                             Text(text = "Input", fontSize = 14.sp, color = Color.Gray)
                         }
-                        // Qui è dove appare fisicamente il testo digitato e il cursore lampeggiante
+                        // Testo digitato
                         innerTextField()
                     }
 
-                    // Mostriamo l'icona "X" SOLO se c'è del testo scritto
+                    // Icona "X" per cancellare
                     if (testoInserito.isNotEmpty()) {
                         Icon(
                             imageVector = Icons.Default.Cancel,
                             contentDescription = "Cancella",
                             modifier = Modifier
                                 .size(16.dp)
-                                .clickable { testoInserito = "" }, // Cliccando si cancella il testo
+                                .clickable { testoInserito = "" },
                             tint = mioBluScuro
                         )
                     }
@@ -380,7 +393,7 @@ fun RigaBottoni(icona: ImageVector, testo: String, opzioni: List<String>) {
             imageVector = icona,
             contentDescription = null,
             modifier = Modifier.size(28.dp),
-            tint = mioBluScuro // <--- ICONA PRINCIPALE BLU SCURO
+            tint = mioBluScuro
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = testo, fontSize = 16.sp, modifier = Modifier.weight(1f))
@@ -392,18 +405,25 @@ fun RigaBottoni(icona: ImageVector, testo: String, opzioni: List<String>) {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (isSelected) Color.LightGray else Color.White)
-                        .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                        // 1. CAMBIO SFONDO: Giallo ocra se selezionato, altrimenti Blu scuro
+                        .background(if (isSelected) mioGialloOcra else mioBluScuro)
+                        .border(1.dp, Color.Black, RoundedCornerShape(8.dp)) // Opzionale: puoi togliere il bordo o metterlo dello stesso colore dello sfondo
                         .clickable { selezionato = opzione },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = opzione, fontSize = 14.sp)
+                    Text(
+                        text = opzione,
+                        fontSize = 14.sp,
+                        // 2. CAMBIO COLORE TESTO: Blu scuro se selezionato, altrimenti Bianco
+                        color = if (isSelected) mioBluScuro else Color.White
+                    )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RigaSlider(icona: ImageVector, testo: String) {
     var sliderPos by remember { mutableFloatStateOf(0f) }
@@ -418,28 +438,74 @@ fun RigaSlider(icona: ImageVector, testo: String) {
             imageVector = icona,
             contentDescription = null,
             modifier = Modifier.size(28.dp),
-            tint = mioBluScuro // <--- ICONA PRINCIPALE BLU SCURO
+            tint = mioBluScuro
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = testo, fontSize = 16.sp, modifier = Modifier.width(80.dp), lineHeight = 18.sp)
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Slider(
-            value = sliderPos,
-            onValueChange = { sliderPos = it },
-            valueRange = 0f..4f,
-            steps = 3,
-            colors = SliderDefaults.colors(
-                thumbColor = mioBluScuro, // <--- Aggiornato anche il pallino dello slider al blu scuro (opzionale, ma sta meglio!)
-                activeTrackColor = mioBluScuro, // <--- Aggiornata anche la linea attiva dello slider
-                inactiveTrackColor = Color(0xFFEBE6ED)
-            ),
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+
+            // 1. Definiamo i colori qui per poterli riutilizzare
+            val sliderColors = SliderDefaults.colors(
+                activeTrackColor = mioBluScuro,
+                inactiveTrackColor = Color(0xFFEBE6ED),
+                activeTickColor = mioGialloOcra,
+                inactiveTickColor = mioBluScuro
+            )
+
+            Slider(
+                value = sliderPos,
+                onValueChange = { sliderPos = it },
+                valueRange = 0f..2f,
+                steps = 1,
+                colors = sliderColors,
+
+                // --- PALLINO PERSONALIZZATO ---
+                thumb = {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .border(width = 2.dp, color = mioBluScuro, shape = CircleShape)
+                            .background(color = mioGialloOcra, shape = CircleShape)
+                    )
+                },
+
+                // --- LINEA PERSONALIZZATA (RIMUOVE IL BUCO) ---
+                track = { sliderState ->
+                    SliderDefaults.Track(
+                        colors = sliderColors,
+                        sliderState = sliderState,
+                        thumbTrackGapSize = 0.dp // <--- QUESTO ELIMINA IL "BUCO" BIANCO!
+                    )
+                }
+            )
+
+            // --- ETICHETTE SOTTO LO SLIDER ---
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp)
+                    .offset(y = (-8).dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val opzioni = listOf("Bassa", "Media", "Alta")
+
+                opzioni.forEachIndexed { index, label ->
+                    val isSelected = sliderPos.roundToInt() == index
+
+                    Text(
+                        text = label,
+                        fontSize = 12.sp,
+                        color = if (isSelected) mioGialloOcra else mioBluScuro,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
     }
 }
-
 @Composable
 fun BottoneCaratteristica(testo: String, modifier: Modifier = Modifier) {
     var selezionato by remember { mutableStateOf(false) }
@@ -448,11 +514,17 @@ fun BottoneCaratteristica(testo: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .height(40.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(if (selezionato) Color(0xFFEBE6ED) else Color.White)
-            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            // 1. CAMBIO SFONDO: Giallo Ocra se acceso, Blu Scuro se spento
+            .background(if (selezionato) mioGialloOcra else mioBluScuro)
             .clickable { selezionato = !selezionato },
         contentAlignment = Alignment.Center
     ) {
-        Text(text = testo, fontSize = 14.sp, color = Color.Black)
+        Text(
+            text = testo,
+            fontSize = 14.sp,
+            // 2. CAMBIO COLORE TESTO: Blu Scuro se acceso, Bianco se spento
+            color = if (selezionato) mioBluScuro else Color.White,
+            fontWeight = if (selezionato) FontWeight.Bold else FontWeight.Normal // (Opzionale) Grassetto quando selezionato
+        )
     }
 }
