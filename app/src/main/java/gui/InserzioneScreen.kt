@@ -72,7 +72,6 @@ import android.content.Context
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -105,7 +104,6 @@ fun InserzioneScreen(idInserzione: String, navController : NavController) { // A
                 horizontalArrangement = Arrangement.spacedBy(50.dp)
             ) {
 
-                // --- BOTTONE 1 (In alto): Filtri ---
                 ExtendedFloatingActionButton(
                     onClick = {
                         mostraPopupContatti = true
@@ -119,8 +117,7 @@ fun InserzioneScreen(idInserzione: String, navController : NavController) { // A
                     Text("Chiama")
                 }
 
-                // --- BOTTONE 2 (In basso): Mia Posizione ---
-                ExtendedFloatingActionButton( // Versione Standard (più grande)
+                ExtendedFloatingActionButton(
                     onClick = {
                         navController.navigate(Screen.PrenotazioneScreen.route)
 
