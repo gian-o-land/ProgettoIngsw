@@ -3,8 +3,12 @@ package gui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -20,9 +24,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import gui.template.myBottomNavBar
+import gui.template.myButton
+import navigation.Screen
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,8 +75,23 @@ fun ProfiloScreen(navController : NavController) {
                 .padding(innerPadding)
 
         ) {
-
-
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(text = "Modifica le tue\ninformazioni personali",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = mieScritte,
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(modifier = Modifier.height(40.dp))
+            myButton({navController.navigate(Screen.ModificaCredenzialiScreen.route)}, "Modifica Credenziali")
+            Spacer(modifier = Modifier.height(30.dp))
+            myButton({navController.navigate(Screen.ModificaPasswordScreen.route)}, "Modifica Password")
+            Spacer(modifier = Modifier.height(30.dp))
         }
     }
 }
