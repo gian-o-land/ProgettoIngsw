@@ -6,7 +6,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,8 +47,11 @@ import gui.template.myBottomNavBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -192,42 +198,63 @@ fun PrenotazioneScreen(navController : NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
-
-                        // --- MODIFICA QUI L'ARROTONDAMENTO ---
-                        shape = RoundedCornerShape(24.dp), // Aumenta questo numero per arrotondare di più
-                        // -------------------------------------
-
+                        shape = RoundedCornerShape(24.dp),
                         colors = CardDefaults.cardColors(containerColor = mioBluScuro),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        // IL CALENDARIO
-                        DatePicker(
-                            state = datePickerState,
-                            title = null,     // Rimuoviamo scritte header standard ingombranti
-                            headline = null,  // Rimuoviamo la data grande in alto
-                            showModeToggle = false, // Rimuoviamo la matitina
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(380.dp),
-                            colors = DatePickerDefaults.colors(
-                                containerColor = mioBluScuro,
-                                selectedDayContainerColor = mioGialloOcra,
-                                selectedDayContentColor = mioBluScuro,
-                                todayDateBorderColor = mioGialloOcra,
-                                todayContentColor = mioGialloOcra,
-                                weekdayContentColor = Color.White,    // Lun, Mar, Mer...
-                                yearContentColor = Color.White,       // Selezione anno
-                                dayContentColor = Color.White,        // I numeri 1, 2, 3...
-                                disabledDayContentColor = Color.White.copy(alpha = 0.3f),
-                                disabledYearContentColor = mioGialloOcra,
-                                selectedYearContentColor = mioGialloOcra,
-                                navigationContentColor=mioGialloOcra,
-                                subheadContentColor=mioGialloOcra
+                        CompositionLocalProvider(
+                            LocalContentColor provides mioBluScuro
+                        ){
+                            // Il Box principale che fa da contenitore per poter sovrapporre gli elementi
+                            Box(modifier = Modifier.fillMaxWidth()) {
 
+                                // 1. IL CALENDARIO (Senza altezze forzate per evitare crash nello scroll)
+                                DatePicker(
+                                    state = datePickerState,
+                                    title = null,
+                                    headline = null,
+                                    showModeToggle = false,
+                                    modifier = Modifier.fillMaxWidth(), // Rimosso .height() fisso
+                                    colors = DatePickerDefaults.colors(
+                                        containerColor = mioBluScuro,
+                                        selectedDayContainerColor = mioGialloOcra,
+                                        selectedDayContentColor = mioBluScuro,
+                                        todayDateBorderColor = mioGialloOcra,
+                                        todayContentColor = mioGialloOcra,
+                                        weekdayContentColor = Color.White,
+                                        yearContentColor = Color.White,
+                                        dayContentColor = Color.White,
+                                        disabledDayContentColor = Color.White.copy(alpha = 0.3f),
+                                        disabledYearContentColor = mioGialloOcra,
+                                        selectedYearContentColor = mioGialloOcra,
+                                        navigationContentColor = mioGialloOcra,
+                                        subheadContentColor = mioGialloOcra
+                                    )
+                                )
 
-                            )
-                        )
+                                // 2. LO SCUDO TRASPARENTE ANTI-CLICK
+                                Box(
+                                    modifier = Modifier
+                                        // Usa l'allineamento nativo del Box (NIENTE "as Alignment.Horizontal")
+                                        .align(Alignment.TopStart)
+                                        // Impostiamo una larghezza fissa che copre solo il testo "Mese Anno"
+                                        // e lascia scoperte le frecce a destra
+                                        .width(200.dp)
+                                        // Copriamo solo la prima riga in alto
+                                        .height(60.dp)
+                                        // Intercettiamo il click in modo "nativo" e sicuro
+                                        .clickable(
+                                            indication = null, // Rimuove l'animazione dell'onda (ripple)
+                                            interactionSource = remember { MutableInteractionSource() }
+                                        ) {
+                                            // Lasciare vuoto: il click viene consumato qui e non passa sotto
+                                        }
+                                )
+                            }
+                        }
                     }
+
+
                     //Spacer(modifier = Modifier.height(10.dp))
 
                 }

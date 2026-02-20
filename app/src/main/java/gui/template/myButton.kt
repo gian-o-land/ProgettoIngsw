@@ -32,7 +32,7 @@ fun myButton(myClick :() -> Unit, testo: String){
         ),
         modifier = Modifier.height(50.dp)
             .fillMaxWidth()
-            .padding(horizontal = 80.dp)
+            .padding(horizontal = 75.dp)
     ) {
         Text(testo, fontSize = 17.sp)
     }

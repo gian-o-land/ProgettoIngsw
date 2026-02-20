@@ -16,8 +16,11 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.maps.model.LatLng
 import gui.AdminScreen
+import gui.FiltriScreen
 import gui.InserzioneScreen
 import gui.MappaScreen
+import gui.ModificaCredenzialiScreen
+import gui.ModificaPasswordScreen
 import gui.NotificheScreen
 import gui.RicercaMappaScreen
 import gui.RicercaScreen
@@ -178,6 +181,15 @@ fun Navigation() {
         }
         composable(route = Screen.ProfiloScreen.route){
             ProfiloScreen(navController)
+        }
+        composable(route = Screen.ModificaCredenzialiScreen.route){
+            ModificaCredenzialiScreen(navController)
+        }
+        composable(route = Screen.ModificaPasswordScreen.route){
+            ModificaPasswordScreen(navController)
+        }
+        composable(route = Screen.FiltriScreen.route){
+            FiltriScreen(navController)
         }
     }
 }

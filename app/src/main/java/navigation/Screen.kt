@@ -69,6 +69,9 @@ sealed class Screen(val route: String) {
 
     data object NotificheScreen: Screen("notifiche_screen")
     data object ProfiloScreen: Screen("profilo_screen")
+    data object ModificaCredenzialiScreen: Screen("modifica_credenziali_screen")
+    data object ModificaPasswordScreen: Screen("modifica_password_screen")
+
 
 
 

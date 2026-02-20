@@ -111,7 +111,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
             Spacer(modifier = Modifier.height(10.dp))
 
             Button(
-                onClick = { navController.navigate(Screen.RicercaScreen.route) },
+                onClick = { navController.navigate(Screen.FiltriScreen.route) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioBackgroung,
                     contentColor = mieScritte,

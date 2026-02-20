@@ -75,8 +75,9 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
     var password by remember { mutableStateOf("") }
     var nome by remember { mutableStateOf("") }
     var cognome by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
     var testPassword by remember { mutableStateOf("") }
+
+    var telefono by remember { mutableStateOf("") }
     var prefixDropdownExpanded by remember { mutableStateOf(false) }
     var selectedPrefix by remember { mutableStateOf(DefaultPhonePrefix) }
 
@@ -133,7 +134,6 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
     val imageAlpha = ((currentHeaderHeightPx - headerMinHeightPx) / collapseRangePx).coerceIn(0f, 1f)
 
 
-    // UI COMPOSITION
     Box(
         modifier = Modifier
             .fillMaxSize()
