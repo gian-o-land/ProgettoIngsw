@@ -26,12 +26,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import gui.template.myBottomNavBar_Admin
+import gui.template.myBottomNavBar_Sottoadmin
 import gui.template.myButton
 import navigation.Screen
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun ProfiloAdminScreen(username: String, navController: NavController) {
+fun ProfiloAdminScreen(username: String, navController: NavController, ruolo: Int) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -60,7 +61,10 @@ fun ProfiloAdminScreen(username: String, navController: NavController) {
             )
         },
         bottomBar = {
-            myBottomNavBar_Admin(navController, username)
+            when (ruolo) {
+                2 -> myBottomNavBar_Sottoadmin(navController, username)
+                1 -> myBottomNavBar_Admin(navController, username)
+            }
         }
     ) { innerPadding ->
         Column(

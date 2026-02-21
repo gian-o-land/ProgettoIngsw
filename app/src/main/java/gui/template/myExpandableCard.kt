@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import gui.ShowPopup_Agente
 import gui.ShowPopup_Sottoadmin
 import gui.mieScritte
@@ -227,5 +228,83 @@ fun MyExpandableCard_Agenti(
             listaImmobili = listaPopup,
             itemHeight = itemHeight
         )
+    }
+}
+
+@Composable
+fun MyExpandableCard_Prenotazioni(
+    animatedHeight: Dp,
+    headerHeight: Dp,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    listState: LazyListState,
+    lista: List<String>,
+    titolo: String,
+    navController: NavController
+){
+    Card(
+        modifier = Modifier
+            .height(animatedHeight)
+            .width(300.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = mioBackgroung,
+        ),
+        border = BorderStroke(2.dp, mioBluScuro)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(mioBluScuro)
+                .height(headerHeight)
+                .clickable{ onExpandedChange(!isExpanded)},
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = titolo,
+                fontWeight = FontWeight.Normal,
+                fontSize = 17.sp,
+                color = mieiTitoli,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(start = 15.dp)
+            )
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = "Espandi",
+                tint = mieiTitoli,
+                modifier = Modifier.padding(end = 10.dp)
+            )
+        }
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 2.dp)
+                .simpleVerticalScrollbar(
+                    state = listState
+                )
+        ) {
+            items(lista){ itemLista ->
+                Row(
+                    modifier = Modifier.height(1.dp)
+                        .fillMaxWidth()
+                        .background(Color.Black)
+                ) { }
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .height(50.dp)
+                        .clickable {
+                        },
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = itemLista,
+                        fontSize = 16.sp,
+                        color = mieScritte,
+                        modifier = Modifier.padding(start = 15.dp)
+                    )
+                }
+            }
+        }
     }
 }

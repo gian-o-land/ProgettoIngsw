@@ -30,6 +30,8 @@ import gui.ProfiloScreen
 import gui.SottoadminScreen
 import gui.AgenteScreen
 import gui.ProfiloAdminScreen
+import gui.ProfiloAgenteScreen
+import gui.ModificaCredenzialiAgenteScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -121,20 +123,20 @@ fun Navigation() {
             route = Screen.AgenteScreen.route,
 
             arguments = listOf(
-                navArgument("mailAgente") {
+                navArgument("username") {
                     type = NavType.StringType
-                    defaultValue = "<MailAgente>" // Valore se arrivi dalla Navbar (senza parametri)
+                    defaultValue = "<UsernameAgente>" // Valore se arrivi dalla Navbar (senza parametri)
                     nullable = true
                 }
             )
         ) { entry ->
             // Recupera l'argomento
-            val mailRecuperato = entry.arguments?.getString("mailAgente") ?: "<MailAgente>"
+            val usernameRecuperato = entry.arguments?.getString("username") ?: "<UsernameAgente>"
 
             // Passalo alla schermata
             AgenteScreen(
                 navController = navController,
-                emailAgente = mailRecuperato
+                username = usernameRecuperato
             )
         }
 
@@ -225,18 +227,57 @@ fun Navigation() {
             arguments = listOf(
                 navArgument("username") {
                     type = NavType.StringType
-                    defaultValue = "<UsernameAdmin>" // Valore di default se arrivi dalla Navbar
+                    defaultValue = "<Username>"
+                    nullable = true
+                },
+                navArgument("ruolo") {
+                    type = NavType.IntType // Usiamo IntType
+                    defaultValue = 1 // Valore di default: Admin
+                }
+            )
+        ) { entry ->
+            val usernameRecuperato = entry.arguments?.getString("username") ?: "<Username>"
+            // Usiamo getInt per recuperare il ruolo
+            val ruoloRecuperato = entry.arguments?.getInt("ruolo") ?: 1
+
+            ProfiloAdminScreen(
+                username = usernameRecuperato,
+                ruolo = ruoloRecuperato,
+                navController = navController
+            )
+        }
+        composable(
+            route = Screen.ProfiloAgenteScreen.route,
+            arguments = listOf(
+                navArgument("username") {
+                    type = NavType.StringType
+                    defaultValue = "<UsernameAgente>"
                     nullable = true
                 }
             )
         ) { entry ->
-            // Recupera l'argomento
-            val usernameRecuperato = entry.arguments?.getString("username") ?: "<UsernameAdmin>"
+            val usernameRecuperato = entry.arguments?.getString("username") ?: "<UsernameAgente>"
 
-            // Passalo alla schermata
-            ProfiloAdminScreen(
-                username = usernameRecuperato,
-                navController = navController
+            ProfiloAgenteScreen(
+                navController = navController,
+                username = usernameRecuperato
+            )
+        }
+        composable(
+            route = Screen.ModificaCredenzialiAgenteScreen.route,
+            arguments = listOf(
+                navArgument("username") {
+                    type = NavType.StringType
+                    defaultValue = "<UsernameAgente>"
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val usernameRecuperato = entry.arguments?.getString("username") ?: "<UsernameAgente>"
+
+            ModificaCredenzialiAgenteScreen(
+                navController = navController,
+                username = usernameRecuperato
             )
         }
     }

@@ -2,7 +2,6 @@ package gui.template
 
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -12,8 +11,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -111,7 +108,7 @@ fun myBottomNavBar_Admin(navController: NavController, username: String) {
     )
     val items = listOf(
         BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.AdminScreen.withMailAdmin(username)),
-        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAdminScreen.withUsername(username))
+        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAdminScreen.withUsernameAndRole(username, 1)) // 1 = Admin
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -181,7 +178,7 @@ fun myBottomNavBar_Sottoadmin(navController: NavController, username: String) {
     )
     val items = listOf(
         BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.SottoadminScreen.withMailSottoadmin(username)),
-        BottomNavItem("Profilo", Icons.Default.Person, "profiloSottoadmin_route")
+        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAdminScreen.withUsernameAndRole(username, 2)) // 2 = Sottoadmin
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -242,7 +239,7 @@ fun myBottomNavBar_Sottoadmin(navController: NavController, username: String) {
 }
 
 @Composable
-fun myBottomNavBar_Agente(navController: NavController, mail: String) {
+fun myBottomNavBar_Agente(navController: NavController, username: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -251,9 +248,9 @@ fun myBottomNavBar_Agente(navController: NavController, mail: String) {
     )
 
     val items = listOf(
-        BottomNavItem("Immobili", Icons.Default.Apartment, Screen.AgenteScreen.withMailAgente(mail)),
+        BottomNavItem("Immobili", Icons.Default.Apartment, Screen.AgenteScreen.withMailAgente(username)),
         BottomNavItem("Notifiche", Icons.Default.Notifications, "notificheAgente_route"),
-        BottomNavItem("Profilo", Icons.Default.Person, "profiloAgente_route")
+        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAgenteScreen.withEmail(username = username))
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
