@@ -65,10 +65,11 @@ import java.util.Locale
 
 
 import androidx.compose.foundation.layout.*
-
+import androidx.compose.material3.MaterialTheme
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun PrenotazioneScreen(navController: NavController) {
     var orarioSelezionato by remember { mutableStateOf<LocalTime?>(null) }
     var prenotazioneEffettuata by remember { mutableStateOf(false) }
@@ -98,10 +99,9 @@ fun PrenotazioneScreen(navController: NavController) {
     }
 
     // --- LOGICA METEO COMPLETAMENTE DISACCOPPIATA ---
-    // Di default usa l'OpenMeteoAdapter, ma puoi passargli qualsiasi classe implementi FornitoreMeteo
-
+    // Ricorda che meteoDelGiornoSelezionato ora restituisce un oggetto InfoMeteo
     val meteoDelGiornoSelezionato = usaMeteo(
-        latitude = -22.9068,  // Es. Napoli. In futuro passagli le coordinate della casa
+        latitude = -22.9068,  // Es. Rio de Janeiro
         longitude = -43.1729,
         giornoSelezionatoMillis = giornoSelezionato,
         fornitore = OpenMeteoAdapter()
@@ -152,19 +152,20 @@ fun PrenotazioneScreen(navController: NavController) {
                 colors = CardDefaults.cardColors(containerColor = Color.White),
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(vertical = 8.dp)
                 ) {
                     Text(
                         text = "Seleziona la data della visita",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = Color.Black,
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
 
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                            .padding(horizontal = 4.dp, vertical = 10.dp),
                         shape = RoundedCornerShape(24.dp),
                         colors = CardDefaults.cardColors(containerColor = mioBluScuro),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -173,28 +174,41 @@ fun PrenotazioneScreen(navController: NavController) {
                             LocalContentColor provides mioBluScuro
                         ) {
                             Box(modifier = Modifier.fillMaxWidth()) {
-                                DatePicker(
-                                    state = datePickerState,
-                                    title = null,
-                                    headline = null,
-                                    showModeToggle = false,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = DatePickerDefaults.colors(
-                                        containerColor = mioBluScuro,
-                                        selectedDayContainerColor = mioGialloOcra,
-                                        selectedDayContentColor = mioBluScuro,
-                                        todayDateBorderColor = mioGialloOcra,
-                                        todayContentColor = mioGialloOcra,
-                                        weekdayContentColor = Color.White,
-                                        yearContentColor = Color.White,
-                                        dayContentColor = Color.White,
-                                        disabledDayContentColor = Color.White.copy(alpha = 0.3f),
-                                        disabledYearContentColor = mioGialloOcra,
-                                        selectedYearContentColor = mioGialloOcra,
-                                        navigationContentColor = mioGialloOcra,
-                                        subheadContentColor = mioGialloOcra
+
+                                val tipografiaBase = MaterialTheme.typography
+                                MaterialTheme(
+                                    typography = tipografiaBase.copy(
+                                        bodyLarge = tipografiaBase.bodyLarge.copy(
+                                            fontSize = tipografiaBase.bodyLarge.fontSize * 1.0f
+                                        ),
+                                        bodySmall = tipografiaBase.bodySmall.copy(
+                                            fontSize = tipografiaBase.bodySmall.fontSize * 1.0f
+                                        )
                                     )
-                                )
+                                ) {
+                                    DatePicker(
+                                        state = datePickerState,
+                                        title = null,
+                                        headline = null,
+                                        showModeToggle = false,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = DatePickerDefaults.colors(
+                                            containerColor = mioBluScuro,
+                                            selectedDayContainerColor = mioGialloOcra,
+                                            selectedDayContentColor = mioBluScuro,
+                                            todayDateBorderColor = mioGialloOcra,
+                                            todayContentColor = mioGialloOcra,
+                                            weekdayContentColor = Color.White,
+                                            yearContentColor = Color.White,
+                                            dayContentColor = Color.White,
+                                            disabledDayContentColor = Color.White.copy(alpha = 0.3f),
+                                            disabledYearContentColor = mioGialloOcra,
+                                            selectedYearContentColor = mioGialloOcra,
+                                            navigationContentColor = mioGialloOcra,
+                                            subheadContentColor = mioGialloOcra
+                                        )
+                                    )
+                                }
 
                                 Box(
                                     modifier = Modifier
@@ -250,22 +264,37 @@ fun PrenotazioneScreen(navController: NavController) {
 
                 Text(
                     text = when {
-                        giornoSelezionato != null && orarioSelezionato != null -> "Hai scelto: $dataLeggibile alle ore $orarioSelezionato"
-                        giornoSelezionato != null -> "Hai scelto: $dataLeggibile (seleziona orario)"
+                        giornoSelezionato != null && orarioSelezionato != null -> "Hai scelto: $dataLeggibile \nalle ore $orarioSelezionato"
+                        giornoSelezionato != null -> " $dataLeggibile (seleziona orario)"
                         else -> "Scegli prima una data dal calendario"
                     },
                     modifier = Modifier.weight(1f)
                 )
 
-                // MOSTRA L'ICONA DEL METEO
+                // MOSTRA L'ICONA DEL METEO E LE TEMPERATURE
                 if (meteoDelGiornoSelezionato != null) {
-                    val (iconaMeteo, coloreMeteo) = getIconaEColore(meteoDelGiornoSelezionato)
-                    Icon(
-                        imageVector = iconaMeteo,
-                        contentDescription = "Meteo",
-                        tint = coloreMeteo,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    val (iconaMeteo, coloreMeteo) = getIconaEColore(meteoDelGiornoSelezionato.condizione)
+
+                    // Raggruppo l'icona e il testo in una colonna per tenerli vicini e centrati
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = iconaMeteo,
+                            contentDescription = "Meteo",
+                            tint = coloreMeteo,
+                            modifier = Modifier.size(28.dp) // Ridotto leggermente per far spazio al testo
+                        )
+
+                        // Mostra Temp Minima e Massima sotto l'icona
+                        Text(
+                            text = "${meteoDelGiornoSelezionato.tempMin}° / ${meteoDelGiornoSelezionato.tempMax}°",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.DarkGray
+                        )
+                    }
                 }
             }
 
