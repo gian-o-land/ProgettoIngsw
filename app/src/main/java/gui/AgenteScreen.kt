@@ -41,7 +41,7 @@ import gui.template.myCardInserzione
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AgenteScreen(emailAgente: String, navController : NavController){
+fun AgenteScreen(username: String, navController : NavController){
     val listState = rememberLazyListState()
 
     val indirizzo = "via sal cazzo, Piscitielli, Ita"
@@ -81,7 +81,7 @@ fun AgenteScreen(emailAgente: String, navController : NavController){
                 ),
                 title = {
                     Text(
-                        text = "Ciao,\n$emailAgente",
+                        text = "Ciao,\n$username",
                         fontWeight = FontWeight.Bold,
                         color = mieiTitoli,
                         textAlign = TextAlign.Center
@@ -100,7 +100,7 @@ fun AgenteScreen(emailAgente: String, navController : NavController){
             )
         },
         bottomBar = {
-            myBottomNavBar_Agente(navController = navController)
+            myBottomNavBar_Agente(navController = navController, username)
         }
     ) { innerPadding ->
         Column(modifier = Modifier

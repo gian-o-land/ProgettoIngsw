@@ -1,6 +1,18 @@
 package model
 
-class Agente(private var username: String, private var telefono: String, private var password: String, private var email: String, private var adminCreatore: String?){
+import model.source.DefaultPhonePrefix
+import model.source.PhonePrefix
+
+class Agente(
+    private var username: String,
+    private var telefono: String,
+    private var password: String,
+    private var email: String,
+    private var adminCreatore: String?,
+    private val selectedPrefix: PhonePrefix = DefaultPhonePrefix
+){
+    val fullPhoneNumber: String
+        get() = "${selectedPrefix.prefix}${telefono}"
 
     fun getUsername(): String{
         return username

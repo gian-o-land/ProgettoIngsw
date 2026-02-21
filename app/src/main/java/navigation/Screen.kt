@@ -12,24 +12,22 @@ sealed class Screen(val route: String) {
 
         // Funzione helper per navigare verso questa pagina
         fun withMailUtente(mailUtente: String): String {
-            // NON usare "$route" qui, perché $route contiene "{mailUtente}" e faresti casino.
-            // Scrivi la base "pulita" manualmente:
             return "utente_screen?mailUtente=${Uri.encode(mailUtente)}"
         }
     }
-    data object AdminScreen: Screen("admin_screen"){
+    data object AdminScreen: Screen("admin_screen?usernameAdmin={usernameAdmin}"){
         fun withMailAdmin(usernameAdmin: String): String{
-            return "$route?usernameAdmin=${Uri.encode(usernameAdmin)}"
+            return "admin_screen?usernameAdmin=${Uri.encode(usernameAdmin)}"
         }
     }
-    data object SottoadminScreen: Screen("sottoadmin_screen"){
+    data object SottoadminScreen: Screen("sottoadmin_screen?usernameSottoadmin={usernameSottoadmin}"){
         fun withMailSottoadmin(usernameSottoadmin: String): String{
-            return "$route?usernameSottoadmin=${Uri.encode(usernameSottoadmin)}"
+            return "sottoadmin_screen?usernameSottoadmin=${Uri.encode(usernameSottoadmin)}"
         }
     }
-    data object AgenteScreen: Screen("agente_screen"){
-        fun withMailAgente(mailAgente: String): String{
-            return "$route?mailAgente=${Uri.encode(mailAgente)}"
+    data object AgenteScreen: Screen("agente_screen?username={username}"){
+        fun withMailAgente(username: String): String{
+            return "agente_screen?username=${Uri.encode(username)}"
         }
     }
     data object MappaScreen : Screen("mappa_screen") {
@@ -71,7 +69,21 @@ sealed class Screen(val route: String) {
     data object ProfiloScreen: Screen("profilo_screen")
     data object ModificaCredenzialiScreen: Screen("modifica_credenziali_screen")
     data object ModificaPasswordScreen: Screen("modifica_password_screen")
-
+    data object ProfiloAdminScreen: Screen("profilo_admin_screen?username={username}&ruolo={ruolo}") {
+        fun withUsernameAndRole(username: String, ruolo: Int): String {
+            return "profilo_admin_screen?username=${Uri.encode(username)}&ruolo=$ruolo"
+        }
+    }
+    data object ProfiloAgenteScreen: Screen("profilo_agente_screen?username={username}") {
+        fun withEmail(username: String): String {
+            return "profilo_agente_screen?username=${Uri.encode(username)}"
+        }
+    }
+    data object ModificaCredenzialiAgenteScreen: Screen("modifica_credenziali_agente_screen?username={username}"){
+        fun withMailAgente(username: String): String{
+            return "modifica_credenziali_agente_screen?username=${Uri.encode(username)}"
+        }
+    }
 
 
 

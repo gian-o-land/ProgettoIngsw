@@ -65,7 +65,6 @@ fun ModificaCredenzialiScreen(navController : NavController) {
     var textFieldCognomeModificato by remember {
         mutableStateOf("")
     }
-    var telefono by remember { mutableStateOf("") }
     var prefixDropdownExpanded by remember { mutableStateOf(false) }
     var selectedPrefix by remember { mutableStateOf(DefaultPhonePrefix) }
 
@@ -97,11 +96,6 @@ fun ModificaCredenzialiScreen(navController : NavController) {
 
         },
         bottomBar = {
-           /* myBottomNavBar(
-                navController = navController
-            )
-
-            */
         }
 
     ) { innerPadding ->
@@ -210,8 +204,8 @@ fun ModificaCredenzialiScreen(navController : NavController) {
                     }
                 }
                 OutlinedTextField(
-                    value = telefono,
-                    onValueChange = { telefono = it },
+                    value = textFieldTelefonoModificato,
+                    onValueChange = { textFieldTelefonoModificato = it },
                     label = { Text("Numero") },
                     modifier = Modifier
                         .fillMaxWidth()
