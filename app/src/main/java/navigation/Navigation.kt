@@ -33,6 +33,7 @@ import gui.CaricaImmobiliScreen
 import gui.ProfiloAdminScreen
 import gui.ProfiloAgenteScreen
 import gui.ModificaCredenzialiAgenteScreen
+import gui.NotificheAgenteScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -277,6 +278,23 @@ fun Navigation() {
             val usernameRecuperato = entry.arguments?.getString("username") ?: "<UsernameAgente>"
 
             ModificaCredenzialiAgenteScreen(
+                navController = navController,
+                username = usernameRecuperato
+            )
+        }
+        composable(
+            route = Screen.NotificheAgenteScreen.route,
+            arguments = listOf(
+                navArgument("username") {
+                    type = NavType.StringType
+                    defaultValue = "<UsernameAgente>"
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val usernameRecuperato = entry.arguments?.getString("username") ?: "<UsernameAgente>"
+
+            NotificheAgenteScreen(
                 navController = navController,
                 username = usernameRecuperato
             )

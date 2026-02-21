@@ -79,14 +79,19 @@ sealed class Screen(val route: String) {
             return "profilo_agente_screen?username=${Uri.encode(username)}"
         }
     }
-    data object ModificaCredenzialiAgenteScreen: Screen("modifica_credenziali_agente_screen?username={username}"){
-        fun withMailAgente(username: String): String{
+    data object ModificaCredenzialiAgenteScreen: Screen("modifica_credenziali_agente_screen?username={username}") {
+        fun withMailAgente(username: String): String {
             return "modifica_credenziali_agente_screen?username=${Uri.encode(username)}"
         }
     }
     data object CaricaImmobiliScreen: Screen("carica_immobili_screen?username={username}"){
         fun withUsernameAgente(username: String): String{
             return "carica_immobili_screen?username=${Uri.encode(username)}"
+        }
+    }
+    data object NotificheAgenteScreen: Screen("notifiche_agente_screen?username={username}"){
+        fun withUsernameAgente(username: String): String{
+            return "notifiche_agente_screen?username=${Uri.encode(username)}"
         }
     }
 

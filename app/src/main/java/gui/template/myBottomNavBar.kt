@@ -249,7 +249,7 @@ fun myBottomNavBar_Agente(navController: NavController, username: String) {
 
     val items = listOf(
         BottomNavItem("Immobili", Icons.Default.Apartment, Screen.AgenteScreen.withMailAgente(username)),
-        BottomNavItem("Notifiche", Icons.Default.Notifications, "notificheAgente_route"),
+        BottomNavItem("Notifiche", Icons.Default.Notifications, Screen.NotificheAgenteScreen.withUsernameAgente(username)),
         BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAgenteScreen.withEmail(username = username))
     )
 
