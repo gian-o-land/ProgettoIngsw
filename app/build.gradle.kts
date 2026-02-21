@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.ui.test)
     implementation(libs.androidx.foundation.layout)
+    implementation(libs.androidx.compose.ui)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -76,4 +77,6 @@ dependencies {
     implementation("com.google.maps.android:android-maps-utils:3.8.0")
     implementation("com.google.android.libraries.places:places:3.3.0")
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Serve per leggere il formato JSON
 }
