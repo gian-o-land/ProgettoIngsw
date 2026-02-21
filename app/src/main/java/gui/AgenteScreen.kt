@@ -38,6 +38,7 @@ import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import gui.template.myBottomNavBar_Agente
 import gui.template.myCardInserzione
+import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +60,7 @@ fun AgenteScreen(username: String, navController : NavController){
                 horizontalArrangement = Arrangement.Center
             ) {
                 ExtendedFloatingActionButton(
-                    onClick = {},
+                    onClick = {navController.navigate(Screen.CaricaImmobiliScreen.withUsernameAgente(username))},
                     containerColor = mioGialloOcra,
                     contentColor = mioBluScuro,
                     shape = CircleShape
