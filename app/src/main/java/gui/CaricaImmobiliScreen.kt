@@ -124,10 +124,9 @@ fun CaricaImmobiliScreen(navController: NavController, username: String ) {
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
-            RigaBottoni(
-                icona = Icons.Default.Bathtub, // Bagni
-                testo = "Bagni",
-                opzioni = listOf("1", "2", "3", ">3")
+            RigaValore(
+                icona = Icons.Default.Dashboard, // Locali
+                testo = "Bagni"
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
