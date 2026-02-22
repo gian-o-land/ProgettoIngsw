@@ -66,6 +66,8 @@ import java.util.Locale
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
+import navigation.Screen
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -303,7 +305,7 @@ fun PrenotazioneScreen(navController: NavController) {
                     onDismissRequest = { prenotazioneEffettuata = false },
                     properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
                     containerColor = mioBluScuro,
-                    textContentColor = mioGialloOcra,
+                    textContentColor = mieiTitoli,
                     text = {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
@@ -319,8 +321,8 @@ fun PrenotazioneScreen(navController: NavController) {
                             Button(
                                 onClick = {
                                     prenotazioneEffettuata = false
-                                    navController.navigate("UtenteScreen") {
-                                        popUpTo("UtenteScreen") { inclusive = true }
+                                    navController.navigate(Screen.UtenteScreen.route) {
+                                        popUpTo(Screen.UtenteScreen.route) { inclusive = true }
                                     }
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = mioGialloOcra, contentColor = mioBluScuro),
