@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,13 +37,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
+import connection.connessioneLogin
 import gui.template.myButton
 import gui.template.myTextField
 import gui.template.myTextField_Password
+import kotlinx.coroutines.launch
 import navigation.Screen
 
 @Composable
 fun LoginScreen(painter: Painter, descrizione: String?, navController : NavController){
+
+    val coroutineScope= rememberCoroutineScope()
+
     var textFieldEmail by remember {
         mutableStateOf("")
     }
@@ -135,27 +141,26 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
             Spacer(modifier = Modifier.height(30.dp))
             myButton(
                 myClick = {
-                    // 1. Verifica che l'email non sia vuota (Opzionale ma consigliato)
-                    if (textFieldEmail.isNotBlank()) {
+                    coroutineScope.launch {
+                        val risposta = connessioneLogin(textFieldEmail, textFieldPassword)
+                        if (risposta==0){
+                              navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmail))
 
-                        // 2. GENERIAMO LA ROTTA CON I DATI
-                        // Usiamo la funzione creata nel file Screen.kt
-                        val rottaConDati = Screen.UtenteScreen.withMailUtente(textFieldEmail)
+                        }else if (risposta==1){
+                            navController.navigate(Screen.AdminScreen.withMailAdmin(textFieldEmail))
+                        }else if (risposta==2){
+                            navController.navigate(Screen.SottoadminScreen.withMailSottoadmin(textFieldEmail))
 
-                        // 3. NAVIGAZIONE
-                        navController.navigate(rottaConDati) {
-                            // Rimuoviamo il Login dalla storia (così back non torna al login)
-                            popUpTo(Screen.LoginScreen.route) {
-                                inclusive = true
-                            }
+                        }else if (risposta==3){
+                            navController.navigate(Screen.AgenteScreen.withMailAgente(textFieldEmail))
+
+                        }else{
+                            navController.navigate(Screen.LoginScreen.route)
                         }
-                    } else {
-                        // Qui potresti mostrare un errore tipo "Inserisci l'email"
-                        // Per ora navighiamo comunque (passerà stringa vuota)
-                        navController.navigate(Screen.UtenteScreen.withMailUtente("utente@gmail.com")) {
-                            popUpTo(Screen.LoginScreen.route) { inclusive = true }
-                        }
+
                     }
+
+
                 },
                 testo = "Accedi"
             )
