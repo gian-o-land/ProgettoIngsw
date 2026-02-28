@@ -35,8 +35,8 @@ suspend fun connessioneLogin(identificativo: String, passwordInserita: String): 
         testoRisposta.toIntOrNull() ?: -1
 
     } catch (e: Exception) {
-        // Se il telefono non ha internet, Ngrok è spento, o il server Ktor è giù,
-        // catturiamo l'errore per non far crashare l'app e restituiamo -1
+        // Così l'app scriverà l'errore in rosso nella console di Android Studio (Logcat)!
+        android.util.Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server: ${e.message}", e)
         -1
     }
 }
