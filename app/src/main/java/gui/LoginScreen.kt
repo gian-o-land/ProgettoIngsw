@@ -18,6 +18,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,6 +50,7 @@ import navigation.Screen
 fun LoginScreen(painter: Painter, descrizione: String?, navController : NavController){
 
     val coroutineScope= rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var textFieldEmail by remember {
         mutableStateOf("")
@@ -125,6 +128,16 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 modifier = Modifier.padding(horizontal = 154.dp)
                     .fillMaxWidth())
             Spacer(modifier = Modifier.height(10.dp))
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(horizontal = 35.dp, vertical = 5.dp)
+            ) { data ->
+                androidx.compose.material3.Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                    contentColor = Color.White
+                )
+            }
             myTextField(
                 Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 "Email/Username",
@@ -155,7 +168,11 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                             navController.navigate(Screen.AgenteScreen.withMailAgente(textFieldEmail))
 
                         }else{
-                            navController.navigate(Screen.LoginScreen.route)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Credenziali non valide")
+                            }
+                            textFieldEmail = ""
+                            textFieldPassword = ""
                         }
 
                     }

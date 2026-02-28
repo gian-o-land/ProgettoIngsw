@@ -6,8 +6,9 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 val client = HttpClient(Android)
-val urlServer = "https://onrushing-alyssa-nonbillable.ngrok-free.dev"  // da cambiare ogni volta se cambia quando riavvio ngrok
+val urlServer = "https://lktif-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -34,6 +35,9 @@ suspend fun connessioneLogin(identificativo: String, passwordInserita: String): 
         // restituisce null, e l'operatore "?: -1" lo trasforma in -1 come sicurezza.
         testoRisposta.toIntOrNull() ?: -1
 
+    } catch (e: CancellationException) {
+        // Se Compose cancella la coroutine, glielo lasciamo fare senza bloccarlo
+        throw e
     } catch (e: Exception) {
         // Così l'app scriverà l'errore in rosso nella console di Android Studio (Logcat)!
         android.util.Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server: ${e.message}", e)
