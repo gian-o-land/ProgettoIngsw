@@ -1,5 +1,6 @@
 package gui
 
+import androidx.annotation.OptIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,7 +45,20 @@ import gui.template.myTextField
 import gui.template.myTextField_Password
 import kotlinx.coroutines.launch
 import navigation.Screen
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.media3.common.util.Log
+import connection.connessioneLoginGoogle
+import androidx.compose.ui.res.stringResource
+import androidx.media3.common.util.UnstableApi
 
+@OptIn(UnstableApi::class)
 @Composable
 fun LoginScreen(painter: Painter, descrizione: String?, navController : NavController){
 
@@ -55,6 +70,9 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
     var textFieldPassword by remember {
         mutableStateOf("")
     }
+    val context = LocalContext.current
+
+    val WEB_CLIENT_ID = stringResource(id = R.string.web_client_id)
 
     Column (modifier = Modifier
         .fillMaxSize()
@@ -96,7 +114,56 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
-                    navController.navigate(Screen.AdminScreen.route)
+                    coroutineScope.launch {
+                        val credentialManager = CredentialManager.create(context)
+
+                        // INCOLLA QUI IL TUO WEB CLIENT ID (creato su Google Cloud)
+                        val googleIdOption = GetGoogleIdOption.Builder()
+                            .setFilterByAuthorizedAccounts(false)
+                            .setServerClientId(WEB_CLIENT_ID)
+                            .setAutoSelectEnabled(true)
+                            .build()
+
+                        val request = GetCredentialRequest.Builder()
+                            .addCredentialOption(googleIdOption)
+                            .build()
+
+                        try {
+                            // 1. Fa apparire il popup nativo di Google
+                            val result = credentialManager.getCredential(context, request)
+                            val credential = result.credential
+
+                            if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+
+                                // ✨ ECCO IL PASSAGGIO CHIAVE: Recuperiamo la mail! ✨
+                                // La proprietà ".id" di GoogleIdTokenCredential contiene l'email dell'utente
+                                val mailUtente = googleIdTokenCredential.id
+
+                                // Estraiamo anche l'idToken crittografato da mandare al backend
+                                val tokenSicuro = googleIdTokenCredential.idToken
+
+                                // Invia il token al tuo server tramite la funzione in connessioneDB
+                                val livelloAccesso = connessioneLoginGoogle(tokenSicuro)
+
+                                // Gestisce la navigazione in base alla risposta del server
+                                when (livelloAccesso) {
+                                    0 -> {
+                                        Log.d("LOGIN_GOOGLE", "Accesso riuscito per: $mailUtente")
+
+                                        // 👉 USIAMO LA MAIL PER NAVIGARE ALLA SCHERMATA UTENTE
+                                        navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente))
+                                    }
+                                    else -> {
+                                        Log.e("LOGIN_GOOGLE", "Accesso negato (Admin/Agente o errore del server)")
+                                        // Opzionale: mostra un Toast all'utente per dirgli che il login è fallito
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("LOGIN_GOOGLE", "Login annullato o fallito: ${e.message}")
+                        }
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioBackgroung,
@@ -104,18 +171,26 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 ),
                 border = BorderStroke(1.dp, Color.Gray),
                 shape = RectangleShape,
-                modifier = Modifier.padding(horizontal = 35.dp)
+                modifier = Modifier
+                    .padding(horizontal = 35.dp)
                     .width(400.dp)
                     .height(45.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Image(
                         painter = painterResource(id = R.drawable.google_logo),
                         contentDescription = null,
                         modifier = Modifier.size(30.dp)
                     )
                     Spacer(modifier = Modifier.width(25.dp))
-                    Text("Accedi con Google", textAlign = TextAlign.Center, fontSize = 17.sp)
+                    Text(
+                        text = "Accedi con Google",
+                        textAlign = TextAlign.Center,
+                        fontSize = 17.sp
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(15.dp))
