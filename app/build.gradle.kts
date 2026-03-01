@@ -8,7 +8,15 @@ plugins {
 android {
     namespace = "com.example.progettoingsw"
     compileSdk = 35
-
+    signingConfigs {
+        create("teamDebugConfig") {
+            // Se lo hai rinominato, metti il nome nuovo qui
+            storeFile = file("team_debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
     defaultConfig {
         applicationId = "com.example.progettoingsw"
         minSdk = 24
@@ -22,10 +30,11 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        // 2. AGGIUNGI QUESTA SEZIONE PER APPLICARLA AI TEST
+        debug {
+            signingConfig = signingConfigs.getByName("teamDebugConfig")
         }
     }
     compileOptions {
@@ -60,6 +69,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.test)
     implementation(libs.androidx.foundation.layout)
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.media3.common.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -81,4 +91,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Serve per leggere il formato JSON
     implementation("io.ktor:ktor-client-core:2.3.8")
     implementation("io.ktor:ktor-client-android:2.3.8")
+    implementation("androidx.credentials:credentials:1.2.2")
+    implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
 }
