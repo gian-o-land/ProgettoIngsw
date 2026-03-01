@@ -44,8 +44,8 @@ import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import gui.template.myButton
 import gui.template.myTextField
-import model.source.CommonPhonePrefixes
-import model.source.DefaultPhonePrefix
+import DTO.source.CommonPhonePrefixes
+import DTO.source.DefaultPhonePrefix
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)

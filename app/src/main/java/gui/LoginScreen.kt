@@ -52,13 +52,11 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import kotlinx.coroutines.launch
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.media3.common.util.Log
 import connection.connessioneLoginGoogle
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.util.UnstableApi
+import connection.recuperaTelefonoEPassword
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -153,6 +151,11 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                 when (livelloAccesso) {
                                     0 -> {
                                         Log.d("LOGIN_GOOGLE", "Accesso riuscito per: $mailUtente")
+
+                                        val dati = recuperaTelefonoEPassword(mailUtente)
+                                        if (dati?.telefono == "0000000000" && dati.password == "Accesso_Google0"){
+                                            println("È VIVOOOOOOO")
+                                        }
 
                                         // 👉 USIAMO LA MAIL PER NAVIGARE ALLA SCHERMATA UTENTE
                                         navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente))

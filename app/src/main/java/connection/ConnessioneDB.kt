@@ -1,5 +1,6 @@
 package connection
 
+import DTO.UtenteDTO
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.request.*
@@ -7,8 +8,18 @@ import io.ktor.client.statement.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
-val client = HttpClient(Android)
-val urlServer = "https://wbmeh-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.call.body
+import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.json.Json
+
+val client = HttpClient(Android) {
+    install(ContentNegotiation) {
+        json(Json { ignoreUnknownKeys = true })
+    }
+}
+val urlServer = "https://jghci-2a0e-43d-8b44-0-6006-8433-8af4-11df.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -69,5 +80,34 @@ suspend fun connessioneLoginGoogle(idTokenGoogle: String): Int {
     } catch (e: Exception) {
         android.util.Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server (Google): ${e.message}", e)
         -1
+    }
+}
+suspend fun recuperaTelefonoEPassword(email: String): UtenteDTO? {
+    return try {
+        val risposta: HttpResponse = client.post("$urlServer/getTellPass") {
+            setBody(
+                FormDataContent(
+                    Parameters.build {
+                        append("email", email)
+                    }
+                )
+            )
+        }
+
+        // Se il server ha risposto con "OK"
+        if (risposta.status == HttpStatusCode.OK) {
+
+            val datiRicevuti: UtenteDTO = risposta.body()
+
+            return datiRicevuti
+
+        } else {
+            // Se risponde NotFound (o altro), l'utente non c'è
+            return null
+        }
+
+    } catch (e: Exception) {
+        android.util.Log.e("ERRORE_RECUPERO", "Errore: ${e.message}", e)
+        return null
     }
 }

@@ -3,19 +3,15 @@ package gui
 import android.content.Context
 import android.location.Geocoder
 import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.maps.android.compose.CameraPositionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.google.maps.android.SphericalUtil
-import model.InserzioneTemp
-import com.google.android.libraries.places.api.Places
+import DTO.InserzioneTemp
 
 
 val listaInserzioniFintoDB = listOf(

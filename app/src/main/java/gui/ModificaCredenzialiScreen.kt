@@ -32,7 +32,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,11 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myBottomNavBar
 import gui.template.myButton
-import model.source.CommonPhonePrefixes
-import model.source.DefaultPhonePrefix
-import navigation.Screen
+import DTO.source.CommonPhonePrefixes
+import DTO.source.DefaultPhonePrefix
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
