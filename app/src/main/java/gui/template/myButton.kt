@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -71,5 +70,32 @@ fun RowScope.myBottoneOrario(
         )
     ) {
         Text(text = text, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun myButtonErrore(
+    myClick: () -> Unit,
+    testo: String,
+    isError: Boolean = false // <--- 1. AGGIUNGI QUESTO PARAMETRO
+) {
+    // 2. CREA IL COLORE DINAMICO: Rosso se c'è errore, altrimenti il tuo Blu
+    val coloreSfondo = if (isError) Color(0xFFB00020) else mioGialloOcra
+
+    Button(
+        onClick = myClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = coloreSfondo // <--- 3. APPLICA IL COLORE QUI
+        ),
+        modifier = Modifier.height(50.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 75.dp)
+    ) {
+        Text(
+            text = testo,
+            color = mioBluScuro,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        )
     }
 }

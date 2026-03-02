@@ -8,6 +8,8 @@ import io.ktor.client.statement.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
+import android.content.Context
+import android.net.Uri
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.client.call.body
@@ -19,7 +21,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://jghci-2a0e-43d-8b44-0-6006-8433-8af4-11df.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://hjofp-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -73,13 +75,43 @@ suspend fun connessioneLoginGoogle(idTokenGoogle: String): Int {
         // Il tuo server Ktor (dopo aver controllato il token sul DB) ti risponderà
         // con un numero:
         //  0 -> Utente normale (nuovo o esistente) ammesso
-        // -1 -> Errore, token falso, oppure tentativo di accesso bloccato (Admin/Agente)
+        // -1 -> Errore, token falso, oppure tentativo di accesso bloccato
         val testoRisposta = risposta.bodyAsText()
         testoRisposta.toIntOrNull() ?: -1
 
     } catch (e: Exception) {
         android.util.Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server (Google): ${e.message}", e)
         -1
+    }
+}
+
+
+// Passiamo il Context per poter leggere il file dalla memoria del telefono
+suspend fun inviaImmagineAServer(context: Context, uri: Uri): String? {
+    return try {
+        // 1. Apriamo il file selezionato e lo trasformiamo in un array di byte
+        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            ?: return null
+
+        // 2. Creiamo una richiesta "Multipart" (come i form dei siti web con allegati)
+        val risposta = client.submitFormWithBinaryData(
+            url = "$urlServer/upload/immagine",
+            formData = formData {
+                append("image", bytes, Headers.build {
+                    // Diciamo al server che è un'immagine
+                    append(HttpHeaders.ContentType, "image/jpeg")
+                    append(HttpHeaders.ContentDisposition, "filename=\"foto_immobile.jpg\"")
+                })
+            }
+        )
+
+        // 3. Il backend ci risponderà con l'URL pubblico di Amazon S3 o con "-1"
+        val risultato = risposta.bodyAsText()
+        if (risultato == "-1") null else risultato
+
+    } catch (e: Exception) {
+        android.util.Log.e("UPLOAD_S3", "Errore invio immagine: ${e.message}", e)
+        null
     }
 }
 suspend fun recuperaTelefonoEPassword(email: String): UtenteDTO? {
