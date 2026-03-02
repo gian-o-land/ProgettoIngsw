@@ -1,5 +1,9 @@
 package gui
 
+import DTO.D_arred
+import DTO.D_catInser
+import DTO.D_energ
+import DTO.Inserzione
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,11 +48,12 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 
 import coil.compose.AsyncImage
+import connection.client
+import connection.inviaInserzioneAlServer
 import gui.template.myButtonErrore
 
 
@@ -59,6 +64,10 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    // NOTA: Se hai un client Ktor globale, usa quello (es. 'KtorClient.client').
+    // Altrimenti, assicurati di avere accesso al client qui dentro per passarlo alla funzione di invio.
+    // val clientKtor = tuoClientGlobale
 
     // --- IL GESTORE DELLO SNACKBAR ---
     val snackbarHostState = remember { SnackbarHostState() }
@@ -76,6 +85,17 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
     var bagni by remember { mutableStateOf("") }
     var piano by remember { mutableStateOf("-") }
     var arredamento by remember { mutableStateOf("-") }
+
+    // --- VARIABILE CLASSE ENERGETICA ---
+    var classeEnergeticaScelta by remember { mutableStateOf("G") }
+
+    // --- VARIABILI CARATTERISTICHE BOOLEANE ---
+    var ascensore by remember { mutableStateOf(false) }
+    var cucina by remember { mutableStateOf(false) }
+    var piscina by remember { mutableStateOf(false) }
+    var cantina by remember { mutableStateOf(false) }
+    var balcone by remember { mutableStateOf(false) }
+    var terrazzo by remember { mutableStateOf(false) }
 
     // --- VARIABILI FOTO (MAX 10) ---
     var fotoSelezionate by remember { mutableStateOf<List<Uri>>(emptyList()) }
@@ -131,7 +151,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = mioBluScuro
+                    containerColor = Color(0xFF000080) // Assicurati di usare il tuo 'mioBluScuro' se definito
                 ),
                 title = {
                     Text("Carica Immobile", fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
@@ -156,7 +176,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             // --- RIGHE CON CONTROLLO ERRORE E AGGIORNAMENTO STATO ---
             RigaCliccabileConErrore(
                 icona = Icons.Default.LocationCity, testo = "Categoria",
-                valoreAttuale = categoria, opzioni = listOf("In vendita","In affitto"),
+                valoreAttuale = categoria, opzioni = listOf("Vendita","Affitto"),
                 isError = showErrors && categoria == "-",
                 onValoreCambiato = { nuovaCategoria -> categoria = nuovaCategoria }
             )
@@ -204,6 +224,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
 
             RigaSlider(
                 icona = Icons.Default.FlashOn, testo = "Classe\nenergetica"
+                // Assicurati che RigaSlider accetti onValoreCambiato = { nuovaClasse -> classeEnergeticaScelta = nuovaClasse }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -219,7 +240,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                 Text("Altre caratteristiche", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.padding(bottom = 12.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    BottoneCaratteristica("Ascensore", Modifier.weight(1f))
+                    BottoneCaratteristica("Ascensore", Modifier.weight(1f)) // Passa le lambda se il bottone lo supporta
                     BottoneCaratteristica("Cucina", Modifier.weight(1f))
                     BottoneCaratteristica("Piscina", Modifier.weight(1f))
                 }
@@ -238,7 +259,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             myButtonErrore(
                 myClick = { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 testo = "Inserisci foto (${fotoSelezionate.size}/10)",
-                isError = showErrors && fotoSelezionate.isEmpty() // Diventa rosso se vuoto al click di Carica
+                isError = showErrors && fotoSelezionate.isEmpty()
             )
 
             if (fotoSelezionate.isNotEmpty()) {
@@ -272,7 +293,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             myButtonErrore(
                 myClick = { planimetriaPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 testo = if (planimetriaSelezionata == null) "Inserisci planimetria" else "Planimetria (1/1)",
-                isError = showErrors && planimetriaSelezionata == null // Diventa rosso se vuoto al click di Carica
+                isError = showErrors && planimetriaSelezionata == null
             )
 
             if (planimetriaSelezionata != null) {
@@ -314,7 +335,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- BOTTONE FINALE CON CONTROLLO GLOBALE ---
+            // --- BOTTONE FINALE CON CONTROLLO GLOBALE E CHIAMATA KTOR ---
             myButton(
                 myClick = {
                     val menuValidi = categoria != "-" && piano != "-" && arredamento != "-"
@@ -355,16 +376,67 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                 }
                             }
 
-                            // 3. VERIFICA FINALE UPLOAD E SALVATAGGIO DB
+                            // 3. VERIFICA FINALE UPLOAD E CREAZIONE OGGETTO
                             if (!ciSonoErrori && urlsScaricati.isNotEmpty()) {
                                 linkS3Ottenuti = urlsScaricati
 
+                                val indirizzoCompleto = "$textFieldIndirizzo, $textFieldComune, $textFieldCitta"
+                                var latReale = 0.0
+                                var lonReale = 0.0
+
+                                val coordinate = cercaCoordinate(context, indirizzoCompleto) // Assicurati di avere la funzione cercaCoordinate definita
+
+                                if (coordinate != null) {
+                                    latReale = coordinate.latitude
+                                    lonReale = coordinate.longitude
+                                } else {
+                                    android.util.Log.w("GEOCODER", "Attenzione: Indirizzo non trovato sulla mappa, salvato come 0.0, 0.0")
+                                }
+
+                                val nuovaInserzione = Inserzione(
+                                    idInserzione = generaIdInserzione(), // Assicurati di avere la funzione generaIdInserzione()
+                                    quadratura = quadratura.toIntOrNull() ?: 0,
+                                    nBagni = bagni.toIntOrNull() ?: 0,
+                                    nLocali = locali.toIntOrNull() ?: 0,
+                                    piano = piano.toIntOrNull() ?: 0,
+                                    prezzo = prezzo.toFloatOrNull() ?: 0f,
+
+                                    categoria = mappaCategoria(categoria),
+                                    arredamento = mappaArredamento(arredamento),
+                                    classeEnergetica = mappaClasseEnergetica(classeEnergeticaScelta),
+
+                                    balcone = balcone,
+                                    ascensore = ascensore,
+                                    terrazzo = terrazzo,
+                                    cantina = cantina,
+                                    piscina = piscina,
+                                    cucina = cucina,
+
+                                    citta = textFieldCitta,
+                                    comune = textFieldComune,
+                                    indirizzo = textFieldIndirizzo,
+                                    agenteCreatore = username,
+
+                                    // Inseriamo le coordinate appena trovate!
+                                    latitudine = latReale,
+                                    longitudine = lonReale,
+
+                                )
+
                                 android.util.Log.d("UPLOAD", "Foto caricate: $linkS3Ottenuti")
                                 android.util.Log.d("UPLOAD", "Planimetria: $linkPlanimetriaS3")
+                                android.util.Log.d("INSERZIONE", "Oggetto creato con successo: $nuovaInserzione")
 
-                                Toast.makeText(context, "Caricamento completato!", Toast.LENGTH_SHORT).show()
+                                // 4. CHIAMATA A KTOR
+                                val caricamentoDbOk = inviaInserzioneAlServer(client =client, nuovaInserzione,urlsScaricati,linkPlanimetriaS3)
 
-                                // ORA PUOI CHIAMARE IL TUO SERVER KTOR PER INSERIRE L'INTERO IMMOBILE NEL DB POSTGRESQL!
+                                if (caricamentoDbOk) {
+                                    Toast.makeText(context, "Immobile pubblicato con successo!", Toast.LENGTH_LONG).show()
+                                    // Opzionale: Torna alla home
+                                    // navController.popBackStack()
+                                } else {
+                                    snackbarHostState.showSnackbar("Impossibile salvare l'inserzione sul database.")
+                                }
 
                             } else {
                                 snackbarHostState.showSnackbar("Errore di rete durante il caricamento delle immagini.")
@@ -381,6 +453,40 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
     }
 }
 
+fun generaIdInserzione(): String {
+    // Usiamo lettere maiuscole e numeri per evitare confusione tra 'l' minuscola e '1'
+    val caratteriConsentiti = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return (1..6)
+        .map { caratteriConsentiti.random() }
+        .joinToString("")
+}
+
+fun mappaCategoria(valoreUI: String): D_catInser {
+    return when (valoreUI) {
+        "Vendita" -> D_catInser.VENDITA
+        "Affitto" -> D_catInser.AFFITTO
+        else -> D_catInser.VENDITA // Valore di sicurezza
+    }
+}
+
+fun mappaArredamento(valoreUI: String): D_arred {
+    return when (valoreUI) {
+        "Completo" -> D_arred.COMPLETO
+        "Parziale" -> D_arred.PARZIALE
+        "No" -> D_arred.NO
+        else -> D_arred.NO
+    }
+}
+
+fun mappaClasseEnergetica(valoreUI: String): D_energ {
+    // Se il tuo slider restituisce lettere (es. "A", "G") o parole intere, le gestiamo entrambe
+    return when (valoreUI.uppercase()) {
+        "ALTA"-> D_energ.ALTA
+        "MEDIA"-> D_energ.MEDIA
+        "BASSA"-> D_energ.BASSA
+        else -> D_energ.BASSA
+    }
+}
 @Composable
 fun RigaCliccabileConErrore(
     icona: ImageVector,

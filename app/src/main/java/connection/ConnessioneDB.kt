@@ -1,5 +1,6 @@
 package connection
 
+import DTO.Inserzione
 import DTO.UtenteDTO
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
@@ -15,13 +16,14 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
 
 val client = HttpClient(Android) {
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://hjofp-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://wqhpv-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -141,5 +143,46 @@ suspend fun recuperaTelefonoEPassword(email: String): UtenteDTO? {
     } catch (e: Exception) {
         android.util.Log.e("ERRORE_RECUPERO", "Errore: ${e.message}", e)
         return null
+    }
+}
+
+
+@Serializable
+data class InserzioneRequest(
+    val inserzione: Inserzione,
+    val urlFoto: List<String>,
+    val urlPlanimetria: String?
+)
+
+suspend fun inviaInserzioneAlServer(
+    client: HttpClient,
+    inserzione: Inserzione,
+    urlFoto: MutableList<String>,
+    urlPlanimetria: String?
+): Boolean {
+    return try {
+        // 1. "Impacchettiamo" i tre dati in un unico oggetto
+        val pacchettoDati = InserzioneRequest(
+            inserzione = inserzione,
+            urlFoto = urlFoto,
+            urlPlanimetria = urlPlanimetria
+        )
+
+        val risposta: HttpResponse = client.post("$urlServer/inserzioni") {
+            contentType(ContentType.Application.Json)
+            // 2. Passiamo il pacchetto unico al setBody
+            setBody(pacchettoDati)
+        }
+
+        if (risposta.status.isSuccess()) {
+            android.util.Log.d("API_INSERZIONE", "Inserzione caricata con successo su PostgreSQL!")
+            true
+        } else {
+            android.util.Log.e("API_INSERZIONE", "Errore dal server: ${risposta.status}")
+            false
+        }
+    } catch (e: Exception) {
+        android.util.Log.e("API_INSERZIONE", "Errore di connessione: ${e.message}")
+        false
     }
 }
