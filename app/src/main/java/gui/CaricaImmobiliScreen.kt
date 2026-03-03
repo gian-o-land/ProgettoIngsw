@@ -65,10 +65,6 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // NOTA: Se hai un client Ktor globale, usa quello (es. 'KtorClient.client').
-    // Altrimenti, assicurati di avere accesso al client qui dentro per passarlo alla funzione di invio.
-    // val clientKtor = tuoClientGlobale
-
     // --- IL GESTORE DELLO SNACKBAR ---
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -151,7 +147,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF000080) // Assicurati di usare il tuo 'mioBluScuro' se definito
+                    containerColor = mioBluScuro
                 ),
                 title = {
                     Text("Carica Immobile", fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
@@ -176,17 +172,20 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             // --- RIGHE CON CONTROLLO ERRORE E AGGIORNAMENTO STATO ---
             RigaCliccabileConErrore(
                 icona = Icons.Default.LocationCity, testo = "Categoria",
-                valoreAttuale = categoria, opzioni = listOf("Vendita","Affitto"),
+                valoreAttuale = categoria, opzioni = listOf("In vendita","In affitto"),
                 isError = showErrors && categoria == "-",
                 onValoreCambiato = { nuovaCategoria -> categoria = nuovaCategoria }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+            val labelPrezzo = if (categoria == "In affitto") "Prezzo / mese" else "Prezzo"
 
             RigaValoreConErrore(
-                icona = Icons.Default.AttachMoney, testo = "Prezzo",
+                icona = Icons.Default.AttachMoney,
+                testo = labelPrezzo,
                 valoreAttuale = prezzo,
                 isError = showErrors && prezzo.isBlank(),
-                onValoreCambiato = { nuovoPrezzo -> prezzo = nuovoPrezzo }
+                onValoreCambiato = { nuovoPrezzo -> prezzo = nuovoPrezzo },
+                suffisso = "€"
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -194,7 +193,8 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                 icona = Icons.Default.Home, testo = "Quadratura",
                 valoreAttuale = quadratura,
                 isError = showErrors && quadratura.isBlank(),
-                onValoreCambiato = { nuovaQuadratura -> quadratura = nuovaQuadratura }
+                onValoreCambiato = { nuovaQuadratura -> quadratura = nuovaQuadratura },
+                suffisso="m²"
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -202,7 +202,8 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                 icona = Icons.Default.Dashboard, testo = "Locali",
                 valoreAttuale = locali,
                 isError = showErrors && locali.isBlank(),
-                onValoreCambiato = { nuoviLocali -> locali = nuoviLocali }
+                onValoreCambiato = { nuoviLocali -> locali = nuoviLocali
+                }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -224,7 +225,6 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
 
             RigaSlider(
                 icona = Icons.Default.FlashOn, testo = "Classe\nenergetica"
-                // Assicurati che RigaSlider accetti onValoreCambiato = { nuovaClasse -> classeEnergeticaScelta = nuovaClasse }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -240,7 +240,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                 Text("Altre caratteristiche", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.padding(bottom = 12.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    BottoneCaratteristica("Ascensore", Modifier.weight(1f)) // Passa le lambda se il bottone lo supporta
+                    BottoneCaratteristica("Ascensore", Modifier.weight(1f))
                     BottoneCaratteristica("Cucina", Modifier.weight(1f))
                     BottoneCaratteristica("Piscina", Modifier.weight(1f))
                 }
@@ -352,21 +352,37 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                             snackbarHostState.showSnackbar("Compila tutti i campi in rosso e inserisci le immagini mancanti!")
                         }
                     } else {
-                        // TUTTO OK: Nascondi gli errori e inizia l'upload
+                        // TUTTO OK: Nascondi gli errori e inizia il processo
                         showErrors = false
 
                         coroutineScope.launch {
                             isUploading = true
+
+                            val indirizzoCompleto = "$textFieldIndirizzo, $textFieldComune, $textFieldCitta"
+                            val coordinate = cercaCoordinateConVerifica(context, indirizzoCompleto, textFieldCitta, textFieldComune)
+
+                            // SE LE COORDINATE NON VENGONO TROVATE: MOSTRA ERRORE E BLOCCA TUTTO
+                            if (coordinate == null) {
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                                snackbarHostState.showSnackbar("Indirizzo non trovato sulla mappa. Scrivi correttamente città, comune e indirizzo.")
+                                isUploading = false
+                                return@launch // Questa parolina magica interrompe qui l'esecuzione! Non andrà avanti.
+                            }
+
+                            // Se le ha trovate, le salviamo per dopo
+                            val latReale = coordinate.latitude
+                            val lonReale = coordinate.longitude
+
+                            // 2. CARICA TUTTE LE FOTO DELL'IMMOBILE SU S3
                             val urlsScaricati = mutableListOf<String>()
                             var ciSonoErrori = false
 
-                            // 1. CARICA TUTTE LE FOTO DELL'IMMOBILE SU S3
                             for (uri in fotoSelezionate) {
                                 val urlS3 = inviaImmagineAServer(context, uri)
                                 if (urlS3 != null) urlsScaricati.add(urlS3) else ciSonoErrori = true
                             }
 
-                            // 2. CARICA LA PLANIMETRIA SU S3
+                            // 3. CARICA LA PLANIMETRIA SU S3
                             if (planimetriaSelezionata != null) {
                                 val urlPlanimetriaS3 = inviaImmagineAServer(context, planimetriaSelezionata!!)
                                 if (urlPlanimetriaS3 != null) {
@@ -376,22 +392,9 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                 }
                             }
 
-                            // 3. VERIFICA FINALE UPLOAD E CREAZIONE OGGETTO
+                            // 4. VERIFICA FINALE UPLOAD E CREAZIONE OGGETTO
                             if (!ciSonoErrori && urlsScaricati.isNotEmpty()) {
                                 linkS3Ottenuti = urlsScaricati
-
-                                val indirizzoCompleto = "$textFieldIndirizzo, $textFieldComune, $textFieldCitta"
-                                var latReale = 0.0
-                                var lonReale = 0.0
-
-                                val coordinate = cercaCoordinate(context, indirizzoCompleto) // Assicurati di avere la funzione cercaCoordinate definita
-
-                                if (coordinate != null) {
-                                    latReale = coordinate.latitude
-                                    lonReale = coordinate.longitude
-                                } else {
-                                    android.util.Log.w("GEOCODER", "Attenzione: Indirizzo non trovato sulla mappa, salvato come 0.0, 0.0")
-                                }
 
                                 val nuovaInserzione = Inserzione(
                                     idInserzione = generaIdInserzione(), // Assicurati di avere la funzione generaIdInserzione()
@@ -417,18 +420,18 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                     indirizzo = textFieldIndirizzo,
                                     agenteCreatore = username,
 
-                                    // Inseriamo le coordinate appena trovate!
+                                    // Passiamo le coordinate sicure!
                                     latitudine = latReale,
                                     longitudine = lonReale,
 
-                                )
+                                    )
 
                                 android.util.Log.d("UPLOAD", "Foto caricate: $linkS3Ottenuti")
                                 android.util.Log.d("UPLOAD", "Planimetria: $linkPlanimetriaS3")
                                 android.util.Log.d("INSERZIONE", "Oggetto creato con successo: $nuovaInserzione")
 
-                                // 4. CHIAMATA A KTOR
-                                val caricamentoDbOk = inviaInserzioneAlServer(client =client, nuovaInserzione,urlsScaricati,linkPlanimetriaS3)
+                                // 5. CHIAMATA A KTOR
+                                val caricamentoDbOk = inviaInserzioneAlServer(client = client, nuovaInserzione, urlsScaricati, linkPlanimetriaS3)
 
                                 if (caricamentoDbOk) {
                                     Toast.makeText(context, "Immobile pubblicato con successo!", Toast.LENGTH_LONG).show()
@@ -452,258 +455,3 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
         }
     }
 }
-
-fun generaIdInserzione(): String {
-    // Usiamo lettere maiuscole e numeri per evitare confusione tra 'l' minuscola e '1'
-    val caratteriConsentiti = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    return (1..6)
-        .map { caratteriConsentiti.random() }
-        .joinToString("")
-}
-
-fun mappaCategoria(valoreUI: String): D_catInser {
-    return when (valoreUI) {
-        "Vendita" -> D_catInser.VENDITA
-        "Affitto" -> D_catInser.AFFITTO
-        else -> D_catInser.VENDITA // Valore di sicurezza
-    }
-}
-
-fun mappaArredamento(valoreUI: String): D_arred {
-    return when (valoreUI) {
-        "Completo" -> D_arred.COMPLETO
-        "Parziale" -> D_arred.PARZIALE
-        "No" -> D_arred.NO
-        else -> D_arred.NO
-    }
-}
-
-fun mappaClasseEnergetica(valoreUI: String): D_energ {
-    // Se il tuo slider restituisce lettere (es. "A", "G") o parole intere, le gestiamo entrambe
-    return when (valoreUI.uppercase()) {
-        "ALTA"-> D_energ.ALTA
-        "MEDIA"-> D_energ.MEDIA
-        "BASSA"-> D_energ.BASSA
-        else -> D_energ.BASSA
-    }
-}
-@Composable
-fun RigaCliccabileConErrore(
-    icona: ImageVector,
-    testo: String,
-    valoreAttuale: String,
-    opzioni: List<String>,
-    isError: Boolean = false,                  // <--- AGGIUNTO: Riceve il segnale di errore
-    onValoreCambiato: (String) -> Unit = {}    // <--- AGGIUNTO: Comunica la scelta alla schermata
-) {
-    var menuEspanso by remember { mutableStateOf(false) }
-
-    // --- COLORI DINAMICI ---
-    // Se c'è un errore diventano rossi, altrimenti usano i tuoi colori originali
-    val coloreIcona = if (isError) Color(0xFFB00020) else mioBluScuro
-    val coloreTesto = if (isError) Color(0xFFB00020) else Color.Black
-    val coloreTestoValore = if (isError) Color(0xFFB00020) else Color.DarkGray
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { menuEspanso = true }
-            .height(IntrinsicSize.Min),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // --- PARTE SINISTRA ---
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icona,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
-                tint = coloreIcona // <--- Usa il colore dinamico
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = testo,
-                fontSize = 16.sp,
-                color = coloreTesto // <--- Usa il colore dinamico
-            )
-        }
-
-        // --- PARTE DESTRA ---
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(end = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Non usa più "selezioneAttuale", ma "valoreAttuale" passato dalla schermata
-                Text(
-                    text = valoreAttuale,
-                    fontSize = 16.sp,
-                    color = coloreTestoValore // <--- Usa il colore dinamico
-                )
-                val iconaFreccia = if (menuEspanso) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowRight
-                Icon(
-                    imageVector = iconaFreccia,
-                    contentDescription = null,
-                    tint = coloreIcona // <--- Usa il colore dinamico
-                )
-            }
-
-            // --- MENU A TENDINA ---
-            DropdownMenu(
-                expanded = menuEspanso,
-                onDismissRequest = { menuEspanso = false },
-                modifier = Modifier
-                    .heightIn(max = 192.dp)
-                    .background(Color.White)
-
-            ) {
-                opzioni.forEachIndexed { index, opzione ->
-                    DropdownMenuItem(
-                        text = { Text(text = opzione, color = Color.Black) },
-                        onClick = {
-                            // Quando l'utente clicca, avvisiamo la schermata principale della nuova scelta
-                            onValoreCambiato(opzione)
-                            menuEspanso = false
-                        }
-                    )
-                    if (index < opzioni.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.fillMaxWidth(),
-                            thickness = 1.dp,
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-@Composable
-fun RigaValoreConErrore(
-    icona: ImageVector,
-    testo: String,
-    valoreAttuale: String,                     // <--- AGGIUNTO: Riceve il testo digitato
-    isError: Boolean = false,                  // <--- AGGIUNTO: Riceve il segnale di errore
-    onValoreCambiato: (String) -> Unit = {}    // <--- AGGIUNTO: Comunica la digitazione alla schermata
-) {
-    // --- COLORI DINAMICI ---
-    val coloreIcona = if (isError) Color(0xFFB00020) else mioBluScuro
-    val coloreTesto = if (isError) Color(0xFFB00020) else Color.Black
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icona,
-            contentDescription = null,
-            modifier = Modifier.size(28.dp),
-            tint = coloreIcona // <--- Usa il colore dinamico
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = testo,
-            fontSize = 16.sp,
-            color = coloreTesto, // <--- Usa il colore dinamico
-            modifier = Modifier.weight(1f)
-        )
-
-        // ⚠️ ATTENZIONE: Anche BoxInputMinMax deve essere aggiornato!
-        BoxInputValore(
-            valore = valoreAttuale,
-            onValoreCambiato = onValoreCambiato,
-            isError = isError,
-            label = "Valore"
-        )
-    }
-}
-
-
-
-
-@Composable
-fun BoxInputValore(
-    label: String,
-    valore: String,                        // <--- AGGIUNTO: Riceve il testo dal genitore
-    onValoreCambiato: (String) -> Unit,    // <--- AGGIUNTO: Comunica la modifica al genitore
-    isError: Boolean = false               // <--- AGGIUNTO: Segnale per far scattare il rosso
-) {
-    // --- COLORI DINAMICI PER L'ERRORE ---
-    val coloreBordo = if (isError) Color(0xFFB00020) else Color.Black
-    val coloreEtichetta = if (isError) Color(0xFFB00020) else Color.DarkGray
-
-    BasicTextField(
-        // Usiamo la variabile passata dall'esterno, non più lo stato interno
-        value = valore,
-
-        // 1. FILTRO: Accetta solo i numeri e avvisa la schermata principale
-        onValueChange = { nuovoTesto ->
-            val soloNumeri = nuovoTesto.filter { it.isDigit() }
-            onValoreCambiato(soloNumeri)
-        },
-
-        singleLine = true,
-        textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
-
-        // 2. TASTIERA NUMERICA
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-
-        // --- MODIFICA ESTETICA QUI ---
-        modifier = Modifier
-            .width(90.dp)
-            .height(45.dp)
-            // Imposta lo sfondo bianco con gli angoli arrotondati
-            .background(Color.White, RoundedCornerShape(4.dp))
-            // Aggiunge il bordino dinamico: diventa ROSSO se c'è l'errore!
-            .border(1.dp, coloreBordo, RoundedCornerShape(4.dp)),
-        // -----------------------------
-
-        decorationBox = { innerTextField ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Etichetta (es. "Valore") colorata di rosso in caso di errore
-                Text(text = label, fontSize = 10.sp, color = coloreEtichetta)
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-
-                    Box(modifier = Modifier.weight(1f)) {
-                        // Placeholder "Input"
-                        if (valore.isEmpty()) {
-                            Text(text = "Input", fontSize = 14.sp, color = Color.Gray)
-                        }
-                        // Testo digitato
-                        innerTextField()
-                    }
-
-                    // Icona "X" per cancellare
-                    if (valore.isNotEmpty()) {
-                        Icon(
-                            imageVector = Icons.Default.Cancel,
-                            contentDescription = "Cancella",
-                            modifier = Modifier
-                                .size(16.dp)
-                                .clickable {
-                                    // Avvisiamo il genitore che vogliamo svuotare il campo
-                                    onValoreCambiato("")
-                                },
-                            tint = mioBluScuro // Oppure usa coloreBordo se vuoi che diventi rossa anche la X!
-                        )
-                    }
-                }
-            }
-        }
-    )
-}
-

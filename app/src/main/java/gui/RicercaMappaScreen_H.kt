@@ -97,6 +97,60 @@ suspend fun cercaCoordinate(context: Context, locationName: String): LatLng? {
     }
 }
 
+
+suspend fun cercaCoordinateConVerifica(
+    context: Context,
+    indirizzoInserito: String,
+    cittaInserita: String,
+    comuneInserito: String
+): LatLng? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val geocoder = Geocoder(context)
+            // Creiamo la stringa di ricerca completa per Google
+            val stringaRicerca = "$indirizzoInserito, $comuneInserito, $cittaInserita"
+            val addresses = geocoder.getFromLocationName(stringaRicerca, 1)
+
+            if (!addresses.isNullOrEmpty()) {
+                val address = addresses[0]
+
+                // 1. Raccogliamo TUTTI i dati geografici che Google ha per questo punto esatto
+                // (città, quartiere, provincia, regione) e li mettiamo in un'unica stringa minuscola
+                val datiUfficialiGoogle = listOfNotNull(
+                    address.locality,
+                    address.subLocality,
+                    address.subAdminArea,
+                    address.adminArea
+                ).joinToString(" ").lowercase()
+
+                // 2. Prepariamo le parole dell'utente (minuscole e senza spazi extra)
+                val cittaUtente = cittaInserita.lowercase().trim()
+                val comuneUtente = comuneInserito.lowercase().trim()
+
+                // 3. IL CONTROLLO SPIETATO:
+                // I dati ufficiali di Google contengono la parola inserita in 'città'?
+                val cittaOk = datiUfficialiGoogle.contains(cittaUtente)
+                // I dati ufficiali di Google contengono la parola inserita in 'comune'?
+                val comuneOk = datiUfficialiGoogle.contains(comuneUtente)
+
+                // Usiamo && (AND): DEVONO ESSERE VERI ENTRAMBI!
+                if (cittaOk && comuneOk) {
+                    LatLng(address.latitude, address.longitude)
+                } else {
+                    android.util.Log.e("GEOCODER", "Incongruenza! Dati trovati: $datiUfficialiGoogle. Utente ha cercato: $cittaUtente, $comuneUtente")
+                    null // Se l'utente ha mischiato Roma e Napoli, uno dei due 'contains' fallirà!
+                }
+
+            } else {
+                null // Nessun risultato
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+}
+
 fun eseguiRicerca(luogo:String, scope: CoroutineScope, context:Context, cameraPositionState: CameraPositionState) {
    // active = false // Chiude la tendina
     scope.launch {
