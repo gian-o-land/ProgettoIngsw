@@ -68,6 +68,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.runtime.saveable.rememberSaveable
 import connection.scaricaTutteLeInserzioni
 import gui.template.myCardInserzione
+import kotlinx.serialization.encodeToString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -229,7 +230,15 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                         .height(165.dp),
                     onClick = {
                         pulisciAlRitorno = true
-                        navController.navigate(Screen.InserzioneScreen.withIdInserzione(inserzione.idInserzione))
+
+                        // 1. Trasformiamo l'oggetto in JSON
+                        val json = kotlinx.serialization.json.Json.encodeToString(inserzione)
+
+                        // 2. Lo mettiamo nello zainetto di Android (Niente più URLEncoder o limiti di lunghezza!)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
+
+                        // 3. Navighiamo usando SOLO il nome pulito della rotta
+                        navController.navigate(Screen.InserzioneScreen.route)
                     }
                 )
             }

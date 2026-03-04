@@ -9,7 +9,8 @@ data class Inserzione(
     val terrazzo: Boolean, val cantina: Boolean, val piscina: Boolean, val cucina: Boolean, val prezzo: Float,
     val classeEnergetica: D_energ, val citta: String, val comune: String, val indirizzo: String, val agenteCreatore: String,
     val latitudine: Double, val longitudine: Double,
-    val immagini: MutableList<ImmagineDTO>
+    val immagini: MutableList<ImmagineDTO>,
+    val descrizione : String
 )
 
 

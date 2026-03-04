@@ -65,6 +65,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
     var textFieldCitta by remember { mutableStateOf("") }
     var textFieldComune by remember { mutableStateOf("") }
     var textFieldIndirizzo by remember { mutableStateOf("") }
+    var textFieldDescrizione by remember { mutableStateOf("") } // <--- NUOVA VARIABILE PER LA DESCRIZIONE
 
     // --- VARIABILI DI STATO (Per i menu e valori in alto) ---
     var categoria by remember { mutableStateOf("-") }
@@ -325,6 +326,18 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                 isError = showErrors && textFieldIndirizzo.isBlank(),
                 modifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // --- CAMPO DESCRIZIONE (Auto-espandibile) ---
+            OutlinedTextField(
+                value = textFieldDescrizione,
+                onValueChange = { textFieldDescrizione = it },
+                label = { Text("Descrizione dell'immobile") },
+                isError = showErrors && textFieldDescrizione.isBlank(),
+                modifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
+                singleLine = false, // Magia: permette di andare a capo!
+                minLines = 1        // Parte con altezza di una riga
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -333,7 +346,11 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                 myClick = {
                     val menuValidi = categoria != "-" && piano != "-" && arredamento != "-"
                     val campiValidi = prezzo.isNotBlank() && quadratura.isNotBlank() && locali.isNotBlank() && bagni.isNotBlank()
-                    val testiValidi = textFieldCitta.isNotBlank() && textFieldComune.isNotBlank() && textFieldIndirizzo.isNotBlank()
+
+                    // Aggiunto il controllo anche per la descrizione!
+                    val testiValidi = textFieldCitta.isNotBlank() && textFieldComune.isNotBlank() &&
+                            textFieldIndirizzo.isNotBlank() && textFieldDescrizione.isNotBlank()
+
                     val fotoValide = fotoSelezionate.isNotEmpty()
                     val planimetriaValida = planimetriaSelezionata != null
 
@@ -366,19 +383,18 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                             val latReale = coordinate.latitude
                             val lonReale = coordinate.longitude
 
-                            // 1. GENERIAMO L'ID IN ANTICIPO (Ci serve per associarlo alle immagini)
+                            // 1. GENERIAMO L'ID IN ANTICIPO
                             val idGenerato = generaIdInserzione()
 
                             // 2. CARICA TUTTE LE FOTO DELL'IMMOBILE SU S3 E CREA I DTO
                             val urlsScaricati = mutableListOf<String>()
-                            val listaImmaginiDTO = mutableListOf<ImmagineDTO>() // <--- LA NUOVA LISTA!
+                            val listaImmaginiDTO = mutableListOf<ImmagineDTO>()
                             var ciSonoErrori = false
 
                             for (uri in fotoSelezionate) {
                                 val urlS3 = inviaImmagineAServer(context, uri)
                                 if (urlS3 != null) {
                                     urlsScaricati.add(urlS3)
-                                    // Creiamo subito l'oggetto DTO e lo mettiamo nella lista
                                     listaImmaginiDTO.add(
                                         ImmagineDTO(
                                             url = urlS3,
@@ -396,7 +412,6 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                 val urlPlanimetriaS3 = inviaImmagineAServer(context, planimetriaSelezionata!!)
                                 if (urlPlanimetriaS3 != null) {
                                     linkPlanimetriaS3 = urlPlanimetriaS3
-                                    // Aggiungiamo anche la planimetria alla lista DTO
                                     listaImmaginiDTO.add(
                                         ImmagineDTO(
                                             url = urlPlanimetriaS3,
@@ -414,7 +429,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                 linkS3Ottenuti = urlsScaricati
 
                                 val nuovaInserzione = Inserzione(
-                                    idInserzione = idGenerato, // Passiamo l'ID che abbiamo creato prima
+                                    idInserzione = idGenerato,
                                     quadratura = quadratura.toIntOrNull() ?: 0,
                                     nBagni = bagni.toIntOrNull() ?: 0,
                                     nLocali = locali.toIntOrNull() ?: 0,
@@ -435,12 +450,12 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                     citta = textFieldCitta,
                                     comune = textFieldComune,
                                     indirizzo = textFieldIndirizzo,
+                                    descrizione = textFieldDescrizione, // <--- ECCO LA DESCRIZIONE AGGIUNTA QUI!
                                     agenteCreatore = username,
 
                                     latitudine = latReale,
                                     longitudine = lonReale,
 
-                                    // PASSIAMO LA LISTA DI OGGETTI, NON PIÙ LE STRINGHE!
                                     immagini = listaImmaginiDTO
                                 )
 

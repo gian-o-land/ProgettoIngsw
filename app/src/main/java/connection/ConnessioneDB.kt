@@ -1,5 +1,6 @@
 package connection
 
+import DTO.AgenteDTO
 import DTO.Inserzione
 import DTO.UtenteDTO
 import io.ktor.client.*
@@ -15,6 +16,8 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.client.call.body
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 
@@ -23,7 +26,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://jioaj-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://ljomh-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -202,5 +205,26 @@ suspend fun scaricaTutteLeInserzioni(): List<Inserzione> {
     } catch (e: Exception) {
         android.util.Log.e("API_MAPPA", "Impossibile scaricare le inserzioni: ${e.message}")
         emptyList()
+    }
+}
+
+suspend fun scaricaAgente(username: String): AgenteDTO? {
+    return withContext(Dispatchers.IO) {
+        try {
+            // Usa il tuo indirizzo IP corretto al posto di 10.0.2.2 o quello che stai usando
+            val response = client.get("$urlServer/agente/$username")
+
+            if (response.status.isSuccess()) {
+                val agente = response.body<AgenteDTO>()
+                android.util.Log.d("API_AGENTE", "Agente scaricato: ${agente.username}")
+                agente
+            } else {
+                android.util.Log.e("API_AGENTE", "Errore dal server: ${response.status}")
+                null
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("API_AGENTE", "Errore di connessione: ${e.message}")
+            null
+        }
     }
 }

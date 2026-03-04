@@ -1,5 +1,6 @@
 package navigation
 
+import DTO.Inserzione
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
@@ -12,6 +13,12 @@ import gui.LoginScreen
 import gui.RegisterScreen
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.maps.model.LatLng
@@ -196,15 +203,20 @@ fun Navigation() {
             RicercaScreen(navController)
         }
 
-        composable(
-            route = Screen.InserzioneScreen.route + "?idInserzione={idInserzione}",
-            arguments = listOf(navArgument("idInserzione"){
-                type = NavType.StringType;
-                defaultValue = "<IdInserzione>"
-                nullable = true
-            })
-        ){ entry->
-            InserzioneScreen(idInserzione = entry.arguments?.getString("idInserzione")?:"<IdInserzione>", navController=navController)
+        composable(route = Screen.InserzioneScreen.route) {
+            // 1. Peschiamo il JSON dallo "zainetto" della pagina precedente
+            val json = navController.previousBackStackEntry?.savedStateHandle?.get<String>("inserzione_json")
+
+            if (json != null) {
+                // 2. Lo ritrasformiamo in oggetto e mostriamo la pagina
+                val inserzioneOggetto = kotlinx.serialization.json.Json.decodeFromString<Inserzione>(json)
+                InserzioneScreen(navController = navController, inserzione = inserzioneOggetto)
+            } else {
+                // 3. Schermata di emergenza (così non vedrai MAI PIÙ una pagina bianca!)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Errore durante il caricamento dell'inserzione.", color = Color.Red)
+                }
+            }
         }
         composable(route = Screen.PrenotazioneScreen.route){
             PrenotazioneScreen(navController)

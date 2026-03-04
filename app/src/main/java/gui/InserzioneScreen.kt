@@ -1,5 +1,8 @@
 package gui
 
+import DTO.AgenteDTO
+import DTO.D_foto
+import DTO.Inserzione
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -72,70 +75,69 @@ import android.content.Context
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import navigation.Screen
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import coil.compose.AsyncImage
+import connection.scaricaAgente
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun InserzioneScreen(idInserzione: String, navController : NavController) { // ANDRA' PASSATO PER PARAMETRO ANCHE UN OGGETTO DI TIPO "INSERZIONE"
-
-
-    //var listaImmaginiImmobile by remember { mutableStateOf<List<String>>(emptyList()) }
-
-    val listaImmaginiImmobile = mapOf(
-        "immobile_esempio_1" to R.drawable.immobile_esempio_1,
-        "immobile_esempio_1_1" to R.drawable.immobile_esempio_1_1,
-        "immobile_esempio_2" to R.drawable.immobile_esempio_2,
-        "immobile_esempio_3" to R.drawable.immobile_esempio_3,
-        "immobile_esempio_4" to R.drawable.immobile_esempio_4,
-        "immobile_esempio_5" to R.drawable.immobile_esempio_5
-    )
-    val pagerState = rememberPagerState(pageCount = { listaImmaginiImmobile.size })
-    val scrollState = rememberScrollState()
-    var mostraPopupContatti by remember { mutableStateOf(false) }
+fun InserzioneScreen(
+    navController: NavController,
+    inserzione: Inserzione
+) {
     val context = LocalContext.current
-    val numeroTelefono= "338123456"
+
+    // --- FILTRIAMO LE IMMAGINI DAL DATABASE ---
+    val fotoList = inserzione.immagini.filter { it.tipologia == D_foto.FOTO }.map { it.url }
+    val planimetriaUrl = inserzione.immagini.firstOrNull { it.tipologia == D_foto.PLANIMETRIA }?.url
+
+    val pagerState = rememberPagerState(pageCount = { fotoList.size })
+
+    var agenteTrovato by remember { mutableStateOf<AgenteDTO?>(null) }
+    var mostraPopupContatti by remember { mutableStateOf(false) }
+    val numeroTelefono = agenteTrovato?.telefono ?: "Numero non disponibile"
+
+    LaunchedEffect(inserzione.agenteCreatore) {
+        agenteTrovato = scaricaAgente(inserzione.agenteCreatore)
+    }
+    val nomeAgente = if (agenteTrovato != null) "${agenteTrovato!!.nome} ${agenteTrovato!!.cognome}" else inserzione.agenteCreatore
     Scaffold(
         floatingActionButton = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(50.dp)
             ) {
-
                 ExtendedFloatingActionButton(
-                    onClick = {
-                        mostraPopupContatti = true
-                    },
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro,
+                    onClick = { mostraPopupContatti = true },
+                    containerColor = Color(0xFFDAA520), // mioGialloOcra
+                    contentColor = Color(0xFF000080),   // mioBluScuro
                     shape = CircleShape
-
                 ) {
                     Icon(Icons.Default.Call, contentDescription = "Chiama")
                     Text("Chiama")
                 }
 
                 ExtendedFloatingActionButton(
-                    onClick = {
-                        navController.navigate(Screen.PrenotazioneScreen.route)
-
-                    },
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro,
+                    onClick = { navController.navigate(Screen.PrenotazioneScreen.route) },
+                    containerColor = Color(0xFFDAA520),
+                    contentColor = Color(0xFF000080),
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.CalendarMonth, contentDescription = "Prenota")
                     Text("Prenota")
-
                 }
             }
         },
         floatingActionButtonPosition = FabPosition.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White),
+        modifier = Modifier.fillMaxSize().background(color = Color.White),
         containerColor = Color.White,
         topBar = {
             CenterAlignedTopAppBar(
@@ -144,29 +146,25 @@ fun InserzioneScreen(idInserzione: String, navController : NavController) { // A
                 ),
                 title = {
                     Text(
-                        text = "stai visualizzando:\n" + idInserzione,
+                        text = "Stai visualizzando:\n${inserzione.idInserzione}",
                         fontWeight = FontWeight.Bold,
-                        color = mieiTitoli,
-                        textAlign = TextAlign.Center
+                        color = Color.White, // mieiTitoli
+                        textAlign = TextAlign.Center,
+                        fontSize = 16.sp
                     )
-
                 },
                 navigationIcon = {
                     Image(
                         painter = painterResource(id = R.drawable.logo),
-                        "Logo",
-                        modifier = Modifier
-                            .height(50.dp)
-                            .width(50.dp)
+                        contentDescription = "Logo",
+                        modifier = Modifier.height(50.dp).width(50.dp)
                     )
                 }
             )
-
         },
         bottomBar = {
             myBottomNavBar(navController = navController)
         }
-
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -174,409 +172,215 @@ fun InserzioneScreen(idInserzione: String, navController : NavController) { // A
                     .padding(innerPadding)
                     .verticalScroll(rememberScrollState())
             ) {
+                // --- CAROSELLO FOTO ---
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
 
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.TopEnd // Allinea l'indicatore in alto a destra
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        contentPadding = PaddingValues(horizontal = 0.dp), // Lascia intravedere le card laterali
-                        pageSpacing = 10.dp, // Spazio tra le card
-                        modifier = Modifier.fillMaxWidth()
-                    ) { pageIndex ->// servirà quando gli passero la lista delle immagini dell'inserzione
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth() // La larghezza è gestita dal Pager
-                                .height(180.dp),
-                            shape = RectangleShape,
-                            colors = CardDefaults.cardColors(containerColor = Color.Red),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Text(text = "foto " + pageIndex)
+                    if (fotoList.isNotEmpty()) {
+                        HorizontalPager(
+                            state = pagerState,
+                            contentPadding = PaddingValues(horizontal = 0.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) { pageIndex ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth().height(220.dp),
+                                shape = RectangleShape,
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                AsyncImage(
+                                    model = fotoList[pageIndex],
+                                    contentDescription = "Foto Immobile",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                         }
 
-                    }
-                    if (listaImmaginiImmobile.isNotEmpty()) {
                         Surface(
-                            modifier = Modifier
-                                .padding(
-                                    top = 10.dp,
-                                    end = 45.dp
-                                ), // Padding per staccarlo dai bordi (45dp per compensare il padding del pager)
-                            //shape = RoundedCornerShape(50),
+                            modifier = Modifier.padding(top = 10.dp, end = 10.dp),
                             color = Color.Black.copy(alpha = 0.6f),
-                            contentColor = Color.White
+                            contentColor = Color.White,
+                            shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                // +1 perché l'indice parte da 0
-                                text = "${pagerState.currentPage + 1} di ${listaImmaginiImmobile.size}",
+                                text = "${pagerState.currentPage + 1} di ${fotoList.size}",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                             )
                         }
+                    } else {
+                        Box(modifier = Modifier.fillMaxWidth().height(220.dp).background(Color.LightGray), contentAlignment = Alignment.Center) {
+                            Text("Nessuna foto disponibile")
+                        }
                     }
-
                 }
-                val prezzoImmobile = 150000
+
+                // --- INTESTAZIONE IMMOBILE (CON CONTROLLO AFFITTO/VENDITA) ---
+
+                // 1. Controlliamo se la categoria contiene la parola "AFFITTO" (ignorando maiuscole/minuscole)
+                val suffissoPrezzo = if (inserzione.categoria.name.contains("AFFITTO", ignoreCase = true)) " / mese" else ""
+
+                // 2. Mostriamo il prezzo dinamico
                 Text(
-                    text = "€" + prezzoImmobile,
-                    fontSize = 21.sp,
+                    text = "${inserzione.prezzo} €$suffissoPrezzo",
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    color = Color(0xFF000080),
+                    modifier = Modifier.padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 4.dp),
                 )
-                val indirizzoImmobile = "via delle rose, 123"
+
                 Text(
-                    text = indirizzoImmobile,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    text = "${inserzione.indirizzo}, ${inserzione.citta}",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // --- DESCRIZIONE ---
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth() // La larghezza è gestita dal Pager
-                        .padding(horizontal = 10.dp)
-                        .wrapContentHeight(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).wrapContentHeight(),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color.Black),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Text(
                         text = "Descrizione",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 6.dp)
                     )
-                    val descrizioneImmobile =
-                        "descrizione molto bella e molto prolissa di questa inestimabile casa molto bella e molto prolissa di questa inestimabile casa molto bella e molto prolissa di questa inestimabile casa"
                     Text(
-                        text = descrizioneImmobile,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-
+                        text = inserzione.descrizione,
+                        fontSize = 15.sp,
+                        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 6.dp)
                     )
-
                 }
 
+                Spacer(modifier = Modifier.height(10.dp))
 
-                Spacer(
-                    modifier = Modifier.height(10.dp)
-                )
-
+                // --- CARATTERISTICHE ---
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .wrapContentHeight(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).wrapContentHeight(),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color.Black),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Text(
                         text = "Caratteristiche",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 6.dp)
                     )
 
                     Row(
-                        modifier = Modifier
-                            .wrapContentHeight(),
+                        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column() {
-                            Row() {
-                                Icon(
-                                    imageVector = Icons.Outlined.Apartment,
-                                    contentDescription = "Categoria",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-
-                                )
-                                Column() {
-                                    Text(
-                                        text = "Categoria",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "In Vendita",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            }
-                            Row() {
-                                Icon(
-                                    imageVector = Icons.Outlined.SquareFoot,
-                                    contentDescription = "Quadratura",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-
-                                )
-
-                                Column() {
-                                    Text(
-                                        text = "Quadratura",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "PLACEHOLDER",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            }
-                            Row() {
-
-                                Icon(
-                                    imageVector = Icons.Outlined.Bathtub,
-                                    contentDescription = "Numero Bagni",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Column() {
-                                    Text(
-                                        text = "Numero Bagni",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "PLACEHOLDER",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            }
-
-                            Row() {
-                                Icon(
-                                    imageVector = Icons.Outlined.ViewQuilt,
-                                    contentDescription = "Numero Locali",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Column() {
-                                    Text(
-                                        text = "Numero Locali",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "PLACEHOLDER",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            }
-                            Row() {
-
-                                Icon(
-                                    imageVector = Icons.Outlined.Stairs,
-                                    contentDescription = "Scale",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Column() {
-                                    Text(
-                                        text = "Scale",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "PLACEHOLDER",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            }
-
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            CaratteristicaRiga(icona = Icons.Outlined.Apartment, titolo = "Categoria", valore = inserzione.categoria.name)
+                            CaratteristicaRiga(icona = Icons.Outlined.SquareFoot, titolo = "Quadratura", valore = "${inserzione.quadratura} m²")
+                            CaratteristicaRiga(icona = Icons.Outlined.Bathtub, titolo = "Bagni", valore = "${inserzione.nBagni}")
+                            CaratteristicaRiga(icona = Icons.Outlined.ViewQuilt, titolo = "Locali", valore = "${inserzione.nLocali}")
+                            CaratteristicaRiga(icona = Icons.Outlined.Stairs, titolo = "Piano", valore = "${inserzione.piano}")
                         }
 
-                        Spacer(
-                            modifier = Modifier.width(30.dp)
-                        )
-
-                        Column(
-                        ) {
-                            Row() {
-                                Icon(
-                                    imageVector = Icons.Outlined.Chair,
-                                    contentDescription = "Arredamento",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Column() {
-                                    Text(
-                                        text = "Arredamento",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "PLACEHOLDER",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-
-                            }
-                            Row() {
-                                Icon(
-                                    imageVector = Icons.Outlined.Balcony,
-                                    contentDescription = "Balcone",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Column() {
-                                    Text(
-                                        text = "Balcone",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "PLACEHOLDER",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            }
-
-                            Row() {
-                                Icon(
-                                    imageVector = Icons.Outlined.Elevator,
-                                    contentDescription = "Ascensore",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Column() {
-                                    Text(
-                                        text = "Ascensore",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "PLACEHOLDER",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            }
-                            Row() {
-                                Icon(
-                                    imageVector = Icons.Outlined.Bolt,
-                                    contentDescription = "Classe Energetica",
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Column() {
-                                    Text(
-                                        text = "Classe Energetica",
-                                        fontSize = 16.sp,
-                                    )
-                                    Text(
-                                        text = "PLACEHOLDER",
-                                        fontSize = 12.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                            }
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            CaratteristicaRiga(icona = Icons.Outlined.Chair, titolo = "Arredamento", valore = inserzione.arredamento.name)
+                            CaratteristicaRiga(icona = Icons.Outlined.Balcony, titolo = "Balcone", valore = if (inserzione.balcone) "Sì" else "No")
+                            CaratteristicaRiga(icona = Icons.Outlined.Elevator, titolo = "Ascensore", valore = if (inserzione.ascensore) "Sì" else "No")
+                            CaratteristicaRiga(icona = Icons.Outlined.Bolt, titolo = "Cl. Energetica", valore = inserzione.classeEnergetica.name)
+                            CaratteristicaRiga(icona = Icons.Outlined.Pool, titolo = "Piscina", valore = if (inserzione.piscina) "Sì" else "No")
                         }
                     }
                 }
-                Spacer(
-                    modifier = Modifier.height(10.dp)
-                )
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .wrapContentHeight(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color.Black),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column() {
-                        Text(
-                            text = "Planimetria",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                        )
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth() // La larghezza è gestita dal Pager
-                                .wrapContentHeight(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.Red),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Image(
-                                painterResource(
-                                    id = R.drawable.planimetria_1
-                                ),
-                                contentDescription = "planimetria",
-                                contentScale = ContentScale.FillWidth,
-                                modifier = Modifier.fillMaxWidth()
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // --- PLANIMETRIA ---
+                if (planimetriaUrl != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).wrapContentHeight(),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        border = BorderStroke(1.dp, Color.LightGray),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "Planimetria",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 6.dp)
                             )
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(12.dp).height(200.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                AsyncImage(
+                                    model = planimetriaUrl,
+                                    contentDescription = "Planimetria",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize().background(Color.White)
+                                )
+                            }
                         }
-
                     }
-
                 }
 
-                Spacer(
-                    modifier = Modifier.height(90.dp)
-                )
+                Spacer(modifier = Modifier.height(100.dp))
             }
+        }
+    }
 
-        }
-        }
+    // --- POPUP CONTATTI ---
     if (mostraPopupContatti) {
         AlertDialog(
-            onDismissRequest = {
-                // Cosa succede se clicchi fuori dal popup (lo chiudiamo)
-                mostraPopupContatti = false
-            },
-            icon = {
-                Icon(Icons.Default.ContactPhone, contentDescription = null)
-            },
-            title = {
-                Text(text = "Contatta l'inserzionista")
-            },
+            onDismissRequest = { mostraPopupContatti = false },
+            icon = { Icon(Icons.Default.ContactPhone, contentDescription = null, tint = Color(0xFF000080)) },
+            title = { Text(text = "Contatta l'inserzionista") },
             text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Puoi chiamare il seguente numero:")
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+
+                    // Mostriamo NOME E COGNOME veri (oppure l'username se c'è un errore di rete)
+                    Text("Agente: $nomeAgente", fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // IL NUMERO DI TELEFONO IN GRANDE
+                    // Mostriamo il TELEFONO vero
                     Text(
-                        text = "+39 333 1234567", // Qui metterai inserzione.telefono
+                        text = "+39 $numeroTelefono",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = mioBluScuro
+                        color = Color(0xFF000080)
                     )
                 }
             },
-
             confirmButton = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp) // Spazio tra i bottoni
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // 1. Tasto COPIA (Stile leggero)
                     OutlinedButton(
                         onClick = {
                             val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             val clip = ClipData.newPlainText("Numero Telefono", numeroTelefono)
                             clipboardManager.setPrimaryClip(clip)
-                            //Toast.makeText(context, "Copiato!", Toast.LENGTH_SHORT).show()
-                        }
-                    ) {
-                        Text("Copia")
-                    }
+                            Toast.makeText(context, "Numero copiato!", Toast.LENGTH_SHORT).show()
+                        },
+                        // Se non ha scaricato il numero, disabilitiamo il tasto copia
+                        enabled = agenteTrovato != null
+                    ) { Text("Copia") }
 
                     Button(
                         onClick = {
-                            val intent = Intent(Intent.ACTION_DIAL).apply {
-                                data = Uri.parse("tel:$numeroTelefono")
-                            }
+                            val intent = Intent(Intent.ACTION_DIAL).apply { data = Uri.parse("tel:$numeroTelefono") }
                             context.startActivity(intent)
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Verde
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                        // Se non ha scaricato il numero, disabilitiamo la chiamata
+                        enabled = agenteTrovato != null
                     ) {
                         Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
@@ -585,20 +389,29 @@ fun InserzioneScreen(idInserzione: String, navController : NavController) { // A
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = {
-                        mostraPopupContatti = false
-                    }
-                ) {
-                    Text("Chiudi")
-                }
+                TextButton(onClick = { mostraPopupContatti = false }) { Text("Chiudi") }
             }
-
-
         )
     }
-    }
+}
 
+// --- FUNZIONCINA DI SUPPORTO PER DISEGNARE LE RIGHE DELLE CARATTERISTICHE ---
+@Composable
+fun CaratteristicaRiga(icona: androidx.compose.ui.graphics.vector.ImageVector, titolo: String, valore: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icona,
+            contentDescription = titolo,
+            tint = Color(0xFF000080),
+            modifier = Modifier.size(32.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(text = titolo, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(text = valore, fontSize = 13.sp, color = Color.Gray)
+        }
+    }
+}
 
 
 
