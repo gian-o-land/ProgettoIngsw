@@ -23,7 +23,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://jhhcd-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://jioaj-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -184,5 +184,23 @@ suspend fun inviaInserzioneAlServer(
     } catch (e: Exception) {
         android.util.Log.e("API_INSERZIONE", "Errore di connessione: ${e.message}")
         false
+    }
+}
+
+suspend fun scaricaTutteLeInserzioni(): List<Inserzione> {
+    return try {
+        // Facciamo una richiesta GET alla rotta che ci restituirà il JSON con tutte le case
+        val risposta: HttpResponse = client.get("$urlServer/inserzioni")
+
+        if (risposta.status == HttpStatusCode.OK) {
+            // Ktor converte magicamente l'array JSON in una List<Inserzione>
+            risposta.body()
+        } else {
+            android.util.Log.e("API_MAPPA", "Errore dal server: ${risposta.status}")
+            emptyList()
+        }
+    } catch (e: Exception) {
+        android.util.Log.e("API_MAPPA", "Impossibile scaricare le inserzioni: ${e.message}")
+        emptyList()
     }
 }

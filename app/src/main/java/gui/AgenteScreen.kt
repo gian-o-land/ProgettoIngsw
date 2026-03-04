@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import gui.template.myBottomNavBar_Agente
-import gui.template.myCardInserzione
+import gui.template.myCardInserzionePlaceholder
 import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,7 +135,7 @@ fun AgenteScreen(username: String, navController : NavController){
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        myCardInserzione(
+                        myCardInserzionePlaceholder(
                             myModifier = Modifier
                                 .height(200.dp)
                                 .width(300.dp),

@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.graphics.RectangleShape
-import gui.template.myCardInserzione
+import gui.template.myCardInserzionePlaceholder
 
 @SuppressLint("UnnecessaryComposedModifier")
 fun Modifier.simpleVerticalScrollbar(
@@ -294,7 +294,7 @@ fun ShowPopup_Agente(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            myCardInserzione(
+                            myCardInserzionePlaceholder(
                                 myModifier = Modifier
                                     .height(180.dp)
                                     .width(250.dp),

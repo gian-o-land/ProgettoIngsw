@@ -1,5 +1,7 @@
 package gui
 
+import DTO.D_foto
+import DTO.Inserzione
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -53,7 +55,6 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import kotlinx.coroutines.launch
-import DTO.InserzioneTemp
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
@@ -65,6 +66,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.runtime.saveable.rememberSaveable
+import connection.scaricaTutteLeInserzioni
+import gui.template.myCardInserzione
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,12 +85,16 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
 
     var puntoSelezionato by remember { mutableStateOf<LatLng?>(null) }
     var raggioKm by remember { mutableFloatStateOf(10f) }
-    var listaInserzioniNelCerchio by remember { mutableStateOf<List<InserzioneTemp>>(emptyList()) }
+
+    // --- STATE PER I DATI DEL DATABASE ---
+    var listaTutteLeInserzioni by remember { mutableStateOf<List<Inserzione>>(emptyList()) }
+    var listaInserzioniNelCerchio by remember { mutableStateOf<List<Inserzione>>(emptyList()) }
+
     var isPannelloSliderVisibile by remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
-            initialValue = SheetValue.Hidden, // Parte nascosto
-            skipHiddenState = false // <--- FONDAMENTALE: DEVE ESSERE FALSE!
+            initialValue = SheetValue.Hidden,
+            skipHiddenState = false
         )
     )
     var isBottomSheetEnabled by remember { mutableStateOf(false) }
@@ -95,40 +102,31 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
     if (!Places.isInitialized()) {
         Places.initialize(context, "AIzaSyCe6be-GA-ccdqwDwzHzJ5l1prpQWxvEIk")
     }
-    val pagerState = rememberPagerState(pageCount = { listaInserzioniNelCerchio.size })
 
+    val pagerState = rememberPagerState(pageCount = { listaInserzioniNelCerchio.size })
     val placesClient = remember { Places.createClient(context) }
     val sessionToken = remember { AutocompleteSessionToken.newInstance() }
-
     var listaSuggerimenti by remember { mutableStateOf<List<SuggerimentoPlace>>(emptyList()) }
-
     var currentPeekHeight by remember { mutableStateOf(0.dp) }
-
     var pulisciAlRitorno by rememberSaveable { mutableStateOf(false) }
 
-    // --- 2. IL GUARDIANO: Scatta solo quando la pagina torna attiva ---
+    // --- SCARICHIAMO I DATI AL CARICAMENTO DELLA PAGINA ---
+    LaunchedEffect(Unit) {
+        listaTutteLeInserzioni = scaricaTutteLeInserzioni()
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            // Se l'app è tornata visibile (ON_RESUME) E dobbiamo pulire
             if (event == Lifecycle.Event.ON_RESUME && pulisciAlRitorno) {
-
-                // RESETTA LE VARIABILI
                 isBottomSheetEnabled = false
                 currentPeekHeight = 0.dp
-                listaInserzioniNelCerchio = emptyList() // Opzionale: pulisce mappa
-                puntoSelezionato = null                 // Opzionale: toglie cerchio blu
+                listaInserzioniNelCerchio = emptyList()
+                puntoSelezionato = null
 
-                // CHIUDE FISICAMENTE LA SHEET
                 scope.launch {
-                    try {
-                        scaffoldState.bottomSheetState.hide()
-                    } catch (e: Exception) {
-                        // Ignora errori se la sheet era già chiusa
-                    }
+                    try { scaffoldState.bottomSheetState.hide() } catch (e: Exception) {}
                 }
-
-                // IMPORTANTE: Rimettiamo a false per non farlo scattare a caso
                 pulisciAlRitorno = false
             }
         }
@@ -137,11 +135,8 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
     }
 
     LaunchedEffect(query) {
-
-        if (query.length > 0) { //scrivo almeno 1 lettera
-
+        if (query.isNotEmpty()) {
             delay(300)
-
             val request = FindAutocompletePredictionsRequest.builder()
                 .setSessionToken(sessionToken)
                 .setQuery(query)
@@ -150,7 +145,6 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
 
             placesClient.findAutocompletePredictions(request)
                 .addOnSuccessListener { response ->
-
                     listaSuggerimenti = response.autocompletePredictions.map {
                         SuggerimentoPlace(
                             it.placeId,
@@ -159,22 +153,18 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                         )
                     }
                 }
-                .addOnFailureListener { exception ->
-
-                    listaSuggerimenti = emptyList()
-                }
+                .addOnFailureListener { listaSuggerimenti = emptyList() }
         }
     }
 
+    // --- SPOSTAMENTO CAMERA TRAMITE SWIPE SULLE CARD ---
     LaunchedEffect(pagerState.currentPage) {
         if (listaInserzioniNelCerchio.isNotEmpty()) {
+            val inserzioneSelezionata = listaInserzioniNelCerchio[pagerState.currentPage]
+            val coordinateVeroDB = LatLng(inserzioneSelezionata.latitudine, inserzioneSelezionata.longitudine)
 
-            val inserzioneSelezionata = listaInserzioniNelCerchio[pagerState.currentPage]//prendo l'inserzione corrispondente alla pagina corrente
-
-
-            cameraPositionState.animate( // sposto la telecamera su quel punto (Animazione fluida)
-
-                update = CameraUpdateFactory.newLatLng(inserzioneSelezionata.coordinate),
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLng(coordinateVeroDB),
                 durationMs = 800
             )
         }
@@ -193,23 +183,19 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                 query = descrizione
                 active = false
 
-                // Reset interfaccia per nuova selezione
                 listaInserzioniNelCerchio = emptyList()
                 isPannelloSliderVisibile = true
                 isBottomSheetEnabled = false
-                currentPeekHeight = 0.dp // Nascondo la sheet
+                currentPeekHeight = 0.dp
                 scope.launch { scaffoldState.bottomSheetState.partialExpand() }
             }
         }
     }
 
-
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContainerColor = Color.White,
         sheetContentColor = Color.White,
-
-
         sheetPeekHeight = currentPeekHeight,
         sheetDragHandle = null,
         sheetSwipeEnabled = isBottomSheetEnabled,
@@ -221,155 +207,111 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
                     .padding(bottom = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                // MANIGLIA PERSONALIZZATA
-                Box(
-                    modifier = Modifier
-                        .padding(top = 10.dp)
-                        .width(40.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(50)) // Arrotonda gli angoli (forma a pillola)
-                        .background(Color.Black)
-                )
-
+                Box(modifier = Modifier.padding(top = 10.dp).width(40.dp).height(4.dp).clip(RoundedCornerShape(50)).background(Color.Black))
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "Inserzioni Trovate",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    textAlign = TextAlign.Left
-                )
+                Text("Inserzioni Trovate", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.Black)
             }
 
+            // --- CAROSELLO DELLE CARD (HorizontalPager) ---
             HorizontalPager(
                 state = pagerState,
-                contentPadding = PaddingValues(horizontal = 30.dp), // Lascia intravedere le card laterali
-                pageSpacing = 10.dp, // Spazio tra le card
-                modifier = Modifier.fillMaxWidth()  ) {
-                    pageIndex ->
+                contentPadding = PaddingValues(horizontal = 30.dp),
+                pageSpacing = 10.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) { pageIndex ->
+
                 val inserzione = listaInserzioniNelCerchio[pageIndex]
-                Card(
+
+                myCardInserzione(
+                    inserzione = inserzione,
+                    myModifier = Modifier
+                        .fillMaxWidth()
+                        .height(165.dp),
                     onClick = {
                         pulisciAlRitorno = true
-                        navController.navigate(Screen.InserzioneScreen.withIdInserzione(inserzione.idInserzione))// QUANDO CI SARA' IL DB, AL POSTO DI inserzione.nome CI ANDRA' L' idInserzione, passato solo lui perche possono essere passate solo stringhe tramite NAVIGATION
-
-                    },
-
-                    modifier = Modifier
-                        .fillMaxWidth() // La larghezza è gestita dal Pager
-                        .height(165.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.Red),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {Column {
-                    // QUI DA AGGIUNGERE IMMAGINE (se ce l'hai nell'oggetto InserzioneTemp)
-                    // Image(...)
-
-                    Text(
-                        text = inserzione.nome, // Titolo dinamico
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(10.dp)
-                    )
-                    Text(
-                        text = "Lat: ${inserzione.coordinate.latitude}",
-                        color = Color.LightGray,
-                        modifier = Modifier.padding(horizontal = 10.dp)
-                    )
-                }}
-
-
-        }
+                        navController.navigate(Screen.InserzioneScreen.withIdInserzione(inserzione.idInserzione))
+                    }
+                )
+            }
             Spacer(modifier = Modifier.height(20.dp))
-        }) {
+        }
+    ) {
 
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             properties = remember { MapProperties(mapStyleOptions = MapStyleOptions(jsonStyleChiaro)) },
             onMapClick = { coordinataCliccata ->
+                // 1. Salviamo la posizione
                 puntoSelezionato = coordinataCliccata
-                isPannelloSliderVisibile = true   // Mostro lo slider
-                listaInserzioniNelCerchio = emptyList() // Pulisco i vecchi risultati per pulizia
-                isBottomSheetEnabled = false // Disabilito l'interazione/swipe
-                scope.launch {
-                    scaffoldState.bottomSheetState.hide() // La nascondo fisicamente
-                }
+
+                // 2. Mostriamo lo slider e chiudiamo eventuali BottomSheet
+                isPannelloSliderVisibile = true
+                isBottomSheetEnabled = false
+                scope.launch { scaffoldState.bottomSheetState.hide() }
+
+                // 3. NASCONDIAMO i vecchi puntini (Senza calcoli e senza Toast qui!)
+                listaInserzioniNelCerchio = emptyList()
             }
         ) {
+            // --- DISEGNO DEI MARKER DELLE CASE ---
             listaInserzioniNelCerchio.forEachIndexed { index, inserzione ->
                 val isSelezionato = (pagerState.currentPage == index)
-                val markerState = rememberMarkerState(position = inserzione.coordinate)
+
+                val coordinateInserzione = LatLng(inserzione.latitudine, inserzione.longitudine)
+                val markerState = rememberMarkerState(position = coordinateInserzione)
+
                 LaunchedEffect(isSelezionato) {
-                    if (isSelezionato) {
-                        markerState.showInfoWindow()
-                    } else {
-                        markerState.hideInfoWindow()
-                    }
+                    if (isSelezionato) markerState.showInfoWindow() else markerState.hideInfoWindow()
                 }
+
                 Marker(
                     state = markerState,
-                    title = inserzione.nome,
-
-                    // A. Z-INDEX: Se selezionato, stà sopra a tutti gli altri (1f)
+                    title = "${inserzione.prezzo} €",
+                    snippet = inserzione.citta,
                     zIndex = if (isSelezionato) 1.0f else 0.0f,
-
-                    // B. COLORE: Azzurro se selezionato, Giallo Ocra (50f) se normale
                     icon = BitmapDescriptorFactory.defaultMarker(
                         if (isSelezionato) BitmapDescriptorFactory.HUE_AZURE else 50f
                     ),
                     onClick = {
                         scope.launch {
                             isBottomSheetEnabled = true
-                            //currentPeekHeight = 160.dp // Alza la bottom sheet se era giù
-                            scaffoldState.bottomSheetState.expand() // O partialExpand
-
-                            // IMPORTANTE: Dico alla lista di andare a questo indice
+                            scaffoldState.bottomSheetState.expand()
                             pagerState.animateScrollToPage(index)
                         }
                         false
-                    },
-
+                    }
                 )
             }
 
+            // --- DISEGNO DEL CERCHIO BLU ---
             puntoSelezionato?.let { punto ->
                 Marker(
                     state = MarkerState(position = punto),
                     title = "Posizione Scelta",
-                    snippet = "Lat: ${punto.latitude}, Lng: ${punto.longitude}",
                     icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
-
                 )
 
                 Circle(
                     center = punto,
-                    radius = (raggioKm * 1000).toDouble(), // converto km in metri perché Maps usa i metri
+                    radius = (raggioKm * 1000).toDouble(),
                     strokeColor = Color.Blue,
                     strokeWidth = 3f,
                     fillColor = Color.Blue.copy(alpha = 0.2f)
                 )
-
             }
-
         }
 
+        // --- BARRA DI RICERCA ---
         SearchBar(
             query = query,
             onQueryChange = { query = it },
             onSearch = {
                 active = false
-
                 isBottomSheetEnabled = false
                 currentPeekHeight = 0.dp
-                scope.launch {
-                    scaffoldState.bottomSheetState.partialExpand() // La chiudo visivamente
-                }
-
+                scope.launch { scaffoldState.bottomSheetState.partialExpand() }
                 listaInserzioniNelCerchio = emptyList()
-
                 eseguiRicerca(query, scope, context, cameraPositionState)
             },
             active = active,
@@ -378,131 +320,90 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             trailingIcon = {
                 if (active) {
-                    IconButton(onClick = {
-                        if (query.isNotEmpty()) query = "" else active = false
-                    }) {
+                    IconButton(onClick = { if (query.isNotEmpty()) query = "" else active = false }) {
                         Icon(Icons.Default.Close, contentDescription = "Chiudi")
                     }
                 }
             },
         ) {
-
             LazyColumn {
                 items(listaSuggerimenti) { luogo ->
                     ListItem(
-                        headlineContent = {
-                            Text(
-                                luogo.testoPrincipale,
-                                fontWeight = FontWeight.Bold
-                            )
-                        },
+                        headlineContent = { Text(luogo.testoPrincipale, fontWeight = FontWeight.Bold) },
                         supportingContent = { Text(luogo.testoSecondario) },
                         leadingContent = { Icon(Icons.Default.LocationOn, null) },
-                        modifier = Modifier.clickable {
-                            vaiAlLuogo(luogo.id, luogo.testoPrincipale)
-                        }
+                        modifier = Modifier.clickable { vaiAlLuogo(luogo.id, luogo.testoPrincipale) }
                     )
                 }
             }
         }
 
+        // --- PANNELLO DELLO SLIDER E BOTTONE CONFERMA (In basso) ---
         if (puntoSelezionato != null) {
             if (isPannelloSliderVisibile) {
-
                 Box(modifier=Modifier.fillMaxSize()){
-                Surface(
-                    border = BorderStroke(width = 1.dp, color = Color.Black),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(180.dp),
-                    shape = MaterialTheme.shapes.medium, // angoli arrotondati
-                    shadowElevation = 8.dp,
-                    color = mioBluScuro
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Surface(
+                        border = BorderStroke(width = 1.dp, color = Color.Black),
+                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(180.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        shadowElevation = 8.dp,
+                        color = Color(0xFF000080) // mioBluScuro
                     ) {
-                        Text(
-                            text = "Raggio di ricerca: ${raggioKm.toInt()} km",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = mieiTitoli
-                        )
-
-                        Slider(
-                            colors = SliderDefaults.colors(
-                                thumbColor = mioGialloOcra,
-                                inactiveTrackColor = mioGialloOcra,
-                                activeTrackColor = mioGialloOcra,
-                                activeTickColor = mioBluScuro,
-                                inactiveTickColor = Color.White
-                            ),
-                            value = raggioKm,
-                            onValueChange = { nuovoValore ->
-                                raggioKm = nuovoValore
-                            },
-                            valueRange = 1f..20f, // da 1km a 20km
-                            steps = 99, //fa scattare lo slider di 1 in 1
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-
-
-                        Button(
-                            /*
-                        deve trovare tutte le case a distanza di massimo "raggioKM" km dal "puntoCliccato"
-                        le case sono locate a "Inserzione.indirizzo", bisogna calcolare la distanza tra tutte le case
-                        e paragonare quella distanza agli "raggioKM" km
-                        SERVE FUNZIONE calcolaDistanza(context, location1, location2)
-                            con location1=puntoCliccato e location2=cercaCoordinate(context, Inserzione.indirizzo)
-                         SOLUZIONE PRE-DATABASE: lista di indirizzi come sostituto a location2, cosi da poter testare
-                        */
-
-                            onClick = {
-                                val centro = puntoSelezionato!!
-                                val raggioMetri = raggioKm * 1000
-
-                                // 1. FILTRO: Uso SphericalUtil per confrontare i numeri
-                                val risultati = listaInserzioniFintoDB.filter { casa ->
-                                    val distanza = SphericalUtil.computeDistanceBetween(
-                                        centro,
-                                        casa.coordinate
-                                    )
-                                    distanza <= raggioMetri
-                                }
-
-                                // 2. AGGIORNO GLI STATI
-                                listaInserzioniNelCerchio = risultati // La mappa si aggiorna e mostra i marker
-                                isPannelloSliderVisibile = false
-
-                                if (risultati.isEmpty()) {
-                                    Toast.makeText(
-                                        context,
-                                        "Nessuna casa trovata in questo raggio",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Trovate ${risultati.size} case!",
-                                        Toast.LENGTH_SHORT,
-
-                                    ).show()
-                                }
-
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = mioGialloOcra,
-                                contentColor = mioBluScuro
-                            ),
-                            modifier = Modifier.height(50.dp)
-                                .fillMaxWidth()
-                                .padding(vertical = 5.dp, horizontal = 80.dp)
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Conferma", fontSize = 17.sp)
+                            Text(
+                                text = "Raggio di ricerca: ${raggioKm.toInt()} km",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White // o mieiTitoli
+                            )
+
+                            Slider(
+                                colors = SliderDefaults.colors(
+                                    thumbColor = Color(0xFFDAA520), // mioGialloOcra
+                                    activeTrackColor = Color(0xFFDAA520),
+                                    inactiveTrackColor = Color.Gray
+                                ),
+                                value = raggioKm,
+                                onValueChange = { nuovoValore -> raggioKm = nuovoValore },
+                                valueRange = 1f..20f,
+                                steps = 18,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+
+                            Button(
+                                onClick = {
+                                    val centro = puntoSelezionato!!
+                                    val raggioMetri = raggioKm * 1000
+
+                                    // --- 4. IL FILTRO AVVIENE SOLO ORA! ---
+                                    val risultati = listaTutteLeInserzioni.filter { casa ->
+                                        val coordinateCasa = LatLng(casa.latitudine, casa.longitudine)
+                                        val distanza = SphericalUtil.computeDistanceBetween(centro, coordinateCasa)
+                                        distanza <= raggioMetri
+                                    }
+
+                                    // Mostra i puntini
+                                    listaInserzioniNelCerchio = risultati
+
+                                    // Nascondi lo slider
+                                    isPannelloSliderVisibile = false
+
+                                    // Mostra il Toast
+                                    if (risultati.isEmpty()) {
+                                        Toast.makeText(context, "Nessuna casa trovata in questo raggio", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Trovate ${risultati.size} case!", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDAA520), contentColor = Color(0xFF000080)),
+                                modifier = Modifier.height(50.dp).fillMaxWidth().padding(vertical = 5.dp, horizontal = 80.dp)
+                            ) {
+                                Text("Conferma", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
-                }
                 }
             }
         }

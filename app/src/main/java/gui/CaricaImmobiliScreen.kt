@@ -1,18 +1,14 @@
 package gui
 
-import DTO.D_arred
-import DTO.D_catInser
-import DTO.D_energ
+import DTO.D_foto
+import DTO.ImmagineDTO
 import DTO.Inserzione
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,9 +26,6 @@ import androidx.navigation.NavController
 import com.example.progettoingsw.R
 
 import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
 
 import gui.template.myButton
 
@@ -147,7 +140,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = mioBluScuro
+                    containerColor = Color(0xFF000080) // mioBluScuro
                 ),
                 title = {
                     Text("Carica Immobile", fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
@@ -177,6 +170,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                 onValoreCambiato = { nuovaCategoria -> categoria = nuovaCategoria }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+
             val labelPrezzo = if (categoria == "In affitto") "Prezzo / mese" else "Prezzo"
 
             RigaValoreConErrore(
@@ -202,8 +196,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                 icona = Icons.Default.Dashboard, testo = "Locali",
                 valoreAttuale = locali,
                 isError = showErrors && locali.isBlank(),
-                onValoreCambiato = { nuoviLocali -> locali = nuoviLocali
-                }
+                onValoreCambiato = { nuoviLocali -> locali = nuoviLocali }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -366,27 +359,51 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                 snackbarHostState.currentSnackbarData?.dismiss()
                                 snackbarHostState.showSnackbar("Indirizzo non trovato sulla mappa. Scrivi correttamente città, comune e indirizzo.")
                                 isUploading = false
-                                return@launch // Questa parolina magica interrompe qui l'esecuzione! Non andrà avanti.
+                                return@launch
                             }
 
                             // Se le ha trovate, le salviamo per dopo
                             val latReale = coordinate.latitude
                             val lonReale = coordinate.longitude
 
-                            // 2. CARICA TUTTE LE FOTO DELL'IMMOBILE SU S3
+                            // 1. GENERIAMO L'ID IN ANTICIPO (Ci serve per associarlo alle immagini)
+                            val idGenerato = generaIdInserzione()
+
+                            // 2. CARICA TUTTE LE FOTO DELL'IMMOBILE SU S3 E CREA I DTO
                             val urlsScaricati = mutableListOf<String>()
+                            val listaImmaginiDTO = mutableListOf<ImmagineDTO>() // <--- LA NUOVA LISTA!
                             var ciSonoErrori = false
 
                             for (uri in fotoSelezionate) {
                                 val urlS3 = inviaImmagineAServer(context, uri)
-                                if (urlS3 != null) urlsScaricati.add(urlS3) else ciSonoErrori = true
+                                if (urlS3 != null) {
+                                    urlsScaricati.add(urlS3)
+                                    // Creiamo subito l'oggetto DTO e lo mettiamo nella lista
+                                    listaImmaginiDTO.add(
+                                        ImmagineDTO(
+                                            url = urlS3,
+                                            tipologia = D_foto.FOTO,
+                                            idInserzione = idGenerato
+                                        )
+                                    )
+                                } else {
+                                    ciSonoErrori = true
+                                }
                             }
 
-                            // 3. CARICA LA PLANIMETRIA SU S3
+                            // 3. CARICA LA PLANIMETRIA SU S3 E CREA IL DTO
                             if (planimetriaSelezionata != null) {
                                 val urlPlanimetriaS3 = inviaImmagineAServer(context, planimetriaSelezionata!!)
                                 if (urlPlanimetriaS3 != null) {
                                     linkPlanimetriaS3 = urlPlanimetriaS3
+                                    // Aggiungiamo anche la planimetria alla lista DTO
+                                    listaImmaginiDTO.add(
+                                        ImmagineDTO(
+                                            url = urlPlanimetriaS3,
+                                            tipologia = D_foto.PLANIMETRIA,
+                                            idInserzione = idGenerato
+                                        )
+                                    )
                                 } else {
                                     ciSonoErrori = true
                                 }
@@ -397,7 +414,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                 linkS3Ottenuti = urlsScaricati
 
                                 val nuovaInserzione = Inserzione(
-                                    idInserzione = generaIdInserzione(), // Assicurati di avere la funzione generaIdInserzione()
+                                    idInserzione = idGenerato, // Passiamo l'ID che abbiamo creato prima
                                     quadratura = quadratura.toIntOrNull() ?: 0,
                                     nBagni = bagni.toIntOrNull() ?: 0,
                                     nLocali = locali.toIntOrNull() ?: 0,
@@ -420,11 +437,12 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                     indirizzo = textFieldIndirizzo,
                                     agenteCreatore = username,
 
-                                    // Passiamo le coordinate sicure!
                                     latitudine = latReale,
                                     longitudine = lonReale,
 
-                                    )
+                                    // PASSIAMO LA LISTA DI OGGETTI, NON PIÙ LE STRINGHE!
+                                    immagini = listaImmaginiDTO
+                                )
 
                                 android.util.Log.d("UPLOAD", "Foto caricate: $linkS3Ottenuti")
                                 android.util.Log.d("UPLOAD", "Planimetria: $linkPlanimetriaS3")
@@ -435,8 +453,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
 
                                 if (caricamentoDbOk) {
                                     Toast.makeText(context, "Immobile pubblicato con successo!", Toast.LENGTH_LONG).show()
-                                    // Opzionale: Torna alla home
-                                    // navController.popBackStack()
+                                    // navController.popBackStack() // Torna alla home
                                 } else {
                                     snackbarHostState.showSnackbar("Impossibile salvare l'inserzione sul database.")
                                 }
