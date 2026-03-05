@@ -3,7 +3,7 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Inserzione(
+data class InserzioneDTO(
     val idInserzione: String, val quadratura: Int, val nBagni: Int, val nLocali: Int, val piano: Int,
     val categoria: D_catInser, val arredamento: D_arred, val balcone: Boolean, val ascensore: Boolean,
     val terrazzo: Boolean, val cantina: Boolean, val piscina: Boolean, val cucina: Boolean, val prezzo: Float,

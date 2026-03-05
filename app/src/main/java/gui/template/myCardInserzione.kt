@@ -1,7 +1,7 @@
 package gui.template
 
 import DTO.D_foto
-import DTO.Inserzione
+import DTO.InserzioneDTO
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,7 +26,6 @@ import gui.mieiTitoli
 import gui.mioBluScuro
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -83,7 +82,7 @@ fun myCardInserzionePlaceholder(
 
 @Composable
 fun myCardInserzione(
-    inserzione: Inserzione,       // <--- 1. Riceve l'oggetto vero dal DB
+    inserzione: InserzioneDTO,       // <--- 1. Riceve l'oggetto vero dal DB
     myModifier: Modifier = Modifier,
     onClick: () -> Unit           // <--- 2. Riceve l'azione da fare al click
 ) {

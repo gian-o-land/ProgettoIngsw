@@ -2,7 +2,7 @@ package gui
 
 import DTO.AgenteDTO
 import DTO.D_foto
-import DTO.Inserzione
+import DTO.InserzioneDTO
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -80,9 +80,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import navigation.Screen
-import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import coil.compose.AsyncImage
 import connection.scaricaAgente
@@ -91,7 +89,7 @@ import connection.scaricaAgente
 @OptIn(ExperimentalMaterial3Api::class)
 fun InserzioneScreen(
     navController: NavController,
-    inserzione: Inserzione
+    inserzione: InserzioneDTO
 ) {
     val context = LocalContext.current
 

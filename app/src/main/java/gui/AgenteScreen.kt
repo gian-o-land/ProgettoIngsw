@@ -1,8 +1,10 @@
 package gui
 
+import DTO.InserzioneDTO
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -26,6 +29,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,23 +43,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
+import connection.scaricaTutteLeInserzioni
 import gui.template.myBottomNavBar_Agente
-import gui.template.myCardInserzionePlaceholder
 import navigation.Screen
+import androidx.compose.runtime.setValue
+import gui.template.myCardInserzione
+import kotlinx.serialization.encodeToString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AgenteScreen(username: String, navController : NavController){
+fun AgenteScreen(username: String, navController: NavController) {
     val listState = rememberLazyListState()
 
-    val indirizzo = "via sal cazzo, Piscitielli, Ita"
-    val listaImmobili = mapOf(
-        "Via:$indirizzo\nquadratura: 30m^2\nprezzo: 200000€" to R.drawable.immobile_esempio_1,
-        "immobile_esempio_2" to R.drawable.immobile_esempio_2,
-        "immobile_esempio_3" to R.drawable.immobile_esempio_3,
-        "immobile_esempio_4" to R.drawable.immobile_esempio_4,
-        "immobile_esempio_5" to R.drawable.immobile_esempio_5
-    )
+    // --- VARIABILI DI STATO PER I DATI REALI ---
+    var listaInserzioniAgente by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // --- SCARICAMENTO DATI AL CARICAMENTO DELLA PAGINA ---
+    LaunchedEffect(username) {
+        isLoading = true
+        // Scarichiamo tutte le inserzioni dal database
+        val tutteLeInserzioni = scaricaTutteLeInserzioni()
+
+        // Filtriamo SOLO quelle create da questo specifico agente
+        listaInserzioniAgente = tutteLeInserzioni.filter { it.agenteCreatore == username }
+
+        isLoading = false
+    }
+
     Scaffold(
         floatingActionButton = {
             Row(
@@ -60,9 +78,9 @@ fun AgenteScreen(username: String, navController : NavController){
                 horizontalArrangement = Arrangement.Center
             ) {
                 ExtendedFloatingActionButton(
-                    onClick = {navController.navigate(Screen.CaricaImmobiliScreen.withUsernameAgente(username))},
+                    onClick = { navController.navigate(Screen.CaricaImmobiliScreen.withUsernameAgente(username)) },
                     containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro,
+                    contentColor =mioBluScuro,
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Apartment, contentDescription = "Carica Immobile")
@@ -78,21 +96,21 @@ fun AgenteScreen(username: String, navController : NavController){
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = mioBluScuro
+                    containerColor = Color(0xFF000080) // mioBluScuro
                 ),
                 title = {
                     Text(
                         text = "Ciao,\n$username",
                         fontWeight = FontWeight.Bold,
-                        color = mieiTitoli,
-                        textAlign = TextAlign.Center
+                        color = Color.White, // mieiTitoli
+                        textAlign = TextAlign.Center,
+                        fontSize = 18.sp
                     )
-
                 },
                 navigationIcon = {
                     Image(
                         painter = painterResource(id = R.drawable.logo),
-                        "Logo",
+                        contentDescription = "Logo",
                         modifier = Modifier
                             .height(50.dp)
                             .width(50.dp)
@@ -104,43 +122,70 @@ fun AgenteScreen(username: String, navController : NavController){
             myBottomNavBar_Agente(navController = navController, username)
         }
     ) { innerPadding ->
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)){
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp),
+                    .height(60.dp), // Un po' più alto per dare respiro
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Lista Immobili:",
+                Text(
+                    text = "I tuoi Immobili:",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp,
-                    color = mieScritte,
+                    fontSize = 22.sp,
+                    color = Color.Black, // mieScritte
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(start = 30.dp))
+                    modifier = Modifier.padding(start = 20.dp)
+                )
             }
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 2.dp)
-                    .weight(1f),
-                contentPadding = PaddingValues(bottom = 70.dp)
-            ) {
-                items(listaImmobili.entries.toList()){ immobile ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
-                            .height(220.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        myCardInserzionePlaceholder(
-                            myModifier = Modifier
-                                .height(200.dp)
-                                .width(300.dp),
-                            immobile = immobile
-                        )
+
+            // --- CONTROLLO STATO: CARICAMENTO, VUOTO O LISTA PIENA ---
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Color(0xFF000080)) // mioBluScuro
+                }
+            } else if (listaInserzioniAgente.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "Non hai ancora caricato immobili.\nPremi 'Carica Immobile' per iniziare!",
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray
+                    )
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentPadding = PaddingValues(bottom = 80.dp) // Spazio per il FAB
+                ) {
+                    items(listaInserzioniAgente) { inserzione ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp), // Spazio tra una card e l'altra
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // --- USIAMO LA TUA CARD REALE! ---
+                            myCardInserzione(
+                                inserzione = inserzione,
+                                myModifier = Modifier
+                                    .height(200.dp)
+                                    .width(320.dp), // Leggermente più larga per far respirare i testi
+                                onClick = {
+                                    // Stessa identica logica di navigazione con lo "zainetto" usata nella mappa
+                                    val json = kotlinx.serialization.json.Json.encodeToString(inserzione)
+                                    navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
+                                    navController.navigate(Screen.InserzioneScreen.route)
+                                }
+                            )
+                        }
                     }
                 }
             }

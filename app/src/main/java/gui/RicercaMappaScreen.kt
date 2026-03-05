@@ -1,7 +1,6 @@
 package gui
 
-import DTO.D_foto
-import DTO.Inserzione
+import DTO.InserzioneDTO
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -38,7 +37,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -88,8 +86,8 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
     var raggioKm by remember { mutableFloatStateOf(10f) }
 
     // --- STATE PER I DATI DEL DATABASE ---
-    var listaTutteLeInserzioni by remember { mutableStateOf<List<Inserzione>>(emptyList()) }
-    var listaInserzioniNelCerchio by remember { mutableStateOf<List<Inserzione>>(emptyList()) }
+    var listaTutteLeInserzioni by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
+    var listaInserzioniNelCerchio by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
 
     var isPannelloSliderVisibile by remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState(

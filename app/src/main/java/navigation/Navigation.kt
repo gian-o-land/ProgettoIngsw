@@ -1,6 +1,6 @@
 package navigation
 
-import DTO.Inserzione
+import DTO.InserzioneDTO
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
@@ -209,7 +209,7 @@ fun Navigation() {
 
             if (json != null) {
                 // 2. Lo ritrasformiamo in oggetto e mostriamo la pagina
-                val inserzioneOggetto = kotlinx.serialization.json.Json.decodeFromString<Inserzione>(json)
+                val inserzioneOggetto = kotlinx.serialization.json.Json.decodeFromString<InserzioneDTO>(json)
                 InserzioneScreen(navController = navController, inserzione = inserzioneOggetto)
             } else {
                 // 3. Schermata di emergenza (così non vedrai MAI PIÙ una pagina bianca!)

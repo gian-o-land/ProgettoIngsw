@@ -2,7 +2,7 @@ package gui
 
 import DTO.D_foto
 import DTO.ImmagineDTO
-import DTO.Inserzione
+import DTO.InserzioneDTO
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -428,7 +428,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                             if (!ciSonoErrori && urlsScaricati.isNotEmpty()) {
                                 linkS3Ottenuti = urlsScaricati
 
-                                val nuovaInserzione = Inserzione(
+                                val nuovaInserzione = InserzioneDTO(
                                     idInserzione = idGenerato,
                                     quadratura = quadratura.toIntOrNull() ?: 0,
                                     nBagni = bagni.toIntOrNull() ?: 0,

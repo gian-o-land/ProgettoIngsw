@@ -1,7 +1,7 @@
 package connection
 
 import DTO.AgenteDTO
-import DTO.Inserzione
+import DTO.InserzioneDTO
 import DTO.UtenteDTO
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
@@ -26,7 +26,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://ljomh-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://vdejq-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -152,14 +152,14 @@ suspend fun recuperaTelefonoEPassword(email: String): UtenteDTO? {
 
 @Serializable
 data class InserzioneRequest(
-    val inserzione: Inserzione,
+    val inserzione: InserzioneDTO,
     val urlFoto: List<String>,
     val urlPlanimetria: String?
 )
 
 suspend fun inviaInserzioneAlServer(
     client: HttpClient,
-    inserzione: Inserzione,
+    inserzione: InserzioneDTO,
     urlFoto: MutableList<String>,
     urlPlanimetria: String?
 ): Boolean {
@@ -190,7 +190,7 @@ suspend fun inviaInserzioneAlServer(
     }
 }
 
-suspend fun scaricaTutteLeInserzioni(): List<Inserzione> {
+suspend fun scaricaTutteLeInserzioni(): List<InserzioneDTO> {
     return try {
         // Facciamo una richiesta GET alla rotta che ci restituirà il JSON con tutte le case
         val risposta: HttpResponse = client.get("$urlServer/inserzioni")
