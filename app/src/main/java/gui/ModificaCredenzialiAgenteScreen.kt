@@ -46,96 +46,203 @@ import gui.template.myButton
 import gui.template.myTextField
 import DTO.source.CommonPhonePrefixes
 import DTO.source.DefaultPhonePrefix
+import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import connection.modificaCredenzialiAgente
+import connection.scaricaAgente
+import kotlinx.coroutines.launch
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun ModificaCredenzialiAgenteScreen(navController : NavController, username: String) {
-    var textFieldTelefonoModificato by remember {
-        mutableStateOf("")
-    }
-    var textFieldEmailModificato by remember {
-        mutableStateOf("")
-    }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    // --- NUOVE VARIABILI ---
+    var textFieldNomeModificato by remember { mutableStateOf("") }
+    var textFieldCognomeModificato by remember { mutableStateOf("") }
+
+    var textFieldTelefonoModificato by remember { mutableStateOf("") }
+    var textFieldEmailModificato by remember { mutableStateOf("") }
+
     var prefixDropdownExpanded by remember { mutableStateOf(false) }
     var selectedPrefix by remember { mutableStateOf(DefaultPhonePrefix) }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White),
-        containerColor =  Color.White,
-        topBar = { CenterAlignedTopAppBar(
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor =  mioBluScuro
-            ),
-            title = {
-                Text(text="Impostazioni Profilo",
-                    fontWeight = FontWeight.Bold,
-                    color = mieiTitoli,
-                    textAlign = TextAlign.Center
-                )
+    // --- STATI DI CARICAMENTO ---
+    var isFetching by remember { mutableStateOf(true) }
+    var isUpdating by remember { mutableStateOf(false) }
 
-            },
-            navigationIcon = {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    "Logo",
-                    modifier = Modifier.height(50.dp).width(50.dp)
-                )
+    LaunchedEffect(username) {
+        isFetching = true
+        val agente = scaricaAgente(username)
+        if (agente != null) {
+            // Riempiamo anche nome e cognome
+            textFieldNomeModificato = agente.nome
+            textFieldCognomeModificato = agente.cognome
+
+            textFieldEmailModificato = agente.email
+            textFieldTelefonoModificato = agente.telefono
+
+            val prefissoDB = agente.selectedPrefix.trim()
+
+            val prefissoCorrispondente = CommonPhonePrefixes.find { prefissoOggetto ->
+                val prefissoPulito = prefissoOggetto.displayName.replace("(", "").replace(")", "").trim()
+                prefissoPulito == prefissoDB
             }
-        )
 
-        },
-        bottomBar = {
+            if (prefissoCorrispondente != null) {
+                selectedPrefix = prefissoCorrispondente
+            }
+
+        } else {
+            Toast.makeText(context, "Impossibile caricare i dati attuali", Toast.LENGTH_SHORT).show()
         }
+        isFetching = false
+    }
 
+    Scaffold(
+        modifier = Modifier.fillMaxSize().background(color = Color.White),
+        containerColor = Color.White,
+        topBar = {
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = mioBluScuro
+                ),
+                title = {
+                    Text(
+                        text="Impostazioni Profilo",
+                        fontWeight = FontWeight.Bold,
+                        color = mieiTitoli,
+                        textAlign = TextAlign.Center
+                    )
+                },
+                navigationIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo",
+                        modifier = Modifier.height(50.dp).width(50.dp)
+                    )
+                }
+            )
+        }
     ) { innerPadding ->
 
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Modifica le tue\ninformazioni credenziali qui!",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center
-                )
+        if (isFetching) {
+            Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = mioBluScuro)
             }
-            Spacer(modifier = Modifier.height(15.dp))
-            myTextField(
-                Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
-                "Email",
-                textFieldEmailModificato,
-                {emailModificata -> textFieldEmailModificato = emailModificata}
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(verticalAlignment = Alignment.Top) {
-                ExposedDropdownMenuBox(
-                    expanded = prefixDropdownExpanded,
-                    onExpandedChange = { prefixDropdownExpanded = !prefixDropdownExpanded },
-                    modifier = Modifier.padding(start = 35.dp, end = 10.dp)
+        } else {
+            Column(
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
                 ) {
+                    Text(
+                        text = "Modifica le tue\ninformazioni credenziali qui!",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = mieScritte,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+
+                // --- NUOVI CAMPI NOME E COGNOME ---
+                myTextField(
+                    Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
+                    "Nome",
+                    textFieldNomeModificato,
+                    { nomeModificato -> textFieldNomeModificato = nomeModificato }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                myTextField(
+                    Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
+                    "Cognome",
+                    textFieldCognomeModificato,
+                    { cognomeModificato -> textFieldCognomeModificato = cognomeModificato }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // --- VECCHI CAMPI EMAIL E TELEFONO ---
+                myTextField(
+                    Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
+                    "Email",
+                    textFieldEmailModificato,
+                    { emailModificata -> textFieldEmailModificato = emailModificata }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(verticalAlignment = Alignment.Top) {
+                    ExposedDropdownMenuBox(
+                        expanded = prefixDropdownExpanded,
+                        onExpandedChange = { prefixDropdownExpanded = !prefixDropdownExpanded },
+                        modifier = Modifier.padding(start = 35.dp, end = 10.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = "${selectedPrefix.flagEmoji}${selectedPrefix.displayName}",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Pref.") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .menuAnchor()
+                                .width(130.dp),
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = prefixDropdownExpanded)
+                            },
+                            textStyle = MaterialTheme.typography.bodyLarge,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = mioBluScuro,
+                                unfocusedBorderColor = Color.Gray,
+                                focusedTextColor = mieScritte,
+                                unfocusedTextColor = mieScritte,
+                                unfocusedContainerColor = mioBackgroung,
+                                focusedLabelColor = mioBluScuro,
+                                unfocusedLabelColor = Color.Gray,
+                                cursorColor = Color.Black,
+                                focusedTrailingIconColor = Color.Gray,
+                                unfocusedTrailingIconColor = Color.Gray
+                            )
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = prefixDropdownExpanded,
+                            onDismissRequest = { prefixDropdownExpanded = false },
+                            modifier = Modifier
+                                .background(mioBackgroung)
+                                .border(width = 0.5.dp, color = Color.Black, shape = RoundedCornerShape(4.dp))
+                        ) {
+                            CommonPhonePrefixes.forEachIndexed { index, prefix ->
+                                DropdownMenuItem(
+                                    text = { Text("${prefix.flagEmoji} ${prefix.displayName}") },
+                                    onClick = {
+                                        selectedPrefix = prefix
+                                        prefixDropdownExpanded = false
+                                    }
+                                )
+                                if (index < CommonPhonePrefixes.lastIndex) {
+                                    HorizontalDivider(color = Color.Black, thickness = 0.5.dp)
+                                }
+                            }
+                        }
+                    }
                     OutlinedTextField(
-                        value = "${selectedPrefix.flagEmoji}${selectedPrefix.displayName}",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Pref.") },
+                        value = textFieldTelefonoModificato,
+                        onValueChange = { textFieldTelefonoModificato = it },
+                        label = { Text("Numero") },
+                        modifier = Modifier.fillMaxWidth().padding(end = 35.dp),
                         singleLine = true,
-                        modifier = Modifier
-                            .menuAnchor()
-                            .width(130.dp),
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = prefixDropdownExpanded)
-                        },
-                        textStyle = typography.bodyLarge,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        textStyle = MaterialTheme.typography.bodyLarge,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = mioBluScuro,
                             unfocusedBorderColor = Color.Gray,
@@ -144,65 +251,56 @@ fun ModificaCredenzialiAgenteScreen(navController : NavController, username: Str
                             unfocusedContainerColor = mioBackgroung,
                             focusedLabelColor = mioBluScuro,
                             unfocusedLabelColor = Color.Gray,
-                            cursorColor = Color.Black,
-                            focusedTrailingIconColor = Color.Gray,
-                            unfocusedTrailingIconColor = Color.Gray
+                            cursorColor = Color.Black
                         )
                     )
-
-                    ExposedDropdownMenu(
-                        expanded = prefixDropdownExpanded,
-                        onDismissRequest = { prefixDropdownExpanded = false },
-                        modifier = Modifier
-                            .background(mioBackgroung)
-                            .border(
-                                width = 0.5.dp,
-                                color = Color.Black,
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                    ) {
-                        CommonPhonePrefixes.forEachIndexed { index, prefix ->
-                            DropdownMenuItem(
-                                text = { Text("${prefix.flagEmoji} ${prefix.displayName}") },
-                                onClick = {
-                                    selectedPrefix = prefix
-                                    prefixDropdownExpanded = false
-                                }
-                            )
-                            if (index < CommonPhonePrefixes.lastIndex) {
-                                HorizontalDivider(
-                                    color = Color.Black,
-                                    thickness = 0.5.dp
-                                )
-                            }
-                        }
-                    }
                 }
-                OutlinedTextField(
-                    value = textFieldTelefonoModificato,
-                    onValueChange = { textFieldTelefonoModificato = it },
-                    label = { Text("Numero") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 35.dp),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    textStyle = typography.bodyLarge,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = mioBluScuro,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedTextColor = mieScritte,
-                        unfocusedTextColor = mieScritte,
-                        unfocusedContainerColor = mioBackgroung,
-                        focusedLabelColor = mioBluScuro,
-                        unfocusedLabelColor = Color.Gray,
-                        cursorColor = Color.Black
-                    )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // --- BOTTONE ---
+                myButton(
+                    myClick = {
+                        // Controlliamo che tutti i campi siano pieni
+                        if (textFieldEmailModificato.isNotBlank() &&
+                            textFieldTelefonoModificato.isNotBlank() &&
+                            textFieldNomeModificato.isNotBlank() &&
+                            textFieldCognomeModificato.isNotBlank()) {
+
+                            coroutineScope.launch {
+                                isUpdating = true
+
+                                val prefissoOriginale = selectedPrefix.displayName
+                                val prefissoPulito = prefissoOriginale
+                                    .replace("(", "")
+                                    .replace(")", "")
+                                    .trim()
+
+                                // Passiamo anche nome e cognome alla funzione
+                                val successo = modificaCredenzialiAgente(
+                                    username = username,
+                                    nuovoNome = textFieldNomeModificato,
+                                    nuovoCognome = textFieldCognomeModificato,
+                                    nuovaEmail = textFieldEmailModificato,
+                                    nuovoTelefono = textFieldTelefonoModificato,
+                                    nuovoPrefisso = prefissoPulito
+                                )
+
+                                if (successo) {
+                                    Toast.makeText(context, "Profilo aggiornato con successo!", Toast.LENGTH_SHORT).show()
+                                    navController.popBackStack()
+                                } else {
+                                    Toast.makeText(context, "Errore durante l'aggiornamento.", Toast.LENGTH_SHORT).show()
+                                }
+                                isUpdating = false
+                            }
+                        } else {
+                            Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    testo = if (isUpdating) "Salvataggio..." else "Conferma"
                 )
             }
-
-            Spacer(modifier = Modifier.height(40.dp))
-            myButton({}, "Conferma")
         }
     }
 }

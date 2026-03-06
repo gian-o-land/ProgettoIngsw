@@ -3,6 +3,7 @@ package connection
 import DTO.AgenteDTO
 import DTO.InserzioneDTO
 import DTO.UtenteDTO
+import DTO.source.PhonePrefix
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.request.*
@@ -26,7 +27,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://vdejq-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://uyvkf-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -225,6 +226,37 @@ suspend fun scaricaAgente(username: String): AgenteDTO? {
         } catch (e: Exception) {
             android.util.Log.e("API_AGENTE", "Errore di connessione: ${e.message}")
             null
+        }
+    }
+}
+
+// Usa String invece di PhonePrefix!
+suspend fun modificaCredenzialiAgente(
+    username: String,
+    nuovoNome: String,
+    nuovoCognome: String,
+    nuovaEmail: String,
+    nuovoTelefono: String,
+    nuovoPrefisso: String
+): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.put("$urlServer/agente/$username/credenziali") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    mapOf(
+                        "nome" to nuovoNome,
+                        "cognome" to nuovoCognome,
+                        "email" to nuovaEmail,
+                        "telefono" to nuovoTelefono,
+                        "selectedprefix" to nuovoPrefisso
+                    )
+                )
+            }
+            response.status.isSuccess()
+        } catch (e: Exception) {
+            android.util.Log.e("API_MODIFICA_AGENTE", "Errore: ${e.message}")
+            false
         }
     }
 }

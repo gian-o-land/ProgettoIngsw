@@ -99,7 +99,7 @@ fun myBottomNavBar(navController: NavController) {
 }
 
 @Composable
-fun myBottomNavBar_Admin(navController: NavController, username: String) {
+fun  myBottomNavBar_Admin(navController: NavController, username: String) {
 
     data class BottomNavItem(
         val label: String,
