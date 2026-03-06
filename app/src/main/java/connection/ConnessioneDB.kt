@@ -3,6 +3,7 @@ package connection
 import DTO.AgenteDTO
 import DTO.InserzioneDTO
 import DTO.UtenteDTO
+import DTO.source.PhonePrefix
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.request.*
@@ -26,7 +27,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://bxngz-2a0e-43d-8b44-0-59ac-f1f1-f7bf-98c7.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://uyvkf-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -119,9 +120,9 @@ suspend fun inviaImmagineAServer(context: Context, uri: Uri): String? {
         null
     }
 }
-suspend fun scaricaUtente(email: String): UtenteDTO? {
+suspend fun recuperaTelefonoEPassword(email: String): UtenteDTO? {
     return try {
-        val risposta: HttpResponse = client.post("$urlServer/utente/$email") {
+        val risposta: HttpResponse = client.post("$urlServer/getTellPass") {
             setBody(
                 FormDataContent(
                     Parameters.build {
