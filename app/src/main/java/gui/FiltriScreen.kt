@@ -43,7 +43,7 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FiltriScreen(navController: NavController) {
+fun FiltriScreen(navController: NavController, email: String) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -196,7 +196,7 @@ fun FiltriScreen(navController: NavController) {
             myButton(
                 myClick = {
                     Screen.RicercaMappaScreen.withLocation(
-                        LatLng(41.9028, 12.4964) )// APRIRA' LA MAPPA CON I FILTRI APPLICATI (ZOOMATA SU TUTTA L'ITALIA) per ora roma
+                        LatLng(41.9028, 12.4964), email )// APRIRA' LA MAPPA CON I FILTRI APPLICATI (ZOOMATA SU TUTTA L'ITALIA) per ora roma
                 },
                 testo = "Cerca"
             )

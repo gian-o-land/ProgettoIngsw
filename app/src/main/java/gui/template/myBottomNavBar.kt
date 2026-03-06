@@ -27,7 +27,7 @@ import navigation.Screen
 import androidx.navigation.NavDestination.Companion.hierarchy
 
 @Composable
-fun myBottomNavBar(navController: NavController) {
+fun myBottomNavBar(navController: NavController, email : String) {
 
     data class BottomNavItem(
         val label: String,
@@ -36,9 +36,9 @@ fun myBottomNavBar(navController: NavController) {
     )
 
     val items = listOf(
-        BottomNavItem("Cerca", Icons.Default.Search, Screen.UtenteScreen.route),
-        BottomNavItem("Notifiche", Icons.Default.Notifications, Screen.NotificheScreen.route),
-        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloScreen.route)
+        BottomNavItem("Cerca", Icons.Default.Search, Screen.UtenteScreen.withMailUtente(email)),
+        BottomNavItem("Notifiche", Icons.Default.Notifications, Screen.NotificheScreen.withMailUtente(email)),
+        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloScreen.withMail(email))
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -57,9 +57,17 @@ fun myBottomNavBar(navController: NavController) {
     ) {
         items.forEach { item ->
 
-            val isSelected = currentDestination?.hierarchy?.any {
-                it.route == item.route
+            // --- NUOVA LOGICA DI SELEZIONE ---
+            val isSelected = currentDestination?.hierarchy?.any { destination ->
+                // Prendiamo la rotta attuale e la puliamo dai parametri
+                val baseCurrentRoute = destination.route?.substringBefore("?")?.substringBefore("/")
+                // Prendiamo la rotta dell'item e la puliamo dai parametri
+                val baseItemRoute = item.route.substringBefore("?")?.substringBefore("/")
+
+                // Confrontiamo solo i nomi puliti (es. "utente_screen" == "utente_screen")
+                baseCurrentRoute == baseItemRoute
             } == true
+
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.Black,
@@ -75,11 +83,7 @@ fun myBottomNavBar(navController: NavController) {
                     )
                 },
                 label = { Text(item.label) },
-
-                // Usa la variabile calcolata automaticamente
                 selected = isSelected,
-
-                // 3. LOGICA DI NAVIGAZIONE
                 onClick = {
                     if (isSelected) return@NavigationBarItem // Blocca il reload se sei già qui!
 
@@ -87,8 +91,6 @@ fun myBottomNavBar(navController: NavController) {
                         popUpTo(Screen.UtenteScreen.route) {
                             saveState = true
                         }
-
-                        // Queste servono per non duplicare le pagine
                         launchSingleTop = true
                         restoreState = true
                     }

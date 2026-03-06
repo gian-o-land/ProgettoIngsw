@@ -72,7 +72,7 @@ import navigation.Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 
-fun PrenotazioneScreen(navController: NavController) {
+fun PrenotazioneScreen(navController: NavController, email: String) {
     var orarioSelezionato by remember { mutableStateOf<LocalTime?>(null) }
     var prenotazioneEffettuata by remember { mutableStateOf(false) }
 
@@ -139,7 +139,7 @@ fun PrenotazioneScreen(navController: NavController) {
             )
         },
         bottomBar = {
-            myBottomNavBar(navController)
+            myBottomNavBar(navController, email)
         }
     ) { innerPadding ->
         Column(

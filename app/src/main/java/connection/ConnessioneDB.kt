@@ -3,7 +3,6 @@ package connection
 import DTO.AgenteDTO
 import DTO.InserzioneDTO
 import DTO.UtenteDTO
-import DTO.source.PhonePrefix
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.request.*
@@ -27,7 +26,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://uyvkf-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://eyxtm-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -120,36 +119,21 @@ suspend fun inviaImmagineAServer(context: Context, uri: Uri): String? {
         null
     }
 }
-suspend fun recuperaTelefonoEPassword(email: String): UtenteDTO? {
+suspend fun scaricaUtente(email: String): UtenteDTO? {
     return try {
-        val risposta: HttpResponse = client.post("$urlServer/getTellPass") {
-            setBody(
-                FormDataContent(
-                    Parameters.build {
-                        append("email", email)
-                    }
-                )
-            )
-        }
+        // Usiamo GET invece di POST, l'email è già nell'URL!
+        val risposta: HttpResponse = client.get("$urlServer/utente/$email")
 
-        // Se il server ha risposto con "OK"
         if (risposta.status == HttpStatusCode.OK) {
-
-            val datiRicevuti: UtenteDTO = risposta.body()
-
-            return datiRicevuti
-
+            return risposta.body()
         } else {
-            // Se risponde NotFound (o altro), l'utente non c'è
             return null
         }
-
     } catch (e: Exception) {
         android.util.Log.e("ERRORE_RECUPERO", "Errore: ${e.message}", e)
         return null
     }
 }
-
 
 @Serializable
 data class InserzioneRequest(
@@ -226,6 +210,65 @@ suspend fun scaricaAgente(username: String): AgenteDTO? {
         } catch (e: Exception) {
             android.util.Log.e("API_AGENTE", "Errore di connessione: ${e.message}")
             null
+        }
+    }
+}
+suspend fun modificaCredenzialiAgente(
+    username: String,
+    nuovoNome: String,
+    nuovoCognome: String,
+    nuovaEmail: String,
+    nuovoTelefono: String,
+    nuovoPrefisso: String
+): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.put("$urlServer/agente/$username/credenziali") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    mapOf(
+                        "nome" to nuovoNome,
+                        "cognome" to nuovoCognome,
+                        "email" to nuovaEmail,
+                        "telefono" to nuovoTelefono,
+                        "selectedprefix" to nuovoPrefisso
+                    )
+                )
+            }
+            response.status.isSuccess()
+        } catch (e: Exception) {
+            android.util.Log.e("API_MODIFICA_AGENTE", "Errore: ${e.message}")
+            false
+        }
+    }
+}
+suspend fun modificaCredenzialiUtente(
+    emailOriginale: String,
+    nuovoNome: String,
+    nuovoCognome: String,
+    nuovaEmail: String,
+    nuovoTelefono: String,
+    nuovoPrefisso: String
+): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            // Nota l'URL: usiamo "utente" e l'emailOriginale per identificare chi modificare
+            val response = client.put("$urlServer/utente/$emailOriginale/credenziali") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    mapOf(
+                        "nome" to nuovoNome,
+                        "cognome" to nuovoCognome,
+                        "email" to nuovaEmail,
+                        "telefono" to nuovoTelefono,
+                        "selectedprefix" to nuovoPrefisso
+                    )
+                )
+            }
+            response.status.isSuccess()
+        } catch (e: Exception) {
+            android.util.Log.e("API_MODIFICA_UTENTE", "Errore: ${e.message}")
+            false
         }
     }
 }

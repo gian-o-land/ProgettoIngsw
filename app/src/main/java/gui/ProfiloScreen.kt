@@ -33,7 +33,7 @@ import navigation.Screen
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun ProfiloScreen(navController : NavController) {
+fun ProfiloScreen(navController : NavController, email : String) {
 
     Scaffold(
         modifier = Modifier
@@ -64,7 +64,8 @@ fun ProfiloScreen(navController : NavController) {
         },
         bottomBar = {
             myBottomNavBar(
-                navController = navController
+                navController = navController,
+                email = email
             )
         }
 
@@ -88,7 +89,7 @@ fun ProfiloScreen(navController : NavController) {
                 )
             }
             Spacer(modifier = Modifier.height(40.dp))
-            myButton({navController.navigate(Screen.ModificaCredenzialiScreen.route)}, "Modifica Credenziali")
+            myButton({navController.navigate(Screen.ModificaCredenzialiUtenteScreen.withMailUtente(email))}, "Modifica Credenziali")
             Spacer(modifier = Modifier.height(30.dp))
             myButton({navController.navigate(Screen.ModificaPasswordScreen.route)}, "Modifica Password")
             Spacer(modifier = Modifier.height(50.dp))

@@ -87,7 +87,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
          },
         bottomBar = {
-            myBottomNavBar(navController)
+            myBottomNavBar(navController, emailUtente)
         }
 
     ) { innerPadding ->
@@ -182,7 +182,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
                 Card(
                     onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationNapoli
+                        locationNapoli, emailUtente
                     ))},
                     modifier = Modifier
                         .width(280.dp)
@@ -212,7 +212,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
                 Card(
                     onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationMilano
+                        locationMilano, emailUtente
                     ))},
                     modifier = Modifier
                         .width(280.dp)
@@ -241,7 +241,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
                 Card(
                     onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationRoma //placeholder, deve aprire pagina con filtri etc
+                        locationRoma, emailUtente
                     ))},
                     modifier = Modifier
                         .width(280.dp)
@@ -275,7 +275,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
             Button(
                 onClick = {
                     navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationRoma ))//withMailUtente(emailUtente)    QUANDO CI SARA IL DATABASE
+                        locationRoma, emailUtente))
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioGialloOcra,
