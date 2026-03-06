@@ -70,7 +70,7 @@ import kotlinx.serialization.encodeToString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RicercaMappaScreen(location: LatLng, navController : NavController) {
+fun RicercaMappaScreen(location: LatLng, navController : NavController, email: String ) {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -234,6 +234,10 @@ fun RicercaMappaScreen(location: LatLng, navController : NavController) {
 
                         // 2. Lo mettiamo nello zainetto di Android (Niente più URLEncoder o limiti di lunghezza!)
                         navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
+
+                        // --- NUOVA AGGIUNTA ---
+                        // Mettiamo anche l'email dell'utente nello zainetto!
+                        navController.currentBackStackEntry?.savedStateHandle?.set("email_utente", email)
 
                         // 3. Navighiamo usando SOLO il nome pulito della rotta
                         navController.navigate(Screen.InserzioneScreen.route)

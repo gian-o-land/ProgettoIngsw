@@ -46,13 +46,13 @@ sealed class Screen(val route: String) {
     data object RicercaMappaScreen : Screen("ricerca_mappa_screen") {
 
         // 1. Questa variabile serve al NavHost per sapere COSA aspettarsi
-        // Corrisponde a: "mappa_screen?lat={lat}&lng={lng}"
-        val routeWithArgs = "$route?lat={lat}&lng={lng}"
+        // Corrisponde a: "ricerca_mappa_screen?lat={lat}&lng={lng}&email={email}"
+        val routeWithArgs = "$route?lat={lat}&lng={lng}&email={email}"
 
         // 2. Questa funzione serve al NavController per sapere DOVE andare
-        fun withLocation(location: LatLng): String {
-            // Estraiamo i double e li mettiamo nella stringa
-            return "$route?lat=${location.latitude}&lng=${location.longitude}"
+        fun withLocation(location: LatLng, email: String): String {
+            // Estraiamo i double e l'email e li mettiamo nella stringa
+            return "$route?lat=${location.latitude}&lng=${location.longitude}&email=$email"
         }
 
     }
@@ -62,11 +62,22 @@ sealed class Screen(val route: String) {
             return "$route?idInserzione=${Uri.encode(idInserzione)}"//return "$route/${Uri.encode(mailUtente)}"
         }
     }
-    data object FiltriScreen: Screen("filtri_screen")
+    data object FiltriScreen: Screen("filtri_screen?email={email}") {
+        fun withMailUtente(email: String): String {
+            return "filtri_screen?email=${Uri.encode(email)}"
+        }
+    }
     data object PrenotazioneScreen: Screen("prenotazione_screen")
 
-    data object NotificheScreen: Screen("notifiche_screen")
-    data object ProfiloScreen: Screen("profilo_screen")
+    data object NotificheScreen: Screen("notifiche_screen?email={email}") {
+        fun withMailUtente(email: String): String {
+            return "notifiche_screen?email=${Uri.encode(email)}"
+        }
+    }      data object ProfiloScreen: Screen("profilo_screen?email={email}") {
+        fun withMail(email: String): String {
+            return "profilo_screen?email=${Uri.encode(email)}"
+        }
+    }
     data object ModificaCredenzialiScreen: Screen("modifica_credenziali_screen")
     data object ModificaPasswordScreen: Screen("modifica_password_screen")
     data object ProfiloAdminScreen: Screen("profilo_admin_screen?username={username}&ruolo={ruolo}") {
@@ -82,6 +93,11 @@ sealed class Screen(val route: String) {
     data object ModificaCredenzialiAgenteScreen: Screen("modifica_credenziali_agente_screen?username={username}") {
         fun withMailAgente(username: String): String {
             return "modifica_credenziali_agente_screen?username=${Uri.encode(username)}"
+        }
+    }
+    data object ModificaCredenzialiUtenteScreen: Screen("modifica_credenziali_utente_screen?email={email}") {
+        fun withMailUtente(email: String): String {
+            return "modifica_credenziali_utente_screen?email=${Uri.encode(email)}"
         }
     }
     data object CaricaImmobiliScreen: Screen("carica_immobili_screen?username={username}"){

@@ -42,7 +42,7 @@ import navigation.Screen
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun NotificheScreen(navController : NavController) {
+fun NotificheScreen(navController : NavController, email : String) {
     val scrollState = rememberLazyListState()
 
     data class Notifica(val titolo: String, val contenuto: String, val stato: D_stato)
@@ -89,7 +89,8 @@ fun NotificheScreen(navController : NavController) {
         },
         bottomBar = {
             myBottomNavBar(
-                navController = navController
+                navController = navController,
+                email = email
             )
         }
 

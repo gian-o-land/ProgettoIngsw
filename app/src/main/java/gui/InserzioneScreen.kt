@@ -89,7 +89,8 @@ import connection.scaricaAgente
 @OptIn(ExperimentalMaterial3Api::class)
 fun InserzioneScreen(
     navController: NavController,
-    inserzione: InserzioneDTO
+    inserzione: InserzioneDTO,
+    email: String
 ) {
     val context = LocalContext.current
 
@@ -161,7 +162,7 @@ fun InserzioneScreen(
             )
         },
         bottomBar = {
-            myBottomNavBar(navController = navController)
+            myBottomNavBar(navController = navController, email= email)
         }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {

@@ -40,6 +40,7 @@ import gui.CaricaImmobiliScreen
 import gui.ProfiloAdminScreen
 import gui.ProfiloAgenteScreen
 import gui.ModificaCredenzialiAgenteScreen
+import gui.ModificaCredenzialiUtenteScreen
 import gui.NewUtenteGoogleScreen
 import gui.NotificheAgenteScreen
 
@@ -178,26 +179,36 @@ fun Navigation() {
             RicercaScreen(navController)
         }
         composable(
-            route = Screen.RicercaMappaScreen.route + "?lat={lat}&lng={lng}",
+            // Aggiungiamo &email={email} alla rotta
+            route = Screen.RicercaMappaScreen.route + "?lat={lat}&lng={lng}&email={email}",
             arguments = listOf(
-                navArgument("lat") {// non supporta tipo double quindi uso prima string e poi lo converto
+                navArgument("lat") {
                     type = NavType.StringType
                     defaultValue = "0.0"
                 },
                 navArgument("lng") {
                     type = NavType.StringType
                     defaultValue = "0.0"
+                },
+                // Aggiungiamo l'argomento per l'email
+                navArgument("email") {
+                    type = NavType.StringType
+                    defaultValue = "" // Valore di default in caso mancasse
                 }
             )
         ) { entry ->
             val lat = entry.arguments?.getString("lat")?.toDoubleOrNull() ?: 0.0
             val lng = entry.arguments?.getString("lng")?.toDoubleOrNull() ?: 0.0
 
+            // Estraiamo l'email dagli argomenti
+            val emailUtente = entry.arguments?.getString("email") ?: ""
+
             val locationObj = LatLng(lat, lng)
 
             RicercaMappaScreen(
                 location = locationObj,
-                navController = navController
+                navController = navController,
+                email = emailUtente
             )
         }
         composable(route = Screen.RicercaScreen.route){
@@ -205,37 +216,85 @@ fun Navigation() {
         }
 
         composable(route = Screen.InserzioneScreen.route) {
-            // 1. Peschiamo il JSON dallo "zainetto" della pagina precedente
+            // 1. Peschiamo sia il JSON che l'EMAIL dallo "zainetto" della pagina precedente
             val json = navController.previousBackStackEntry?.savedStateHandle?.get<String>("inserzione_json")
+            val emailUtente = navController.previousBackStackEntry?.savedStateHandle?.get<String>("email_utente")
 
-            if (json != null) {
-                // 2. Lo ritrasformiamo in oggetto e mostriamo la pagina
+            // Controlliamo che ci siano entrambi prima di aprire la pagina
+            if (json != null && emailUtente != null) {
+                // 2. Ritrasformiamo il JSON in oggetto e mostriamo la pagina
                 val inserzioneOggetto = kotlinx.serialization.json.Json.decodeFromString<InserzioneDTO>(json)
-                InserzioneScreen(navController = navController, inserzione = inserzioneOggetto)
+
+                // Passiamo l'oggetto e l'email alla funzione!
+                InserzioneScreen(
+                    navController = navController,
+                    inserzione = inserzioneOggetto,
+                    email = emailUtente
+                )
             } else {
-                // 3. Schermata di emergenza (così non vedrai MAI PIÙ una pagina bianca!)
+                // 3. Schermata di emergenza (se manca il JSON o manca l'email)
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Errore durante il caricamento dell'inserzione.", color = Color.Red)
                 }
             }
         }
-        composable(route = Screen.PrenotazioneScreen.route){
-            PrenotazioneScreen(navController)
+        composable(
+            route = Screen.PrenotazioneScreen.route,
+            arguments = listOf(
+                navArgument("email") {
+                    type = NavType.StringType
+                    defaultValue = "<EmailUtente>"
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val emailRecuperata = entry.arguments?.getString("email") ?: "<EmailUtente>"
+
+            PrenotazioneScreen(
+                navController = navController,
+                email = emailRecuperata
+            )
         }
-        composable(route = Screen.NotificheScreen.route){
-           NotificheScreen(navController)
+        composable(
+            route = Screen.NotificheScreen.route,
+            arguments = listOf(
+                navArgument("email") {
+                    type = NavType.StringType
+                    defaultValue = "<EmailUtente>"
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val emailRecuperata = entry.arguments?.getString("email") ?: "<EmailUtente>"
+
+            NotificheScreen(
+                navController = navController,
+                email = emailRecuperata
+            )
         }
-        composable(route = Screen.ProfiloScreen.route){
-            ProfiloScreen(navController)
-        }
+
         composable(route = Screen.ModificaCredenzialiScreen.route){
             ModificaCredenzialiScreen(navController)
         }
         composable(route = Screen.ModificaPasswordScreen.route){
             ModificaPasswordScreen(navController)
         }
-        composable(route = Screen.FiltriScreen.route){
-            FiltriScreen(navController)
+        composable(
+            route = Screen.FiltriScreen.route,
+            arguments = listOf(
+                navArgument("email") {
+                    type = NavType.StringType
+                    defaultValue = "<EmailUtente>"
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val emailRecuperata = entry.arguments?.getString("email") ?: "<EmailUtente>"
+
+            FiltriScreen(
+                navController = navController,
+                email = emailRecuperata
+            )
         }
         composable(
             route = Screen.ProfiloAdminScreen.route,
@@ -293,6 +352,40 @@ fun Navigation() {
             ModificaCredenzialiAgenteScreen(
                 navController = navController,
                 username = usernameRecuperato
+            )
+        }
+        composable(
+            route = Screen.ProfiloScreen.route,
+            arguments = listOf(
+                navArgument("email") {
+                    type = NavType.StringType
+                    defaultValue = "<EmailUtente>"
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val emailRecuperata = entry.arguments?.getString("email") ?: "<EmailUtente>"
+
+            ProfiloScreen(
+                navController = navController,
+                email = emailRecuperata
+            )
+        }
+        composable(
+            route = Screen.ModificaCredenzialiUtenteScreen.route,
+            arguments = listOf(
+                navArgument("email") {
+                    type = NavType.StringType
+                    defaultValue = "<EmailUtente>"
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val emailRecuperata = entry.arguments?.getString("email") ?: "<EmailUtente>"
+
+            ModificaCredenzialiUtenteScreen(
+                navController = navController,
+                emailOriginale = emailRecuperata
             )
         }
         composable(
