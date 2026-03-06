@@ -40,6 +40,7 @@ import gui.CaricaImmobiliScreen
 import gui.ProfiloAdminScreen
 import gui.ProfiloAgenteScreen
 import gui.ModificaCredenzialiAgenteScreen
+import gui.NewUtenteGoogleScreen
 import gui.NotificheAgenteScreen
 
 
@@ -327,6 +328,27 @@ fun Navigation() {
             CaricaImmobiliScreen(
                 navController = navController,
                 username = usernameRecuperato
+            )
+        }
+
+        composable(
+            route = Screen.NewUtenteGoogleScreen.route,
+
+            arguments = listOf(
+                navArgument("email") {
+                    type = NavType.StringType
+                    defaultValue = "<NomeCognomeUtente>"
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            // Recupera l'argomento
+            val mailRecuperata = entry.arguments?.getString("email") ?: "<NomeCognomeUtente>"
+
+            // Passalo alla schermata
+            NewUtenteGoogleScreen(
+                navController = navController,
+                email = mailRecuperata
             )
         }
     }

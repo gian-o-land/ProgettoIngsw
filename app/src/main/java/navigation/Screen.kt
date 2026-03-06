@@ -95,6 +95,10 @@ sealed class Screen(val route: String) {
         }
     }
 
-
+    data object NewUtenteGoogleScreen: Screen("new_utente_google_screen?email={email}"){
+        fun withEmailGoogle(email: String): String{
+            return "new_utente_google_screen?email=${Uri.encode(email)}"
+        }
+    }
 
 }

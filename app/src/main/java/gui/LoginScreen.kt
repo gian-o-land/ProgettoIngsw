@@ -154,11 +154,10 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
 
                                         val dati = scaricaUtente(mailUtente)
                                         if (dati?.telefono == "0000000000" && dati.password == "Accesso_Google0"){
-                                            println("È VIVOOOOOOO")
+                                            navController.navigate(Screen.NewUtenteGoogleScreen.withEmailGoogle(mailUtente))
+                                        } else{
+                                            navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente))
                                         }
-
-                                        // 👉 USIAMO LA MAIL PER NAVIGARE ALLA SCHERMATA UTENTE
-                                        navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente))
                                     }
                                     else -> {
                                         Log.e("LOGIN_GOOGLE", "Accesso negato (Admin/Agente o errore del server)")
