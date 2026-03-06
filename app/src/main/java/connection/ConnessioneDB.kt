@@ -21,13 +21,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
+import io.ktor.client.request.delete
+import kotlinx.coroutines.NonCancellable
 
 val client = HttpClient(Android) {
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://uyvkf-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://idvhx-101-56-160-180.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -120,25 +122,14 @@ suspend fun inviaImmagineAServer(context: Context, uri: Uri): String? {
         null
     }
 }
-suspend fun recuperaTelefonoEPassword(email: String): UtenteDTO? {
+suspend fun scaricaUtente(email: String): UtenteDTO? {
     return try {
-        val risposta: HttpResponse = client.post("$urlServer/getTellPass") {
-            setBody(
-                FormDataContent(
-                    Parameters.build {
-                        append("email", email)
-                    }
-                )
-            )
-        }
+        // Usiamo GET invece di POST, l'email è già nell'URL!
+        val risposta: HttpResponse = client.get("$urlServer/utente/$email")
 
         // Se il server ha risposto con "OK"
         if (risposta.status == HttpStatusCode.OK) {
-
-            val datiRicevuti: UtenteDTO = risposta.body()
-
-            return datiRicevuti
-
+            return risposta.body()
         } else {
             // Se risponde NotFound (o altro), l'utente non c'è
             return null
@@ -226,6 +217,43 @@ suspend fun scaricaAgente(username: String): AgenteDTO? {
         } catch (e: Exception) {
             android.util.Log.e("API_AGENTE", "Errore di connessione: ${e.message}")
             null
+        }
+    }
+}
+
+suspend fun completaProfiloGoogle(utente: UtenteDTO): Boolean {
+    return try {
+        val risposta: HttpResponse = client.post("$urlServer/completaUtenteGoogle") {
+            // Diciamo a Ktor che stiamo inviando un JSON
+            contentType(ContentType.Application.Json)
+            // Impacchettiamo l'intero DTO nel corpo della richiesta
+            setBody(utente)
+        }
+
+        // Se il server risponde con OK (200), l'aggiornamento è andato a buon fine
+        if (risposta.status.isSuccess()) {
+            android.util.Log.d("API_GOOGLE_UPDATE", "Profilo aggiornato con successo!")
+            true
+        } else {
+            android.util.Log.e("API_GOOGLE_UPDATE", "Errore dal server: ${risposta.status}")
+            false
+        }
+    } catch (e: Exception) {
+        android.util.Log.e("API_GOOGLE_UPDATE", "Errore di connessione: ${e.message}")
+        false
+    }
+}
+
+suspend fun eliminaUtenteGoogleIncompleto(email: String) {
+    // withContext(NonCancellable) rende questa coroutine "immortale" finché non ha finito
+    withContext(Dispatchers.IO + NonCancellable) {
+        try {
+            val risposta = client.delete("$urlServer/eliminaUtenteGoogle/$email")
+            if (risposta.status.isSuccess()) {
+                android.util.Log.d("API_DELETE", "Utente fantasma $email eliminato.")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("API_DELETE", "Errore eliminazione utente: ${e.message}")
         }
     }
 }
