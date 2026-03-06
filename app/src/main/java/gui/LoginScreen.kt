@@ -56,7 +56,7 @@ import androidx.media3.common.util.Log
 import connection.connessioneLoginGoogle
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.util.UnstableApi
-import connection.recuperaTelefonoEPassword
+import connection.scaricaUtente
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -152,7 +152,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                     0 -> {
                                         Log.d("LOGIN_GOOGLE", "Accesso riuscito per: $mailUtente")
 
-                                        val dati = recuperaTelefonoEPassword(mailUtente)
+                                        val dati = scaricaUtente(mailUtente)
                                         if (dati?.telefono == "0000000000" && dati.password == "Accesso_Google0"){
                                             println("È VIVOOOOOOO")
                                         }

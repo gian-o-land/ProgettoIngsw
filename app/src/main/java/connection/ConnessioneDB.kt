@@ -26,7 +26,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://vdejq-95-245-20-252.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://bxngz-2a0e-43d-8b44-0-59ac-f1f1-f7bf-98c7.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -119,9 +119,9 @@ suspend fun inviaImmagineAServer(context: Context, uri: Uri): String? {
         null
     }
 }
-suspend fun recuperaTelefonoEPassword(email: String): UtenteDTO? {
+suspend fun scaricaUtente(email: String): UtenteDTO? {
     return try {
-        val risposta: HttpResponse = client.post("$urlServer/getTellPass") {
+        val risposta: HttpResponse = client.post("$urlServer/utente/$email") {
             setBody(
                 FormDataContent(
                     Parameters.build {
