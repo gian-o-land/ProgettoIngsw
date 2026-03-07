@@ -36,7 +36,7 @@ data class InfoMeteo(
 )
 
 interface FornitoreMeteo {
-    suspend fun ottieniPrevisioni(latitudine: Double, longitudine: Double): Map<String, InfoMeteo>
+    suspend fun ottieniPrevisioni(latitudine: Double?, longitudine: Double?): Map<String, InfoMeteo>
 }
 
 
@@ -52,8 +52,8 @@ fun getIconaEColore(condizione: CondizioneMeteo): Pair<ImageVector, Color> {
 
 @Composable
 fun usaMeteo(
-    latitude: Double,
-    longitude: Double,
+    latitude: Double?,
+    longitude: Double?,
     giornoSelezionatoMillis: Long?,
     fornitore: FornitoreMeteo
 ): InfoMeteo? {
@@ -79,7 +79,7 @@ fun usaMeteo(
 
 
 class OpenMeteoAdapter : FornitoreMeteo {
-    override suspend fun ottieniPrevisioni(latitudine: Double, longitudine: Double): Map<String, InfoMeteo> {
+    override suspend fun ottieniPrevisioni(latitudine: Double?, longitudine: Double?): Map<String, InfoMeteo> {
         val mappa = mutableMapOf<String, InfoMeteo>()
         try {
             val risposta = RetrofitClient.api.getPrevisioni(latitude = latitudine, longitude = longitudine)
@@ -123,8 +123,8 @@ data class DailyData(
 interface OpenMeteoApi {
     @GET("v1/forecast")
     suspend fun getPrevisioni(
-        @Query("latitude") latitude: Double,
-        @Query("longitude") longitude: Double,
+        @Query("latitude") latitude: Double?,
+        @Query("longitude") longitude: Double?,
         // Richiediamo esplicitamente ad Open-Meteo di mandarci le temperature
         @Query("daily") daily: String = "weathercode,temperature_2m_max,temperature_2m_min",
         @Query("timezone") timezone: String = "auto",

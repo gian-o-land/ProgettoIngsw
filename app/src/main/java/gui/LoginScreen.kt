@@ -64,6 +64,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
 
     val coroutineScope= rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarHostState2 = remember { SnackbarHostState() }
 
     var textFieldEmail by remember {
         mutableStateOf("")
@@ -113,6 +114,16 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(20.dp))
+            SnackbarHost(
+                hostState = snackbarHostState2,
+                modifier = Modifier.padding(horizontal = 35.dp, vertical = 5.dp)
+            ) { data ->
+                androidx.compose.material3.Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                    contentColor = Color.White
+                )
+            }
             Button(
                 onClick = {
                     coroutineScope.launch {
@@ -163,7 +174,9 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                     }
                                     else -> {
                                         Log.e("LOGIN_GOOGLE", "Accesso negato (Admin/Agente o errore del server)")
-                                        // Opzionale: mostra un Toast all'utente per dirgli che il login è fallito
+                                        coroutineScope.launch {
+                                            snackbarHostState2.showSnackbar("Errore di connessione")
+                                        }
                                     }
                                 }
                             }

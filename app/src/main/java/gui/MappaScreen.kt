@@ -1,6 +1,5 @@
 package gui
 
-import android.location.Location
 import androidx.navigation.NavController
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable

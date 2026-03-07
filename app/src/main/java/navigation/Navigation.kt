@@ -13,12 +13,15 @@ import gui.LoginScreen
 import gui.RegisterScreen
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.maps.model.LatLng
@@ -43,6 +46,7 @@ import gui.ModificaCredenzialiAgenteScreen
 import gui.ModificaCredenzialiUtenteScreen
 import gui.NewUtenteGoogleScreen
 import gui.NotificheAgenteScreen
+import gui.mioBluScuro
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -233,26 +237,40 @@ fun Navigation() {
                 )
             } else {
                 // 3. Schermata di emergenza (se manca il JSON o manca l'email)
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Errore durante il caricamento dell'inserzione.", color = Color.Red)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        color = mioBluScuro,
+                        modifier = Modifier.size(50.dp)
+                    )
                 }
             }
         }
         composable(
-            route = Screen.PrenotazioneScreen.route,
+            // Definiamo la rotta con i due parametri nell'URL
+            route = Screen.PrenotazioneScreen.route + "?email={email}&idInserzione={idInserzione}",
             arguments = listOf(
                 navArgument("email") {
                     type = NavType.StringType
-                    defaultValue = "<EmailUtente>"
-                    nullable = true
+                    defaultValue = ""
+                },
+                navArgument("idInserzione") {
+                    type = NavType.StringType
+                    defaultValue = ""
                 }
             )
         ) { entry ->
-            val emailRecuperata = entry.arguments?.getString("email") ?: "<EmailUtente>"
+            val emailRecuperata = entry.arguments?.getString("email") ?: ""
+            val idInserzioneRecuperato = entry.arguments?.getString("idInserzione") ?: ""
 
             PrenotazioneScreen(
                 navController = navController,
-                email = emailRecuperata
+                email = emailRecuperata,
+                idInserzione = idInserzioneRecuperato
             )
         }
         composable(

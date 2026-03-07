@@ -2,6 +2,7 @@ package connection
 
 import DTO.AgenteDTO
 import DTO.InserzioneDTO
+import DTO.PrenotazioneDTO
 import DTO.UtenteDTO
 import DTO.source.PhonePrefix
 import io.ktor.client.*
@@ -29,7 +30,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://hmbuz-2a0e-43d-8b44-0-5109-50c2-2905-f1d1.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://wijiv-2a0e-43d-8b44-0-a1dc-186c-aa51-73a9.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -313,5 +314,50 @@ suspend fun eliminaUtenteGoogleIncompleto(email: String) {
         } catch (e: Exception) {
             android.util.Log.e("API_DELETE", "Errore eliminazione utente: ${e.message}")
         }
+    }
+}
+
+suspend fun scaricaInserzione(idInserzione: String): InserzioneDTO? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val risposta: HttpResponse = client.get("$urlServer/inserzione/$idInserzione")
+
+            if (risposta.status == HttpStatusCode.OK) {
+                val inserzioneTrovata: InserzioneDTO = risposta.body()
+
+                android.util.Log.d("API_INSERZIONE", "Inserzione $idInserzione scaricata con successo!")
+                inserzioneTrovata
+            } else {
+                // Se risponde 404 Not Found o altro
+                android.util.Log.e("API_INSERZIONE", "Errore dal server: ${risposta.status}")
+                null
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("API_INSERZIONE", "Impossibile scaricare l'inserzione: ${e.message}")
+            null
+        }
+    }
+}
+
+suspend fun inviaPrenotazione(prenotazione: PrenotazioneDTO): Boolean {
+    return try {
+        val risposta: HttpResponse = client.post("$urlServer/prenotazione") {
+            // Diciamo al server che stiamo per inviargli un JSON
+            contentType(ContentType.Application.Json)
+            // Inseriamo tutto l'oggetto PrenotazioneDTO nel corpo della richiesta
+            setBody(prenotazione)
+        }
+
+        // Se Ktor ci risponde con 201 (Created)
+        if (risposta.status == HttpStatusCode.Created) {
+            android.util.Log.d("API_PRENOTAZIONE", "Prenotazione salvata con successo!")
+            true
+        } else {
+            android.util.Log.e("API_PRENOTAZIONE", "Errore dal server: ${risposta.status}")
+            false
+        }
+    } catch (e: Exception) {
+        android.util.Log.e("API_PRENOTAZIONE", "Errore di connessione: ${e.message}")
+        false
     }
 }

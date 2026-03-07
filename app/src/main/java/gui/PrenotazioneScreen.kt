@@ -1,6 +1,7 @@
 package gui
 
 
+import DTO.InserzioneDTO
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -62,299 +63,397 @@ import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.util.Date
 import java.util.Locale
-
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
 import navigation.Screen
+import java.time.Instant
+import java.time.ZoneId
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import DTO.PrenotazioneDTO
+import DTO.D_stato
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.CircularProgressIndicator
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 
-fun PrenotazioneScreen(navController: NavController, email: String) {
-    var orarioSelezionato by remember { mutableStateOf<LocalTime?>(null) }
-    var prenotazioneEffettuata by remember { mutableStateOf(false) }
-
-    // --- LOGICA DATE CALENDARIO ---
-    val adessoMillis = System.currentTimeMillis()
-    val unGiornoMillis = 86400000L
-    val limiteMillis = adessoMillis + (unGiornoMillis * 14)
-
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = null,
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return utcTimeMillis in (adessoMillis - unGiornoMillis)..limiteMillis
-            }
-            override fun isSelectableYear(year: Int): Boolean = true
-        }
-    )
-
-    val giornoSelezionato = datePickerState.selectedDateMillis
-    val abilitaConfermaPrenotazione = giornoSelezionato != null && orarioSelezionato != null
-
-    val dataLeggibile = remember(giornoSelezionato) {
-        if (giornoSelezionato != null) {
-            SimpleDateFormat("dd/MM/yyyy", Locale.ITALY).format(Date(giornoSelezionato))
-        } else "Nessuna data selezionata"
+fun PrenotazioneScreen(
+    navController: NavController,
+    email: String,
+    idInserzione: String
+) {
+    var inserzioneTrovata by remember { mutableStateOf<InserzioneDTO?>(null) }
+    LaunchedEffect(idInserzione) {
+        inserzioneTrovata = connection.scaricaInserzione(idInserzione)
     }
 
-    // --- LOGICA METEO COMPLETAMENTE DISACCOPPIATA ---
-    // Ricorda che meteoDelGiornoSelezionato ora restituisce un oggetto InfoMeteo
-    val meteoDelGiornoSelezionato = usaMeteo(
-        latitude = -22.9068,  // Es. Rio de Janeiro
-        longitude = -43.1729,
-        giornoSelezionatoMillis = giornoSelezionato,
-        fornitore = OpenMeteoAdapter()
-    )
-
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White),
-        containerColor = Color.White,
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = mioBluScuro
-                ),
-                title = {
-                    Text(
-                        text = "Prenota una visita",
-                        fontWeight = FontWeight.Bold,
-                        color = mieiTitoli,
-                        textAlign = TextAlign.Center
-                    )
-                },
-                navigationIcon = {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .height(50.dp)
-                            .width(50.dp)
-                    )
-                }
-            )
-        },
-        bottomBar = {
-            myBottomNavBar(navController, email)
-        }
-    ) { innerPadding ->
-        Column(
+    if (inserzioneTrovata == null) {
+        Box(
             modifier = Modifier
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+                .background(Color.White),
+            contentAlignment = Alignment.Center
         ) {
-            Card(
+            CircularProgressIndicator(
+                color = mioBluScuro, // Usa il colore del tuo tema!
+                modifier = Modifier.size(50.dp)
+            )
+        }
+    } else {
+        val coroutineScope = rememberCoroutineScope()
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        var orarioSelezionato by remember { mutableStateOf<LocalTime?>(null) }
+        var prenotazioneEffettuata by remember { mutableStateOf(false) }
+
+        // --- LOGICA DATE CALENDARIO ---
+        val adessoMillis = System.currentTimeMillis()
+        val unGiornoMillis = 86400000L
+        val limiteMillis = adessoMillis + (unGiornoMillis * 14)
+
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = null,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return utcTimeMillis in (adessoMillis - unGiornoMillis)..limiteMillis
+                }
+                override fun isSelectableYear(year: Int): Boolean = true
+            }
+        )
+
+        val giornoSelezionato = datePickerState.selectedDateMillis
+        val abilitaConfermaPrenotazione = giornoSelezionato != null && orarioSelezionato != null
+
+        val dataLeggibile = remember(giornoSelezionato) {
+            if (giornoSelezionato != null) {
+                SimpleDateFormat("dd/MM/yyyy", Locale.ITALY).format(Date(giornoSelezionato))
+            } else "Nessuna data selezionata"
+        }
+
+        // --- LOGICA METEO COMPLETAMENTE DISACCOPPIATA ---
+        // Ricorda che meteoDelGiornoSelezionato ora restituisce un oggetto InfoMeteo
+        val meteoDelGiornoSelezionato = usaMeteo(
+            latitude = inserzioneTrovata?.latitudine,
+            longitude = inserzioneTrovata?.longitudine,
+            giornoSelezionatoMillis = giornoSelezionato,
+            fornitore = OpenMeteoAdapter()
+        )
+
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color.White),
+            containerColor = Color.White,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = mioBluScuro
+                    ),
+                    title = {
+                        Text(
+                            text = "Prenota una visita",
+                            fontWeight = FontWeight.Bold,
+                            color = mieiTitoli,
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    navigationIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .height(50.dp)
+                                .width(50.dp)
+                        )
+                    }
+                )
+            },
+            bottomBar = {}
+        ) { innerPadding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
             ) {
-                Column(
-                    modifier = Modifier.padding(vertical = 8.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
                 ) {
-                    Text(
-                        text = "Seleziona la data della visita",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 10.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = mioBluScuro),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    Column(
+                        modifier = Modifier.padding(vertical = 8.dp)
                     ) {
-                        CompositionLocalProvider(
-                            LocalContentColor provides mioBluScuro
-                        ) {
-                            Box(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Seleziona la data della visita",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
 
-                                val tipografiaBase = MaterialTheme.typography
-                                MaterialTheme(
-                                    typography = tipografiaBase.copy(
-                                        bodyLarge = tipografiaBase.bodyLarge.copy(
-                                            fontSize = tipografiaBase.bodyLarge.fontSize * 1.0f
-                                        ),
-                                        bodySmall = tipografiaBase.bodySmall.copy(
-                                            fontSize = tipografiaBase.bodySmall.fontSize * 1.0f
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp, vertical = 10.dp),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = mioBluScuro),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            CompositionLocalProvider(
+                                LocalContentColor provides mioBluScuro
+                            ) {
+                                Box(modifier = Modifier.fillMaxWidth()) {
+
+                                    val tipografiaBase = MaterialTheme.typography
+                                    MaterialTheme(
+                                        typography = tipografiaBase.copy(
+                                            bodyLarge = tipografiaBase.bodyLarge.copy(
+                                                fontSize = tipografiaBase.bodyLarge.fontSize * 1.0f
+                                            ),
+                                            bodySmall = tipografiaBase.bodySmall.copy(
+                                                fontSize = tipografiaBase.bodySmall.fontSize * 1.0f
+                                            )
                                         )
-                                    )
-                                ) {
-                                    DatePicker(
-                                        state = datePickerState,
-                                        title = null,
-                                        headline = null,
-                                        showModeToggle = false,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = DatePickerDefaults.colors(
-                                            containerColor = mioBluScuro,
-                                            selectedDayContainerColor = mioGialloOcra,
-                                            selectedDayContentColor = mioBluScuro,
-                                            todayDateBorderColor = mioGialloOcra,
-                                            todayContentColor = mioGialloOcra,
-                                            weekdayContentColor = Color.White,
-                                            yearContentColor = Color.White,
-                                            dayContentColor = Color.White,
-                                            disabledDayContentColor = Color.White.copy(alpha = 0.3f),
-                                            disabledYearContentColor = mioGialloOcra,
-                                            selectedYearContentColor = mioGialloOcra,
-                                            navigationContentColor = mioGialloOcra,
-                                            subheadContentColor = mioGialloOcra
+                                    ) {
+                                        DatePicker(
+                                            state = datePickerState,
+                                            title = null,
+                                            headline = null,
+                                            showModeToggle = false,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = DatePickerDefaults.colors(
+                                                containerColor = mioBluScuro,
+                                                selectedDayContainerColor = mioGialloOcra,
+                                                selectedDayContentColor = mioBluScuro,
+                                                todayDateBorderColor = mioGialloOcra,
+                                                todayContentColor = mioGialloOcra,
+                                                weekdayContentColor = Color.White,
+                                                yearContentColor = Color.White,
+                                                dayContentColor = Color.White,
+                                                disabledDayContentColor = Color.White.copy(alpha = 0.3f),
+                                                disabledYearContentColor = mioGialloOcra,
+                                                selectedYearContentColor = mioGialloOcra,
+                                                navigationContentColor = mioGialloOcra,
+                                                subheadContentColor = mioGialloOcra
+                                            )
                                         )
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopStart)
+                                            .width(200.dp)
+                                            .height(60.dp)
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ) {}
                                     )
                                 }
-
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.TopStart)
-                                        .width(200.dp)
-                                        .height(60.dp)
-                                        .clickable(
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() }
-                                        ) {}
-                                )
                             }
                         }
                     }
                 }
-            }
-
-            Text(
-                text = "Seleziona la fascia oraria",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                myBottoneOrario(id = LocalTime.of(10, 30), text = "09:00 - 11:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(10, 30) }
-                myBottoneOrario(id = LocalTime.of(12, 30), text = "11:00 - 13:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(12, 30) }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                myBottoneOrario(id = LocalTime.of(14, 30), text = "14:00 - 16:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(14, 30) }
-                myBottoneOrario(id = LocalTime.of(16, 30), text = "16:00 - 18:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(16, 30) }
-            }
-
-            // --- RIGA CON IL RISULTATO E L'ICONA DEL METEO ---
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Default.Event, contentDescription = null, tint = mioBluScuro)
-                Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = when {
-                        giornoSelezionato != null && orarioSelezionato != null -> "Hai scelto: $dataLeggibile \nalle ore $orarioSelezionato"
-                        giornoSelezionato != null -> " $dataLeggibile (seleziona orario)"
-                        else -> "Scegli prima una data dal calendario"
-                    },
-                    modifier = Modifier.weight(1f)
+                    text = "Seleziona la fascia oraria",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
 
-                // MOSTRA L'ICONA DEL METEO E LE TEMPERATURE
-                if (meteoDelGiornoSelezionato != null) {
-                    val (iconaMeteo, coloreMeteo) = getIconaEColore(meteoDelGiornoSelezionato.condizione)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    myBottoneOrario(id = LocalTime.of(10, 30), text = "09:00 - 11:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(10, 30) }
+                    myBottoneOrario(id = LocalTime.of(12, 30), text = "11:00 - 13:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(12, 30) }
+                }
 
-                    // Raggruppo l'icona e il testo in una colonna per tenerli vicini e centrati
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = iconaMeteo,
-                            contentDescription = "Meteo",
-                            tint = coloreMeteo,
-                            modifier = Modifier.size(28.dp) // Ridotto leggermente per far spazio al testo
-                        )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    myBottoneOrario(id = LocalTime.of(14, 30), text = "14:00 - 16:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(14, 30) }
+                    myBottoneOrario(id = LocalTime.of(16, 30), text = "16:00 - 18:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(16, 30) }
+                }
 
-                        // Mostra Temp Minima e Massima sotto l'icona
-                        Text(
-                            text = "${meteoDelGiornoSelezionato.tempMin}° / ${meteoDelGiornoSelezionato.tempMax}°",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.DarkGray
-                        )
+                // --- RIGA CON IL RISULTATO E L'ICONA DEL METEO ---
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Event, contentDescription = null, tint = mioBluScuro)
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = when {
+                            giornoSelezionato != null && orarioSelezionato != null -> "Hai scelto: $dataLeggibile \nalle ore $orarioSelezionato"
+                            giornoSelezionato != null -> " $dataLeggibile (seleziona orario)"
+                            else -> "Scegli prima una data dal calendario"
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // MOSTRA L'ICONA DEL METEO E LE TEMPERATURE
+                    if (meteoDelGiornoSelezionato != null) {
+                        val (iconaMeteo, coloreMeteo) = getIconaEColore(meteoDelGiornoSelezionato.condizione)
+
+                        // Raggruppo l'icona e il testo in una colonna per tenerli vicini e centrati
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = iconaMeteo,
+                                contentDescription = "Meteo",
+                                tint = coloreMeteo,
+                                modifier = Modifier.size(28.dp) // Ridotto leggermente per far spazio al testo
+                            )
+
+                            // Mostra Temp Minima e Massima sotto l'icona
+                            Text(
+                                text = "${meteoDelGiornoSelezionato.tempMin}° / ${meteoDelGiornoSelezionato.tempMax}°",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.DarkGray
+                            )
+                        }
                     }
                 }
-            }
 
-            if (prenotazioneEffettuata) {
-                AlertDialog(
-                    onDismissRequest = { prenotazioneEffettuata = false },
-                    properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-                    containerColor = mioBluScuro,
-                    textContentColor = mieiTitoli,
-                    text = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                "Prenotazione effettuata\ncon successo!",
-                                textAlign = TextAlign.Center,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Button(
-                                onClick = {
-                                    prenotazioneEffettuata = false
-                                    navController.navigate(Screen.UtenteScreen.route) {
-                                        popUpTo(Screen.UtenteScreen.route) { inclusive = true }
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = mioGialloOcra, contentColor = mioBluScuro),
-                                shape = RoundedCornerShape(12.dp)
+                if (prenotazioneEffettuata) {
+                    AlertDialog(
+                        onDismissRequest = { prenotazioneEffettuata = false },
+                        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+                        containerColor = mioBluScuro,
+                        textContentColor = mieiTitoli,
+                        text = {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Torna alla Home")
+                                Text(
+                                    "Prenotazione effettuata\ncon successo!",
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Button(
+                                    onClick = {
+                                        prenotazioneEffettuata = false
+                                        navController.navigate(Screen.UtenteScreen.route) {
+                                            popUpTo(Screen.UtenteScreen.route) { inclusive = true }
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = mioGialloOcra, contentColor = mioBluScuro),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Torna alla Home")
+                                }
+                            }
+                        },
+                        confirmButton = {}, dismissButton = {}
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.padding(horizontal = 35.dp, vertical = 5.dp)
+                ) { data ->
+                    androidx.compose.material3.Snackbar(
+                        snackbarData = data,
+                        containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                        contentColor = Color.White
+                    )
+                }
+                Button(
+                    onClick = {
+                        // Lanciamo l'operazione di rete in background
+                        coroutineScope.launch {
+
+                            // Assicuriamoci che tutti i dati essenziali siano pronti
+                            if (giornoSelezionato != null && orarioSelezionato != null && inserzioneTrovata != null) {
+
+                                // 1. Trasformiamo i millisecondi in una vera data (LocalDate) in formato UTC
+                                val dataLocale = Instant.ofEpochMilli(giornoSelezionato)
+                                    .atZone(ZoneId.of("UTC"))
+                                    .toLocalDate()
+
+                                // Uniamo Data e Ora per creare la stringa perfetta per il server (es. "2024-05-20T10:30")
+                                val dataOraStringa = java.time.LocalDateTime.of(dataLocale, orarioSelezionato).toString()
+
+                                // 2. Generiamo un ID univoco per la prenotazione
+                                val codiceUnivoco = generaCodicePrenotazione()
+
+                                // 3. Assembliamo il "pacco" (DTO)
+                                val nuovaPrenotazione = PrenotazioneDTO(
+                                    idPrenotazione = codiceUnivoco,
+                                    dataOra = dataOraStringa,
+                                    contenuto = "Richiesta visita per immobile: $idInserzione",
+                                    stato = D_stato.ATTESA,
+                                    mailUtente = email,
+                                    codiceInserzione = idInserzione,
+                                    usernameAgente = inserzioneTrovata!!.agenteCreatore // Preso dall'inserzione che abbiamo scaricato
+                                )
+
+                                // 4. Spediamo al server!
+                                val successo = connection.inviaPrenotazione(nuovaPrenotazione)
+
+                                // 5. Se il server dice che va tutto bene, mostriamo il popup
+                                if (successo) {
+                                    prenotazioneEffettuata = true
+                                } else {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("errorre di connessione")
+                                    }
+                                    android.util.Log.e("PRENOTAZIONE", "Errore: Impossibile salvare la prenotazione")
+                                }
                             }
                         }
                     },
-                    confirmButton = {}, dismissButton = {}
-                )
+                    enabled = abilitaConfermaPrenotazione,
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = mioGialloOcra,
+                        contentColor = mioBluScuro
+                    ),
+                    modifier = Modifier
+                        .height(50.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 80.dp)
+                ) {
+                    Text("Conferma Prenotazione", fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = { prenotazioneEffettuata = true },
-                enabled = abilitaConfermaPrenotazione,
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro
-                ),
-                modifier = Modifier
-                    .height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 80.dp)
-            ) {
-                Text("Conferma Prenotazione", fontWeight = FontWeight.Bold)
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
+}
+
+fun generaCodicePrenotazione(): String {
+    // Definiamo i caratteri da cui pescare
+    val numeri = "0123456789"
+    val lettere = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+    // Generiamo i tre blocchi separatamente pescando a caso
+    val inizio = (1..10).map { lettere.random() }.joinToString("") // 10 lettere casuali
+    val fine = (1..6).map { numeri.random() }.joinToString("")   // 6 numeri casuali (OBBLIGATORI)
+
+    // Unendoli otteniamo esattamente 16 caratteri che finiscono con 6 cifre!
+    return "$inizio$fine"
 }

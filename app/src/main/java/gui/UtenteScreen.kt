@@ -76,7 +76,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFF000080)) // mioBluScuro
+            CircularProgressIndicator(color = mioBluScuro)
         }
     } else {
         Scaffold(

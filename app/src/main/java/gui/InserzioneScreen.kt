@@ -116,8 +116,8 @@ fun InserzioneScreen(
             ) {
                 ExtendedFloatingActionButton(
                     onClick = { mostraPopupContatti = true },
-                    containerColor = Color(0xFFDAA520), // mioGialloOcra
-                    contentColor = Color(0xFF000080),   // mioBluScuro
+                    containerColor = mioGialloOcra,
+                    contentColor = mioBluScuro,
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Call, contentDescription = "Chiama")
@@ -125,9 +125,12 @@ fun InserzioneScreen(
                 }
 
                 ExtendedFloatingActionButton(
-                    onClick = { navController.navigate(Screen.PrenotazioneScreen.route) },
-                    containerColor = Color(0xFFDAA520),
-                    contentColor = Color(0xFF000080),
+                    onClick = {
+                        val rotta = "${Screen.PrenotazioneScreen.route}?email=$email&idInserzione=${inserzione.idInserzione}"
+                        navController.navigate(rotta)
+                              },
+                    containerColor = mioGialloOcra,
+                    contentColor = mioBluScuro,
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.CalendarMonth, contentDescription = "Prenota")
@@ -224,7 +227,7 @@ fun InserzioneScreen(
                     text = "${inserzione.prezzo} €$suffissoPrezzo",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF000080),
+                    color = mioBluScuro,
                     modifier = Modifier.padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 4.dp),
                 )
 
@@ -338,7 +341,7 @@ fun InserzioneScreen(
     if (mostraPopupContatti) {
         AlertDialog(
             onDismissRequest = { mostraPopupContatti = false },
-            icon = { Icon(Icons.Default.ContactPhone, contentDescription = null, tint = Color(0xFF000080)) },
+            icon = { Icon(Icons.Default.ContactPhone, contentDescription = null, tint = mioBluScuro) },
             title = { Text(text = "Contatta l'inserzionista") },
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -352,7 +355,7 @@ fun InserzioneScreen(
                         text = "+39 $numeroTelefono",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF000080)
+                        color = mioBluScuro
                     )
                 }
             },
@@ -401,7 +404,7 @@ fun CaratteristicaRiga(icona: androidx.compose.ui.graphics.vector.ImageVector, t
         Icon(
             imageVector = icona,
             contentDescription = titolo,
-            tint = Color(0xFF000080),
+            tint = mioBluScuro,
             modifier = Modifier.size(32.dp)
         )
         Spacer(modifier = Modifier.width(12.dp))
