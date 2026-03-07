@@ -156,7 +156,9 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                         if (dati?.telefono == "0000000000" && dati.password == "Accesso_Google0"){
                                             navController.navigate(Screen.NewUtenteGoogleScreen.withEmailGoogle(mailUtente))
                                         } else{
-                                            navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente))
+                                            navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente)) {
+                                                popUpTo(0)
+                                            }
                                         }
                                     }
                                     else -> {
@@ -234,15 +236,23 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                     coroutineScope.launch {
                         val risposta = connessioneLogin(textFieldEmail, textFieldPassword)
                         if (risposta==0){
-                              navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmail))
+                              navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmail)){
+                                  popUpTo(0)
+                              }
 
                         }else if (risposta==1){
-                            navController.navigate(Screen.AdminScreen.withMailAdmin(textFieldEmail))
+                            navController.navigate(Screen.AdminScreen.withMailAdmin(textFieldEmail)){
+                                popUpTo(0)
+                            }
                         }else if (risposta==2){
-                            navController.navigate(Screen.SottoadminScreen.withMailSottoadmin(textFieldEmail))
+                            navController.navigate(Screen.SottoadminScreen.withMailSottoadmin(textFieldEmail)){
+                                popUpTo(0)
+                            }
 
                         }else if (risposta==3){
-                            navController.navigate(Screen.AgenteScreen.withMailAgente(textFieldEmail))
+                            navController.navigate(Screen.AgenteScreen.withMailAgente(textFieldEmail)){
+                                popUpTo(0)
+                            }
 
                         }else{
                             coroutineScope.launch {

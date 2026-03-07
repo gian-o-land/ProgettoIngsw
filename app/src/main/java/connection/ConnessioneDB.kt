@@ -29,7 +29,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://eyxtm-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://hmbuz-2a0e-43d-8b44-0-5109-50c2-2905-f1d1.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {

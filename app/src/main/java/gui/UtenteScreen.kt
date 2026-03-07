@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,11 +41,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import com.example.progettoingsw.R
 import com.google.android.gms.maps.model.LatLng
+import connection.scaricaUtente
 import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,144 +63,166 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
     val locationRoma = LatLng(41.9028, 12.4964)
     val locationMilano = LatLng(45.4642, 9.1900)
     val locationNapoli = LatLng(40.8518, 14.2681)
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White),
-        containerColor =  Color.White,
-        topBar = { CenterAlignedTopAppBar(
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor =  mioBluScuro
-            ),
-            title = {
-                Text(text="Ciao,\n" + emailUtente,
-                    fontWeight = FontWeight.Bold,
-                    color = mieiTitoli,
-                    textAlign = TextAlign.Center
-                )
+
+    var isLoading by remember { mutableStateOf(true) }
+
+    var utente by remember { mutableStateOf<DTO.UtenteDTO?>(null) }
+    LaunchedEffect(emailUtente) {
+        isLoading = true
+        // Questa chiamata viene fatta in background senza bloccare l'app
+        utente = scaricaUtente(emailUtente)
+        isLoading = false
+    }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFF000080)) // mioBluScuro
+        }
+    } else {
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color.White),
+            containerColor =  Color.White,
+            topBar = { CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor =  mioBluScuro
+                ),
+                title = {
+                    val testoTitolo = if (utente != null) {
+                        "Ciao,\n${utente!!.nome} ${utente!!.cognome}"
+                    } else {
+                        "Ciao,\nCaricamento..."
+                    }
+
+                    Text(text=testoTitolo,
+                        fontWeight = FontWeight.Bold,
+                        color = mieiTitoli,
+                        textAlign = TextAlign.Center
+                    )
+
+                },
+                navigationIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        "Logo",
+                        modifier = Modifier.height(50.dp).width(50.dp)
+                    )
+                }
+            )
 
             },
-                    navigationIcon = {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    "Logo",
-                    modifier = Modifier.height(50.dp).width(50.dp)
-                )
+            bottomBar = {
+                myBottomNavBar(navController, emailUtente)
             }
-        )
 
-         },
-        bottomBar = {
-            myBottomNavBar(navController, emailUtente)
-        }
+        ) { innerPadding ->
 
-    ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
 
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-
-        ) {
-            Spacer(modifier = Modifier.height(30.dp))
-            Text(
-                text = "Incomincia a cercare la tua futura casa",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                modifier = Modifier.fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                //.padding(vertical = 20.dp),
-                textAlign = TextAlign.Center,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Button(
-                onClick = { navController.navigate(Screen.FiltriScreen.route) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioBackgroung,
-                    contentColor = mieScritte,
-                ),
-                border = BorderStroke(1.dp, Color.Gray),
-                shape = RectangleShape,
-                modifier = Modifier.padding(horizontal = 35.dp)
-                    .width(400.dp)
-                    .height(45.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Cerca per comune o città",
-                    )
-                    Spacer(modifier = Modifier.width(15.dp))
-                    Text("Cerca per comune o città", textAlign = TextAlign.Center, fontSize = 17.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            Row(modifier = Modifier
-                //.fillMaxWidth(),
-                .padding(start = 30.dp), // Padding esterno per allineamento
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween){
-
-
-                Icon(
-                    imageVector = Icons.Default.TrendingUp,
-                    contentDescription = "Grafico crescente",
-                    tint = mioGialloOcra,
-                    modifier = Modifier.size(24.dp)
-                        .background(color = mioBluScuro, shape = RoundedCornerShape(8.dp))
-
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-
+                Spacer(modifier = Modifier.height(30.dp))
                 Text(
-                    text = "Ricerche frequenti",
+                    text = "Incomincia a cercare la tua futura casa",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-
-                    textAlign = TextAlign.Left,
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    //.padding(vertical = 20.dp),
+                    textAlign = TextAlign.Center,
                     color = Color.Black
                 )
+                Spacer(modifier = Modifier.height(10.dp))
 
-
-            }
-            Spacer(modifier = Modifier.height(15.dp))
-
-            // ROW SCORRIBILE IN ORIZZONTALE
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    //.padding(start = 30.dp, end = 30.dp)
-                    .horizontalScroll(scrollState),
-
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-
+                Button(
+                    onClick = { navController.navigate(Screen.FiltriScreen.route) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = mioBackgroung,
+                        contentColor = mieScritte,
+                    ),
+                    border = BorderStroke(1.dp, Color.Gray),
+                    shape = RectangleShape,
+                    modifier = Modifier.padding(horizontal = 35.dp)
+                        .width(400.dp)
+                        .height(45.dp)
                 ) {
-                Spacer(modifier = Modifier.width(20.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Cerca per comune o città",
+                        )
+                        Spacer(modifier = Modifier.width(15.dp))
+                        Text("Cerca per comune o città", textAlign = TextAlign.Center, fontSize = 17.sp)
+                    }
+                }
 
-                Card(
-                    onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationNapoli, emailUtente
-                    ))},
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Row(modifier = Modifier
+                    //.fillMaxWidth(),
+                    .padding(start = 30.dp), // Padding esterno per allineamento
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween){
+
+
+                    Icon(
+                        imageVector = Icons.Default.TrendingUp,
+                        contentDescription = "Grafico crescente",
+                        tint = mioGialloOcra,
+                        modifier = Modifier.size(24.dp)
+                            .background(color = mioBluScuro, shape = RoundedCornerShape(8.dp))
+
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(
+                        text = "Ricerche frequenti",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+
+                        textAlign = TextAlign.Left,
+                        color = Color.Black
+                    )
+
+
+                }
+                Spacer(modifier = Modifier.height(15.dp))
+
+                // ROW SCORRIBILE IN ORIZZONTALE
+
+                Row(
                     modifier = Modifier
-                        .width(280.dp)
-                        .height(165.dp),
+                        .fillMaxWidth()
+                        //.padding(start = 30.dp, end = 30.dp)
+                        .horizontalScroll(scrollState),
 
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(width = 1.dp, color = Color.Black),
-                    colors = CardDefaults.cardColors(containerColor = mioBluScuro),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+
+                    ) {
+                    Spacer(modifier = Modifier.width(20.dp))
+
+                    Card(
+                        onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
+                            locationNapoli, emailUtente
+                        ))},
+                        modifier = Modifier
+                            .width(280.dp)
+                            .height(165.dp),
+
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(width = 1.dp, color = Color.Black),
+                        colors = CardDefaults.cardColors(containerColor = mioBluScuro),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
                         Column(modifier = Modifier
                             .fillMaxWidth(),
-                           // verticalAlignment = Alignment.CenterVertically,
-                           // horizontalArrangement = Arrangement.Absolute.Center
+                            // verticalAlignment = Alignment.CenterVertically,
+                            // horizontalArrangement = Arrangement.Absolute.Center
                         ){
                             Image(painterResource(
                                 id = R.drawable.anteprima_napoli),
@@ -210,85 +236,86 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                     }
 
 
-                Card(
-                    onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationMilano, emailUtente
-                    ))},
-                    modifier = Modifier
-                        .width(280.dp)
-                        .height(165.dp),
+                    Card(
+                        onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
+                            locationMilano, emailUtente
+                        ))},
+                        modifier = Modifier
+                            .width(280.dp)
+                            .height(165.dp),
 
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(width = 1.dp, color = Color.Black),
-                    colors = CardDefaults.cardColors(containerColor = mioBluScuro),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column(modifier = Modifier
-                        .fillMaxWidth(),
-                        // verticalAlignment = Alignment.CenterVertically,
-                        // horizontalArrangement = Arrangement.Absolute.Center
-                    ){
-                        Image(painterResource(
-                            id = R.drawable.anteprima_milano),
-                            contentDescription = "anteprima milano",
-                            contentScale = ContentScale.FillWidth,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(width = 1.dp, color = Color.Black),
+                        colors = CardDefaults.cardColors(containerColor = mioBluScuro),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(modifier = Modifier
+                            .fillMaxWidth(),
+                            // verticalAlignment = Alignment.CenterVertically,
+                            // horizontalArrangement = Arrangement.Absolute.Center
+                        ){
+                            Image(painterResource(
+                                id = R.drawable.anteprima_milano),
+                                contentDescription = "anteprima milano",
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.fillMaxWidth()
+                            )
 
-                        Text(text = "Cerca a MILANO", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(10.dp) )
+                            Text(text = "Cerca a MILANO", color = Color.White, fontSize = 15.sp, modifier = Modifier.padding(10.dp) )
+                        }
                     }
-                }
 
-                Card(
-                    onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationRoma, emailUtente
-                    ))},
-                    modifier = Modifier
-                        .width(280.dp)
-                        .height(165.dp),
+                    Card(
+                        onClick = {navController.navigate(Screen.RicercaMappaScreen.withLocation(
+                            locationRoma, emailUtente
+                        ))},
+                        modifier = Modifier
+                            .width(280.dp)
+                            .height(165.dp),
 
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(width = 1.dp, color = Color.Black),
-                    colors = CardDefaults.cardColors(containerColor = mioBluScuro),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column(modifier = Modifier
-                        .fillMaxWidth(),
-                        // verticalAlignment = Alignment.CenterVertically,
-                        // horizontalArrangement = Arrangement.Absolute.Center
-                    ){
-                        Image(painterResource(
-                            id = R.drawable.anteprima_roma),
-                            contentDescription = "anteprima roma",
-                            contentScale = ContentScale.FillWidth,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(width = 1.dp, color = Color.Black),
+                        colors = CardDefaults.cardColors(containerColor = mioBluScuro),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(modifier = Modifier
+                            .fillMaxWidth(),
+                            // verticalAlignment = Alignment.CenterVertically,
+                            // horizontalArrangement = Arrangement.Absolute.Center
+                        ){
+                            Image(painterResource(
+                                id = R.drawable.anteprima_roma),
+                                contentDescription = "anteprima roma",
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.fillMaxWidth()
+                            )
 
-                        Text(text = "Cerca a ROMA", color = Color.White, fontSize = 15.sp,modifier = Modifier.padding(10.dp) )
+                            Text(text = "Cerca a ROMA", color = Color.White, fontSize = 15.sp,modifier = Modifier.padding(10.dp) )
+                        }
                     }
-                }
-                Spacer(modifier = Modifier.width(20.dp))
+                    Spacer(modifier = Modifier.width(20.dp))
 
                 }
-            Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(30.dp))
 
-            Button(
-                onClick = {
-                    navController.navigate(Screen.RicercaMappaScreen.withLocation(
-                        locationRoma, emailUtente))
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro
-                ),
-                modifier = Modifier.height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 80.dp)
-            ) {
-                Text("Cerca sulla mappa", fontSize = 17.sp)
-            }
+                Button(
+                    onClick = {
+                        navController.navigate(Screen.RicercaMappaScreen.withLocation(
+                            locationRoma, emailUtente))
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = mioGialloOcra,
+                        contentColor = mioBluScuro
+                    ),
+                    modifier = Modifier.height(50.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 80.dp)
+                ) {
+                    Text("Cerca sulla mappa", fontSize = 17.sp)
+                }
             }
 
         }
     }
+}
 
