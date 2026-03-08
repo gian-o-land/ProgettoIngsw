@@ -189,7 +189,7 @@ fun RigaValoreConErrore(
     suffisso: String? = null
 ) {
     // --- COLORI DINAMICI ---
-    val coloreIcona = if (isError) Color(0xFFB00020) else Color(0xFF000080) // Usa la tua variabile mioBluScuro
+    val coloreIcona = if (isError) Color(0xFFB00020) else mioBluScuro
     val coloreTesto = if (isError) Color(0xFFB00020) else Color.Black
 
     Row(

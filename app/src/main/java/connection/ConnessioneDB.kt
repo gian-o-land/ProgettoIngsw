@@ -1,6 +1,7 @@
 package connection
 
 import DTO.AgenteDTO
+import DTO.FiltriRicercaDTO
 import DTO.InserzioneDTO
 import DTO.UtenteDTO
 import DTO.source.PhonePrefix
@@ -29,7 +30,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://eyxtm-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://jsybf-87-17-140-60.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -312,6 +313,32 @@ suspend fun eliminaUtenteGoogleIncompleto(email: String) {
             }
         } catch (e: Exception) {
             android.util.Log.e("API_DELETE", "Errore eliminazione utente: ${e.message}")
+        }
+    }
+}
+
+suspend fun scaricaInserzioniFiltrate(
+    lat: Double,
+    lng: Double,
+    filtri: FiltriRicercaDTO
+): List<InserzioneDTO> {
+    return withContext(Dispatchers.IO) {
+        try {
+            // Facciamo una POST al nostro nuovo endpoint, passando lat e lng nell'URL
+            val response = client.post("$urlServer/inserzioni/ricerca?lat=$lat&lng=$lng") {
+                contentType(ContentType.Application.Json)
+                setBody(filtri) // Inseriamo l'intero pacco di filtri nel corpo della richiesta!
+            }
+
+            if (response.status == HttpStatusCode.OK) {
+                // Se il server risponde OK, restituiamo la lista di inserzioni filtrate
+                response.body<List<InserzioneDTO>>()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("API_RICERCA", "Errore durante la ricerca: ${e.message}")
+            emptyList()
         }
     }
 }

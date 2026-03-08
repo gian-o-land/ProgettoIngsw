@@ -87,6 +87,12 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
     var balcone by remember { mutableStateOf(false) }
     var terrazzo by remember { mutableStateOf(false) }
 
+    var statoAscensore by remember { mutableStateOf(false) }
+    var statoCucina by remember { mutableStateOf(false) }
+    var statoPiscina by remember { mutableStateOf(false) }
+    var statoCantina by remember { mutableStateOf(false) }
+    var statoBalcone by remember { mutableStateOf(false) }
+    var statoTerrazzo by remember { mutableStateOf(false) }
     // --- VARIABILI FOTO (MAX 10) ---
     var fotoSelezionate by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var linkS3Ottenuti by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -218,7 +224,10 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
             RigaSlider(
-                icona = Icons.Default.FlashOn, testo = "Classe\nenergetica"
+                icona = Icons.Default.FlashOn,
+                testo = "Classe\nenergetica",
+                valoreAttuale = classeEnergeticaScelta,
+                onValueChange = { nuovaClasseEnergetica -> classeEnergeticaScelta = nuovaClasseEnergetica }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -234,22 +243,20 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                 Text("Altre caratteristiche", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.padding(bottom = 12.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    BottoneCaratteristica("Ascensore", Modifier.weight(1f))
-                    BottoneCaratteristica("Cucina", Modifier.weight(1f))
-                    BottoneCaratteristica("Piscina", Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Ascensore", selezionato = statoAscensore, onClick = { statoAscensore = !statoAscensore }, modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Cucina", selezionato = statoCucina, onClick = { statoCucina = !statoCucina }, modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Piscina", selezionato = statoPiscina, onClick = { statoPiscina = !statoPiscina }, modifier = Modifier.weight(1f))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    BottoneCaratteristica("Cantina", Modifier.weight(1f))
-                    BottoneCaratteristica("Balcone", Modifier.weight(1f))
-                    BottoneCaratteristica("Terrazzo", Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Cantina", selezionato = statoCantina, onClick = { statoCantina = !statoCantina }, modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Balcone", selezionato = statoBalcone, onClick = { statoBalcone = !statoBalcone }, modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Terrazzo", selezionato = statoTerrazzo, onClick = { statoTerrazzo = !statoTerrazzo }, modifier = Modifier.weight(1f))
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ==========================================
-            // BOTTONE E GALLERIA FOTO (IMMOBILE)
-            // ==========================================
+
             myButtonErrore(
                 myClick = { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 testo = "Inserisci foto (${fotoSelezionate.size}/10)",

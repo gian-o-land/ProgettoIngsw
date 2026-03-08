@@ -1,5 +1,7 @@
 package gui
 
+import DTO.FiltriRicercaDTO
+import android.location.Geocoder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,32 +35,88 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import com.google.android.gms.maps.model.LatLng
 import gui.template.myButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import navigation.Screen
+import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.serialization.encodeToString
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun FiltriScreen(navController: NavController, email: String) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var textLocalita by remember { mutableStateOf("") }
+    var isSearching by remember { mutableStateOf(false) }
+    var showErrors by remember { mutableStateOf(false) } // Per il bordo rosso del TextField
+
+    // --- VARIABILI DI STATO PER I FILTRI ---
+    var statoCategoria by remember { mutableStateOf("Indifferente") }
+
+    var statoPrezzoMin by remember { mutableStateOf("") }
+    var statoPrezzoMax by remember { mutableStateOf("") }
+
+    var statoQuadraturaMin by remember { mutableStateOf("") }
+    var statoQuadraturaMax by remember { mutableStateOf("") }
+
+    var statoLocaliMin by remember { mutableStateOf("") }
+    var statoLocaliMax by remember { mutableStateOf("") }
+
+    var statoBagni by remember { mutableStateOf("") }
+    var statoPiano by remember { mutableStateOf("Indifferente") }
+    var statoClasseEnergetica by remember { mutableStateOf("Indifferente") }
+    var statoArredamento by remember { mutableStateOf("Indifferente") }
+
+    var statoAscensore by remember { mutableStateOf(false) }
+    var statoCucina by remember { mutableStateOf(false) }
+    var statoPiscina by remember { mutableStateOf(false) }
+    var statoCantina by remember { mutableStateOf(false) }
+    var statoBalcone by remember { mutableStateOf(false) }
+    var statoTerrazzo by remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color.White),
         containerColor = Color.White,
+
+        // --- SNACKBAR PER GLI ERRORI (Stile CaricaImmobili) ---
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(horizontal = 35.dp, vertical = 5.dp)
+            ) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                    contentColor = Color.White
+                )
+            }
+        },
+
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = mioBluScuro
+                    containerColor =mioBluScuro
                 ),
                 title = {
                     Text(
                         text = "Filtri",
                         fontWeight = FontWeight.Bold,
-                        color = mieiTitoli,
+                        color = Color.White, // Stile CaricaImmobili
                         textAlign = TextAlign.Center
                     )
                 },
@@ -66,33 +124,22 @@ fun FiltriScreen(navController: NavController, email: String) {
                     Image(
                         painter = painterResource(id = R.drawable.logo),
                         contentDescription = "Logo",
-                        modifier = Modifier
-                            .height(50.dp)
-                            .width(50.dp)
+                        modifier = Modifier.height(50.dp).width(50.dp)
                     )
                 }
             )
-        },
-        bottomBar = {
-            /*
-            myBottomNavBar(
-                navController = navController
-            )
-
-             */
         }
-    ) { innerPadding -> // QUI INIZIA IL CONTENUTO DELLO SCAFFOLD
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier
-                .padding(innerPadding) // Applica il padding qui!
-                .fillMaxSize()         // Assicura che la colonna prenda tutto lo spazio
+                .padding(innerPadding)
+                .fillMaxSize()
                 .background(Color.White)
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- TITOLO ---
             Text(
                 text = "Imposta i filtri\nper la tua ricerca",
                 fontSize = 20.sp,
@@ -103,66 +150,87 @@ fun FiltriScreen(navController: NavController, email: String) {
 
             // --- LISTA FILTRI ---
 
-            RigaCliccabile(
-                icona = Icons.Default.LocationCity, // Categoria
+            // Sostituito con RigaCliccabileConErrore (isError sempre false perché i filtri sono opzionali)
+            RigaCliccabileConErrore(
+                icona = Icons.Default.LocationCity,
                 testo = "Categoria",
-                valoreAttuale = "Indifferente",
-                opzioni = listOf("Indifferente","In vendita","In affitto")
+                valoreAttuale = statoCategoria,
+                opzioni = listOf("Indifferente","In vendita","In affitto"),
+                isError = false,
+                onValoreCambiato = { statoCategoria = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
             RigaMinMax(
-                icona = Icons.Default.AttachMoney, // Prezzo
-                testo = "Prezzo"
+                icona = Icons.Default.AttachMoney,
+                testo = "Prezzo",
+                valoreMin = statoPrezzoMin,
+                onValueMinChange = { statoPrezzoMin = it },
+                valoreMax = statoPrezzoMax,
+                onValueMaxChange = { statoPrezzoMax = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
             RigaMinMax(
-                icona = Icons.Default.Home, // Quadratura
-                testo = "Quadratura"
+                icona = Icons.Default.Home,
+                testo = "Quadratura",
+                valoreMin = statoQuadraturaMin,
+                onValueMinChange = { statoQuadraturaMin = it },
+                valoreMax = statoQuadraturaMax,
+                onValueMaxChange = { statoQuadraturaMax = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
             RigaMinMax(
-                icona = Icons.Default.Dashboard, // Locali
-                testo = "Locali"
+                icona = Icons.Default.Dashboard,
+                testo = "Locali",
+                valoreMin = statoLocaliMin,
+                onValueMinChange = { statoLocaliMin = it },
+                valoreMax = statoLocaliMax,
+                onValueMaxChange = { statoLocaliMax = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
             RigaBottoni(
-                icona = Icons.Default.Bathtub, // Bagni
+                icona = Icons.Default.Bathtub,
                 testo = "Bagni",
-                opzioni = listOf("1", "2", "3", ">3")
+                valoreAttuale = statoBagni,
+                opzioni = listOf("1", "2", "3", ">3"),
+                onValueChange = { statoBagni = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
-            RigaCliccabile(
-                icona = Icons.Default.Menu, // Piano (usa un'icona adatta per le scale)
+            RigaCliccabileConErrore(
+                icona = Icons.Default.Menu,
                 testo = "Piano",
-                valoreAttuale = "Indifferente",
-                opzioni=  listOf("1", "2", "3", "4", "5", "6", "7", "8")
+                valoreAttuale = statoPiano,
+                opzioni = listOf("Indifferente", "1", "2", "3", "4", "5", "6", "7", "8"),
+                isError = false,
+                onValoreCambiato = { statoPiano = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
             RigaSlider(
-                icona = Icons.Default.FlashOn, // Classe energetica
-                testo = "Classe\nenergetica"
+                icona = Icons.Default.FlashOn,
+                testo = "Classe\nenergetica",
+                valoreAttuale = statoClasseEnergetica,
+                onValueChange = { statoClasseEnergetica = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
-            RigaCliccabile(
-                icona = Icons.Default.Chair, // Arredamento
+            RigaCliccabileConErrore(
+                icona = Icons.Default.Chair,
                 testo = "Arredamento",
-                valoreAttuale = "Indifferente",
-                opzioni = listOf("Indifferente","Completo", "Parziale", "No")
+                valoreAttuale = statoArredamento,
+                opzioni = listOf("Indifferente","Completo", "Parziale", "No"),
+                isError = false,
+                onValoreCambiato = { statoArredamento = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
             // --- ALTRE CARATTERISTICHE ---
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Text(
                     text = "Altre caratteristiche",
@@ -171,140 +239,219 @@ fun FiltriScreen(navController: NavController, email: String) {
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                // Griglia di bottoni (2 righe da 3)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    BottoneCaratteristica(testo = "Ascensore", modifier = Modifier.weight(1f))
-                    BottoneCaratteristica(testo = "Cucina", modifier = Modifier.weight(1f))
-                    BottoneCaratteristica(testo = "Piscina", modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Ascensore", selezionato = statoAscensore, onClick = { statoAscensore = !statoAscensore }, modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Cucina", selezionato = statoCucina, onClick = { statoCucina = !statoCucina }, modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Piscina", selezionato = statoPiscina, onClick = { statoPiscina = !statoPiscina }, modifier = Modifier.weight(1f))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    BottoneCaratteristica(testo = "Cantina", modifier = Modifier.weight(1f))
-                    BottoneCaratteristica(testo = "Balcone", modifier = Modifier.weight(1f))
-                    BottoneCaratteristica(testo = "Terrazzo", modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Cantina", selezionato = statoCantina, onClick = { statoCantina = !statoCantina }, modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Balcone", selezionato = statoBalcone, onClick = { statoBalcone = !statoBalcone }, modifier = Modifier.weight(1f))
+                    BottoneCaratteristica(testo = "Terrazzo", selezionato = statoTerrazzo, onClick = { statoTerrazzo = !statoTerrazzo }, modifier = Modifier.weight(1f))
                 }
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // --- CAMPO OBBLIGATORIO: LOCALITÀ (Stile CaricaImmobili) ---
+            OutlinedTextField(
+                value = textLocalita,
+                onValueChange = { textLocalita = it },
+                label = { Text("Località (obbligatorio)") },
+                isError = showErrors && textLocalita.isBlank(), // Diventa rosso se clicchi Cerca senza compilare
+                singleLine = true,
+                modifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth()
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
+            // --- BOTTONE DI RICERCA CON PASSAGGIO FILTRI E LOGICA SNACKBAR ---
             myButton(
                 myClick = {
-                    Screen.RicercaMappaScreen.withLocation(
-                        LatLng(41.9028, 12.4964), email )// APRIRA' LA MAPPA CON I FILTRI APPLICATI (ZOOMATA SU TUTTA L'ITALIA) per ora roma
+                    if (textLocalita.isBlank()) {
+                        showErrors = true
+                        coroutineScope.launch {
+                            snackbarHostState.currentSnackbarData?.dismiss()
+                            snackbarHostState.showSnackbar("Inserisci una località per poter cercare!")
+                        }
+                    } else {
+                        showErrors = false
+                        isSearching = true
+
+                        coroutineScope.launch(Dispatchers.IO) {
+                            try {
+                                val geocoder = Geocoder(context, Locale.getDefault())
+
+                                @Suppress("DEPRECATION")
+                                val addresses = geocoder.getFromLocationName(textLocalita, 1)
+
+                                if (!addresses.isNullOrEmpty()) {
+                                    val location = addresses[0]
+                                    val latLng = LatLng(location.latitude, location.longitude)
+
+                                    withContext(Dispatchers.Main) {
+                                        isSearching = false
+
+                                        val filtriSelezionati = FiltriRicercaDTO(
+                                            categoria = statoCategoria,
+                                            prezzoMin = statoPrezzoMin,
+                                            prezzoMax = statoPrezzoMax,
+                                            quadraturaMin = statoQuadraturaMin,
+                                            quadraturaMax = statoQuadraturaMax,
+                                            localiMin = statoLocaliMin,
+                                            localiMax = statoLocaliMax,
+                                            bagni = statoBagni,
+                                            piano = statoPiano,
+                                            classeEnergetica = statoClasseEnergetica,
+                                            arredamento = statoArredamento,
+                                            ascensore = statoAscensore,
+                                            cucina = statoCucina,
+                                            piscina = statoPiscina,
+                                            cantina = statoCantina,
+                                            balcone = statoBalcone,
+                                            terrazzo = statoTerrazzo
+                                        )
+
+                                        val filtriJson = kotlinx.serialization.json.Json.encodeToString(filtriSelezionati)
+                                        navController.currentBackStackEntry?.savedStateHandle?.set("filtri_json", filtriJson)
+
+                                        navController.navigate(
+                                            Screen.RicercaMappaScreen.withLocation(
+                                                location = latLng,
+                                                email = email
+                                            )
+                                        )
+                                    }
+                                } else {
+                                    withContext(Dispatchers.Main) {
+                                        isSearching = false
+                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                        snackbarHostState.showSnackbar("Località non trovata, prova a essere più preciso.")
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    isSearching = false
+                                    snackbarHostState.currentSnackbarData?.dismiss()
+                                    snackbarHostState.showSnackbar("Errore di connessione. Riprova.")
+                                }
+                            }
+                        }
+                    }
                 },
-                testo = "Cerca"
+                testo = if (isSearching) "Ricerca in corso..." else "Cerca"
             )
+
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RigaCliccabile(
     icona: ImageVector,
     testo: String,
     valoreAttuale: String,
-    opzioni: List<String>
+    opzioni: List<String>,
+    onValueChange: (String) -> Unit
 ) {
-    var menuEspanso by remember { mutableStateOf(false) }
-    var selezioneAttuale by remember { mutableStateOf(valoreAttuale) }
+    var expanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { menuEspanso = true }
-            .height(IntrinsicSize.Min),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // --- PARTE SINISTRA ---
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icona,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
-                tint = mioBluScuro // <--- ICONA PRINCIPALE BLU SCURO
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text = testo, fontSize = 16.sp)
-        }
-
-        // --- PARTE DESTRA ---
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(end = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = selezioneAttuale, fontSize = 16.sp, color = Color.DarkGray)
-                val iconaFreccia = if (menuEspanso) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowRight
-                Icon(
-                    imageVector = iconaFreccia,
-                    contentDescription = null,
-                    tint = mioBluScuro // <--- ICONA FRECCIA BLU SCURO
-                )
-            }
-
-            // --- MENU A TENDINA ---
-            DropdownMenu(
-                expanded = menuEspanso,
-                onDismissRequest = { menuEspanso = false },
-                modifier = Modifier
-                    .heightIn(max = 192.dp)
-                    .background(Color.White)
-
-            ) {
-                opzioni.forEachIndexed { index, opzione ->
-                    DropdownMenuItem(
-                        text = { Text(text = opzione, color = Color.Black) },
-                        onClick = {
-                            selezioneAttuale = opzione
-                            menuEspanso = false
-                        }
-                    )
-                    if (index < opzioni.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.fillMaxWidth(),
-                            thickness = 1.dp,
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun RigaMinMax(icona: ImageVector, testo: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icona,
-            contentDescription = null,
-            modifier = Modifier.size(28.dp),
-            tint = mioBluScuro // <--- ICONA PRINCIPALE BLU SCURO
-        )
+        Icon(imageVector = icona, contentDescription = testo, tint = Color.Gray)
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = testo, fontSize = 16.sp, modifier = Modifier.weight(1f))
 
-        BoxInputMinMax("Min")
-        Spacer(modifier = Modifier.width(8.dp))
-        BoxInputMinMax("Max")
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            OutlinedTextField(
+                value = valoreAttuale,
+                onValueChange = {},
+                readOnly = true, // L'utente non può scriverci dentro, può solo cliccare
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .width(150.dp),
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp)
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(Color.White)
+            ) {
+                opzioni.forEach { opzione ->
+                    DropdownMenuItem(
+                        text = { Text(opzione) },
+                        onClick = {
+                            onValueChange(opzione) // Aggiorna la variabile madre!
+                            expanded = false       // Chiude la tendina
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RigaMinMax(
+    icona: ImageVector,
+    testo: String,
+    valoreMin: String,
+    onValueMinChange: (String) -> Unit,
+    valoreMax: String,
+    onValueMaxChange: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(imageVector = icona, contentDescription = testo, tint = mioBluScuro)
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Fissiamo la larghezza del testo a 90.dp così tutte le righe restano allineate
+        Text(text = testo, fontSize = 16.sp, modifier = Modifier.width(90.dp))
+
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = valoreMin,
+                onValueChange = onValueMinChange, // Aggiorna la variabile madre Min!
+                label = { Text("Min") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp)
+            )
+            OutlinedTextField(
+                value = valoreMax,
+                onValueChange = onValueMaxChange, // Aggiorna la variabile madre Max!
+                label = { Text("Max") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp)
+            )
+        }
     }
 }
 
@@ -380,9 +527,13 @@ fun BoxInputMinMax(label: String) {
 }
 
 @Composable
-fun RigaBottoni(icona: ImageVector, testo: String, opzioni: List<String>) {
-    var selezionato by remember { mutableStateOf(opzioni[0]) }
-
+fun RigaBottoni(
+    icona: ImageVector,
+    testo: String,
+    valoreAttuale: String, // <-- Aggiunto
+    opzioni: List<String>,
+    onValueChange: (String) -> Unit // <-- Aggiunto
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -400,21 +551,20 @@ fun RigaBottoni(icona: ImageVector, testo: String, opzioni: List<String>) {
 
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             opzioni.forEach { opzione ->
-                val isSelected = selezionato == opzione
+                // Ora controlliamo se l'opzione è quella passata dalla schermata madre
+                val isSelected = valoreAttuale == opzione
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        // 1. CAMBIO SFONDO: Giallo ocra se selezionato, altrimenti Blu scuro
                         .background(if (isSelected) mioGialloOcra else mioBluScuro)
-                        .border(1.dp, Color.Black, RoundedCornerShape(8.dp)) // Opzionale: puoi togliere il bordo o metterlo dello stesso colore dello sfondo
-                        .clickable { selezionato = opzione },
+                        .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+                        .clickable { onValueChange(opzione) }, // <-- Avvisiamo la schermata madre!
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = opzione,
                         fontSize = 14.sp,
-                        // 2. CAMBIO COLORE TESTO: Blu scuro se selezionato, altrimenti Bianco
                         color = if (isSelected) mioBluScuro else Color.White
                     )
                 }
@@ -422,11 +572,19 @@ fun RigaBottoni(icona: ImageVector, testo: String, opzioni: List<String>) {
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RigaSlider(icona: ImageVector, testo: String) {
-    var sliderPos by remember { mutableFloatStateOf(0f) }
+fun RigaSlider(
+    icona: ImageVector,
+    testo: String,
+    valoreAttuale: String,
+    onValueChange: (String) -> Unit
+) {
+    // ABBIAMO AGGIUNTO "Indifferente"
+    val opzioni = listOf("Indifferente", "Bassa", "Media", "Alta")
+
+    val initialIndex = opzioni.indexOf(valoreAttuale).toFloat()
+    val sliderPos = if (initialIndex >= 0f) initialIndex else 0f
 
     Row(
         modifier = Modifier
@@ -438,7 +596,7 @@ fun RigaSlider(icona: ImageVector, testo: String) {
             imageVector = icona,
             contentDescription = null,
             modifier = Modifier.size(28.dp),
-            tint = mioBluScuro
+            tint = Color(0xFF000080) // mioBluScuro
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = testo, fontSize = 16.sp, modifier = Modifier.width(80.dp), lineHeight = 18.sp)
@@ -447,42 +605,39 @@ fun RigaSlider(icona: ImageVector, testo: String) {
 
         Column(modifier = Modifier.weight(1f)) {
 
-            // 1. Definiamo i colori qui per poterli riutilizzare
             val sliderColors = SliderDefaults.colors(
-                activeTrackColor = mioBluScuro,
+                activeTrackColor = Color(0xFF000080),
                 inactiveTrackColor = Color(0xFFEBE6ED),
-                activeTickColor = mioGialloOcra,
-                inactiveTickColor = mioBluScuro
+                activeTickColor = Color(0xFFDAA520),
+                inactiveTickColor = Color(0xFF000080)
             )
 
             Slider(
                 value = sliderPos,
-                onValueChange = { sliderPos = it },
-                valueRange = 0f..2f,
-                steps = 1,
+                onValueChange = { nuovaPos ->
+                    val index = nuovaPos.roundToInt()
+                    onValueChange(opzioni[index])
+                },
+                valueRange = 0f..3f, // <-- ORA VA DA 0 A 3
+                steps = 2,           // <-- 2 TACCHE INTERMEDIE (per avere 4 posizioni totali)
                 colors = sliderColors,
-
-                // --- PALLINO PERSONALIZZATO ---
                 thumb = {
                     Box(
                         modifier = Modifier
                             .size(16.dp)
-                            .border(width = 2.dp, color = mioBluScuro, shape = CircleShape)
-                            .background(color = mioGialloOcra, shape = CircleShape)
+                            .border(width = 2.dp, color = Color(0xFF000080), shape = CircleShape)
+                            .background(color = Color(0xFFDAA520), shape = CircleShape)
                     )
                 },
-
-                // --- LINEA PERSONALIZZATA (RIMUOVE IL BUCO) ---
                 track = { sliderState ->
                     SliderDefaults.Track(
                         colors = sliderColors,
                         sliderState = sliderState,
-                        thumbTrackGapSize = 0.dp // <--- QUESTO ELIMINA IL "BUCO" BIANCO!
+                        thumbTrackGapSize = 0.dp
                     )
                 }
             )
 
-            // --- ETICHETTE SOTTO LO SLIDER ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -490,15 +645,15 @@ fun RigaSlider(icona: ImageVector, testo: String) {
                     .offset(y = (-8).dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val opzioni = listOf("Bassa", "Media", "Alta")
-
                 opzioni.forEachIndexed { index, label ->
                     val isSelected = sliderPos.roundToInt() == index
+                    // Mostriamo solo l'iniziale per non accavallare i testi, tranne per Indifferente
+                    val displayLabel = if (label == "Indifferente") "Ind." else label
 
                     Text(
-                        text = label,
-                        fontSize = 12.sp,
-                        color = if (isSelected) mioGialloOcra else mioBluScuro,
+                        text = displayLabel,
+                        fontSize = 11.sp,
+                        color = if (isSelected) Color(0xFFDAA520) else Color(0xFF000080),
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
@@ -507,24 +662,29 @@ fun RigaSlider(icona: ImageVector, testo: String) {
     }
 }
 @Composable
-fun BottoneCaratteristica(testo: String, modifier: Modifier = Modifier) {
-    var selezionato by remember { mutableStateOf(false) }
+fun BottoneCaratteristica(
+    testo: String,
+    selezionato: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (selezionato) mioGialloOcra else mioBluScuro
+    val textColor = if (selezionato) mioBluScuro else Color.White
 
-    Box(
-        modifier = modifier
-            .height(40.dp)
-            .clip(RoundedCornerShape(8.dp))
-            // 1. CAMBIO SFONDO: Giallo Ocra se acceso, Blu Scuro se spento
-            .background(if (selezionato) mioGialloOcra else mioBluScuro)
-            .clickable { selezionato = !selezionato },
-        contentAlignment = Alignment.Center
+    Button(
+        onClick = onClick, // Segnala il click alla schermata madre!
+        modifier = modifier.height(45.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = backgroundColor,
+            contentColor = textColor
+        ),
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues(4.dp)
     ) {
         Text(
             text = testo,
-            fontSize = 14.sp,
-            // 2. CAMBIO COLORE TESTO: Blu Scuro se acceso, Bianco se spento
-            color = if (selezionato) mioBluScuro else Color.White,
-            fontWeight = if (selezionato) FontWeight.Bold else FontWeight.Normal // (Opzionale) Grassetto quando selezionato
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center
         )
     }
 }
