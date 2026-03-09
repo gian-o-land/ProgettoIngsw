@@ -10,7 +10,7 @@ object SessionManager {
     private const val CHIAVE_COGNOME = "cognome_salvato"
 
     // 1. Salva i dati quando fai il login
-    fun salvaSessione(context: Context, email: String, ruolo: Int) {
+    fun salvaSessione(context: Context, email: String?, ruolo: Int) {
         val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(CHIAVE_EMAIL, email)

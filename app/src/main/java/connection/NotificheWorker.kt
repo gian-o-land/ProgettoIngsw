@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import DTO.D_stato
 import gui.GestoreNotifiche
+import gui.GestoreNotificheAgente
 import gui.mostraNotificaAndroid
 
 class NotificheWorker(
@@ -14,10 +15,9 @@ class NotificheWorker(
 
     override suspend fun doWork(): Result {
         // 1. Capiamo chi è l'utente leggendo la memoria fissa (perché l'app è chiusa!)
-        val emailUtente = SessionManager.leggiEmail(applicationContext)
+        val emailUtente = SessionManager.leggiEmail(applicationContext) ?: return Result.success()
 
         // Se non c'è nessuno loggato, fermiamo il lavoro
-        if (emailUtente == null) return Result.success()
 
         // 2. Carichiamo lo stato delle notifiche lette
         GestoreNotifiche.caricaStato(applicationContext)
@@ -27,14 +27,66 @@ class NotificheWorker(
             val prenotazioni = scaricaPrenotazioniUtente(emailUtente)
             val notificheChiuse = prenotazioni.count { it.stato != D_stato.ATTESA }
 
-            // 4. Se ci sono novità, salviamo e spariamo la notifica!
-            if (notificheChiuse > GestoreNotifiche.conteggioNotificheLette) {
+            val notificheGiaViste = GestoreNotifiche.conteggioNotificheLette + GestoreNotifiche.conteggioNotificheNonLette.value
+
+            //AUTO-CORREZIONE SE IL SERVER HA MENO NOTIFICHE
+            if (notificheChiuse < notificheGiaViste) {
+                GestoreNotifiche.sincronizzaCancellazioni(applicationContext, notificheChiuse)
+            }
+            // 4. Se invece ci sono novità reali, salviamo e spariamo la notifica!
+            else if (notificheChiuse > notificheGiaViste) {
                 GestoreNotifiche.salvaNuoveNotifiche(applicationContext, notificheChiuse)
 
                 mostraNotificaAndroid(
                     context = applicationContext,
                     titolo = "Aggiornamento Prenotazione",
                     messaggio = "Un agente ha risposto a una tua richiesta di visita."
+                )
+            }
+            return Result.success()
+        } catch (e: Exception) {
+            return Result.retry() // Se non c'è internet, riprova più tardi
+        }
+    }
+}
+
+class NotificheWorkerAgente(
+    appContext: Context,
+    workerParams: WorkerParameters
+) : CoroutineWorker(appContext, workerParams) {
+
+    override suspend fun doWork(): Result {
+        // 1. Capiamo chi è l'agente leggendo la memoria fissa (il SessionManager usa "leggiEmail" anche per l'username)
+        val usernameAgente = SessionManager.leggiEmail(applicationContext) ?: return Result.success()
+
+        // Se non c'è nessuno loggato, fermiamo il lavoro
+
+        // 2. Carichiamo lo stato delle notifiche dalla cassaforte dell'AGENTE
+        GestoreNotificheAgente.caricaStato(applicationContext)
+
+        try {
+            // 3. Scarichiamo le prenotazioni dell'agente
+            val prenotazioni = scaricaPrenotazioniAgente(usernameAgente)
+
+            // LA MAGIA: L'agente è interessato SOLO a quelle in ATTESA!
+            val notificheInAttesa = prenotazioni.count { it.stato == D_stato.ATTESA }
+
+            // Calcoliamo quante notifiche in attesa conoscevamo già
+            val notificheGiaViste = GestoreNotificheAgente.conteggioNotificheLette + GestoreNotificheAgente.conteggioNotificheNonLette.value
+
+            // 4. AUTO-CORREZIONE (Es. un utente ha annullato la sua prenotazione mentre l'app era chiusa)
+            if (notificheInAttesa < notificheGiaViste) {
+                GestoreNotificheAgente.sincronizzaCancellazioni(applicationContext, notificheInAttesa)
+            }
+            // 5. NUOVE NOTIFICHE REALI
+            else if (notificheInAttesa > notificheGiaViste) {
+                GestoreNotificheAgente.salvaNuoveNotifiche(applicationContext, notificheInAttesa)
+
+                // Spariamo la notifica sul telefono
+                mostraNotificaAndroid(
+                    context = applicationContext,
+                    titolo = "Nuova Prenotazione!",
+                    messaggio = "Un utente ha richiesto una visita per un tuo immobile."
                 )
             }
             return Result.success()

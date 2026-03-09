@@ -47,8 +47,13 @@ import connection.scaricaTutteLeInserzioni
 import gui.template.myBottomNavBar_Agente
 import navigation.Screen
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import gui.template.myCardInserzione
 import kotlinx.serialization.encodeToString
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.ExistingPeriodicWorkPolicy
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +63,7 @@ fun AgenteScreen(username: String, navController: NavController) {
     // --- VARIABILI DI STATO PER I DATI REALI ---
     var listaInserzioniAgente by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    val context = LocalContext.current
 
     // --- SCARICAMENTO DATI AL CARICAMENTO DELLA PAGINA ---
     LaunchedEffect(username) {
@@ -69,6 +75,46 @@ fun AgenteScreen(username: String, navController: NavController) {
         listaInserzioniAgente = tutteLeInserzioni.filter { it.agenteCreatore == username }
 
         isLoading = false
+    }
+
+    LaunchedEffect(username) {
+        GestoreNotificheAgente.caricaStato(context)
+
+        while (true) {
+            val prenotazioni = connection.scaricaPrenotazioniAgente(username)
+
+            //L'agente viene notificato SOLO per quelle in ATTESA!
+            val notificheInAttesa = prenotazioni.count { it.stato == DTO.D_stato.ATTESA }
+            val notificheGiaViste = GestoreNotificheAgente.conteggioNotificheLette + GestoreNotificheAgente.conteggioNotificheNonLette.value
+
+            if (notificheInAttesa < notificheGiaViste) {
+                GestoreNotificheAgente.sincronizzaCancellazioni(context, notificheInAttesa)
+            } else if (notificheInAttesa > notificheGiaViste) {
+                GestoreNotificheAgente.salvaNuoveNotifiche(context, notificheInAttesa)
+
+                mostraNotificaAndroid(
+                    context = context,
+                    titolo = "Nuova Prenotazione!",
+                    messaggio = "Un utente ha richiesto una visita per un tuo immobile."
+                )
+            }
+            kotlinx.coroutines.delay(10000L) // Controlla ogni 10 secondi
+        }
+    }
+
+    // AVVIO DEL LAVORATORE IN BACKGROUND PER L'AGENTE (APP CHIUSA)
+    LaunchedEffect(username) {
+        // Creiamo una richiesta per eseguire il controllo ogni 15 minuti
+        val workRequest = PeriodicWorkRequestBuilder<connection.NotificheWorkerAgente>(
+            15, TimeUnit.MINUTES
+        ).build()
+
+        // Lo mettiamo in coda assicurandoci che abbia un NOME UNICO ("ControlloNotificheAgenteServer")
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "ControlloNotificheAgenteServer",
+            ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
     }
 
     Scaffold(
@@ -102,7 +148,7 @@ fun AgenteScreen(username: String, navController: NavController) {
                     Text(
                         text = "Ciao,\n$username",
                         fontWeight = FontWeight.Bold,
-                        color = Color.White, // mieiTitoli
+                        color = mieiTitoli,
                         textAlign = TextAlign.Center,
                         fontSize = 18.sp
                     )
@@ -137,7 +183,7 @@ fun AgenteScreen(username: String, navController: NavController) {
                     text = "I tuoi Immobili:",
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
-                    color = Color.Black, // mieScritte
+                    color = mieScritte,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(start = 20.dp)
                 )
@@ -145,11 +191,17 @@ fun AgenteScreen(username: String, navController: NavController) {
 
             // --- CONTROLLO STATO: CARICAMENTO, VUOTO O LISTA PIENA ---
             if (isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF000080)) // mioBluScuro
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = mioBluScuro)
                 }
             } else if (listaInserzioniAgente.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
                         text = "Non hai ancora caricato immobili.\nPremi 'Carica Immobile' per iniziare!",
                         textAlign = TextAlign.Center,

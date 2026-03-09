@@ -302,7 +302,7 @@ fun BoxInputValore(
                                 },
                             // Assicurati che 'mioBluScuro' sia accessibile qui,
                             // sennò usa un colore come Color.Gray o coloreBordo
-                            tint = Color(0xFF000080)
+                            tint = mioBluScuro
                         )
                     }
                 }

@@ -2,11 +2,11 @@ package connection
 
 import DTO.AgenteDTO
 import DTO.FiltriRicercaDTO
+import DTO.D_stato
 import DTO.InserzioneDTO
 import DTO.ModificaPasswordDTO
 import DTO.PrenotazioneDTO
 import DTO.UtenteDTO
-import DTO.source.PhonePrefix
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.request.*
@@ -33,7 +33,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://eyxtm-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://lbutd-2a0e-43d-8b44-0-cdf3-eda6-448e-ade5.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -203,11 +203,11 @@ suspend fun scaricaTutteLeInserzioni(): List<InserzioneDTO> {
     }
 }
 
-suspend fun scaricaAgente(username: String): AgenteDTO? {
+suspend fun scaricaAgente(identificativo: String): AgenteDTO? {
     return withContext(Dispatchers.IO) {
         try {
             // Usa il tuo indirizzo IP corretto al posto di 10.0.2.2 o quello che stai usando
-            val response = client.get("$urlServer/agente/$username")
+            val response = client.get("$urlServer/agente/$identificativo")
 
             if (response.status.isSuccess()) {
                 val agente = response.body<AgenteDTO>()
@@ -451,5 +451,25 @@ suspend fun verificaSeAccountGoogle(email: String): Boolean {
             e.printStackTrace()
             return@withContext false
         }
+    }
+}
+suspend fun scaricaPrenotazioniAgente(username: String): List<PrenotazioneDTO> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val risposta = client.get("$urlServer/prenotazioni/agente/$username")
+            if (risposta.status == HttpStatusCode.OK) risposta.body() else emptyList()
+        } catch (e: Exception) { emptyList() }
+    }
+}
+
+suspend fun aggiornaStatoPrenotazione(idPrenotazione: String, nuovoStato: D_stato): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.put("$urlServer/prenotazione/$idPrenotazione/stato") {
+                contentType(ContentType.Application.Json)
+                setBody(mapOf("stato" to nuovoStato.name))
+            }
+            response.status.isSuccess()
+        } catch (e: Exception) { false }
     }
 }

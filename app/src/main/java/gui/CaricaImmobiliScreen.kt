@@ -147,7 +147,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF000080) // mioBluScuro
+                    containerColor = mioBluScuro
                 ),
                 title = {
                     Text("Carica Immobile", fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
