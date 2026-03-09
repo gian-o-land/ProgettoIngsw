@@ -16,19 +16,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -39,11 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -64,17 +56,16 @@ import navigation.Screen
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun ProfiloScreen(navController : NavController, email : String) {
+fun ProfiloScreen(navController: NavController, email: String) {
     val context = LocalContext.current
-    var mostraDialogConferma by remember { mutableStateOf(false) }
 
-    // 1. Variabili di stato per la gestione del bottone disattivato
+    // Variabili di stato
+    var mostraDialogConferma by remember { mutableStateOf(false) }
     var isAccountGoogle by remember { mutableStateOf(true) } // Partiamo da true per sicurezza
     var datiCaricati by remember { mutableStateOf(false) }
 
-    // 2. Controllo API all'apertura
+    // Controllo API all'apertura per la password di Google
     LaunchedEffect(email) {
-        // Chiama la funzione che abbiamo creato nel file delle connessioni DB
         isAccountGoogle = verificaSeAccountGoogle(email)
         datiCaricati = true
     }
@@ -114,67 +105,19 @@ fun ProfiloScreen(navController : NavController, email : String) {
                 email = email
             )
         }
-
     ) { innerPadding ->
 
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Modifica le tue\ninformazioni personali",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center
-                )
-            }
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // --- BOTTONE 1: MODIFICA CREDENZIALI (Sempre attivo) ---
-            Button(
-                onClick = { navController.navigate(Screen.ModificaCredenzialiUtenteScreen.withMailUtente(email)) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro
-                ),
-                modifier = Modifier
-                    .height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 75.dp)
-            ) {
-                Text("Modifica Credenziali", fontSize = 17.sp)
-            }
-
-            Spacer(modifier = Modifier.height(30.dp))
-            myButton({navController.navigate(Screen.ModificaPasswordScreen.route)}, "Modifica Password")
-            Spacer(modifier = Modifier.height(30.dp))
-            myButton(
-                {mostraDialogConferma = true},
-                "Esci (Logout)"
-            )
-        }
+        // --- GESTIONE POPUP LOGOUT ---
         if (mostraDialogConferma) {
             Dialog(
-                onDismissRequest = {
-                    mostraDialogConferma = false
-                },
+                onDismissRequest = { mostraDialogConferma = false },
                 properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
             ) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(190.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = mioBackgroung
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = mioBackgroung),
                     border = BorderStroke(2.dp, mioBluScuro),
                     elevation = CardDefaults.cardElevation(8.dp)
                 ) {
@@ -197,7 +140,8 @@ fun ProfiloScreen(navController : NavController, email : String) {
                             imageVector = Icons.Default.Close,
                             contentDescription = "Chiudi",
                             tint = mioGialloOcra,
-                            modifier = Modifier.padding(end = 10.dp)
+                            modifier = Modifier
+                                .padding(end = 10.dp)
                                 .height(25.dp)
                                 .width(25.dp)
                                 .clickable { mostraDialogConferma = false }
@@ -225,12 +169,13 @@ fun ProfiloScreen(navController : NavController, email : String) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Button(
-                            onClick = {mostraDialogConferma = false},
+                            onClick = { mostraDialogConferma = false },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = mioGialloOcra,
                                 contentColor = mioBluScuro
                             ),
-                            modifier = Modifier.height(50.dp)
+                            modifier = Modifier
+                                .height(50.dp)
                                 .width(150.dp)
                                 .padding(start = 15.dp)
                         ) {
@@ -238,9 +183,7 @@ fun ProfiloScreen(navController : NavController, email : String) {
                         }
                         Button(
                             onClick = {
-                                //Spegniamo il popup
                                 mostraDialogConferma = false
-
                                 SessionManager.eseguiLogout(context)
                                 navController.navigate(Screen.LoginScreen.route) {
                                     popUpTo(0) { inclusive = true }
@@ -250,7 +193,8 @@ fun ProfiloScreen(navController : NavController, email : String) {
                                 containerColor = mioGialloOcra,
                                 contentColor = mioBluScuro
                             ),
-                            modifier = Modifier.height(50.dp)
+                            modifier = Modifier
+                                .height(50.dp)
                                 .width(150.dp)
                                 .padding(end = 15.dp)
                         ) {
@@ -258,18 +202,57 @@ fun ProfiloScreen(navController : NavController, email : String) {
                         }
                     }
                 }
+            }
+        }
 
+        // --- SCHERMATA PRINCIPALE (Contenuto Centrale) ---
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Modifica le tue\ninformazioni personali",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = mieScritte,
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // 1. BOTTONE: MODIFICA CREDENZIALI
+            Button(
+                onClick = { navController.navigate(Screen.ModificaCredenzialiUtenteScreen.withMailUtente(email)) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioGialloOcra,
+                    contentColor = mioBluScuro
+                ),
+                modifier = Modifier
+                    .height(50.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 75.dp)
+            ) {
+                Text("Modifica Credenziali", fontSize = 17.sp)
             }
 
-            // --- BOTTONE 2: MODIFICA PASSWORD (Intelligente) ---
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // 2. BOTTONE: MODIFICA PASSWORD (con controllo Google)
             Button(
                 onClick = { navController.navigate(Screen.ModificaPasswordScreen.withArgs(email, D_tipoUtente.UTENTE)) },
-                enabled = datiCaricati && !isAccountGoogle, // Se è account Google, il bottone si disattiva
+                enabled = datiCaricati && !isAccountGoogle, // Si disattiva se l'account è Google
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioGialloOcra,
                     contentColor = mioBluScuro,
-                    disabledContainerColor = Color.LightGray, // Colore quando è disattivato
-                    disabledContentColor = Color.DarkGray     // Colore del testo quando è disattivato
+                    disabledContainerColor = Color.LightGray,
+                    disabledContentColor = Color.DarkGray
                 ),
                 modifier = Modifier
                     .height(50.dp)
@@ -279,7 +262,7 @@ fun ProfiloScreen(navController : NavController, email : String) {
                 Text("Modifica Password", fontSize = 17.sp)
             }
 
-            // Messaggio opzionale sotto il bottone per spiegare perché è grigio
+            // Testo esplicativo se il bottone della password è disattivato
             if (datiCaricati && isAccountGoogle) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -288,6 +271,23 @@ fun ProfiloScreen(navController : NavController, email : String) {
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center
                 )
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // 3. BOTTONE: LOGOUT
+            Button(
+                onClick = { mostraDialogConferma = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioGialloOcra,
+                    contentColor = mioBluScuro
+                ),
+                modifier = Modifier
+                    .height(50.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 75.dp)
+            ) {
+                Text("Esci (Logout)", fontSize = 17.sp)
             }
 
             Spacer(modifier = Modifier.height(50.dp))

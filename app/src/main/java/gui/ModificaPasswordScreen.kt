@@ -34,8 +34,8 @@ import com.example.progettoingsw.R
 import gui.template.myButton
 
 import android.widget.Toast
+import androidx.compose.foundation.shape.RoundedCornerShape
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,9 +55,11 @@ fun ModificaPasswordScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // --- NUOVA VARIABILE ---
-    var textFieldVecchiaPassword by remember { mutableStateOf("") }
+    // --- STATO PER LO SNACKBAR ---
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    // --- VARIABILI FORM ---
+    var textFieldVecchiaPassword by remember { mutableStateOf("") }
     var textFieldPasswordModificata by remember { mutableStateOf("") }
     var textFieldRipetiPasswordModificata by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -75,6 +77,20 @@ fun ModificaPasswordScreen(
                     Image(painter = painterResource(id = R.drawable.logo), contentDescription = "Logo", modifier = Modifier.height(50.dp).width(50.dp))
                 }
             )
+        },
+        // --- SNACKBAR AGGANCIATO ALLO SCAFFOLD ---
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(horizontal = 35.dp, vertical = 20.dp)
+            ) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -88,7 +104,7 @@ fun ModificaPasswordScreen(
             )
             Spacer(modifier = Modifier.height(30.dp))
 
-            // --- NUOVO TEXTFIELD PER LA VECCHIA PASSWORD ---
+            // --- TESTO VECCHIA PASSWORD ---
             myTextField_Password(
                 myModifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 myLabel = "Vecchia Password",
@@ -97,6 +113,7 @@ fun ModificaPasswordScreen(
             )
             Spacer(modifier = Modifier.height(15.dp))
 
+            // --- TESTO NUOVA PASSWORD ---
             myTextField_Password(
                 myModifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 myLabel = "Nuova Password",
@@ -105,6 +122,7 @@ fun ModificaPasswordScreen(
             )
             Spacer(modifier = Modifier.height(15.dp))
 
+            // --- TESTO RIPETI NUOVA PASSWORD ---
             myTextField_Password(
                 myModifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 myLabel = "Ripeti Nuova Password",
@@ -118,7 +136,7 @@ fun ModificaPasswordScreen(
             } else {
                 myButton(
                     myClick = {
-                        // 1. Validazione base aggiornata
+                        // 1. Validazione base: campi vuoti e coincidenza
                         if (textFieldVecchiaPassword.isBlank() || textFieldPasswordModificata.isBlank() || textFieldRipetiPasswordModificata.isBlank()) {
                             Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
                             return@myButton
@@ -127,18 +145,31 @@ fun ModificaPasswordScreen(
                             Toast.makeText(context, "Le nuove password non coincidono", Toast.LENGTH_SHORT).show()
                             return@myButton
                         }
-                        if (textFieldPasswordModificata.length < 6) {
-                            Toast.makeText(context, "La password deve essere di almeno 6 caratteri", Toast.LENGTH_SHORT).show()
+
+                        // 2. Controllo stringente SOLO sulla nuova password
+                        val isValidLength = textFieldPasswordModificata.length > 8
+                        val hasUpperCase = textFieldPasswordModificata.any { it.isUpperCase() }
+                        val hasLowerCase = textFieldPasswordModificata.any { it.isLowerCase() }
+                        val hasDigit = textFieldPasswordModificata.any { it.isDigit() }
+                        val hasSpecialChar = textFieldPasswordModificata.any { !it.isLetterOrDigit() }
+
+                        if (!isValidLength || !hasUpperCase || !hasLowerCase || !hasDigit || !hasSpecialChar) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = "La nuova password deve avere > 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
                             return@myButton
                         }
 
-                        // 2. Chiamata al server con il nuovo DTO
+                        // 3. Chiamata al server con il nuovo DTO
                         scope.launch {
                             isLoading = true
                             val dto = ModificaPasswordDTO(
                                 identificativo = identificativoCaratteristico,
                                 tipoUtente = tipoUtente,
-                                vecchiaPassword = textFieldVecchiaPassword, // <-- Passiamo la vecchia password!
+                                vecchiaPassword = textFieldVecchiaPassword,
                                 nuovaPassword = textFieldPasswordModificata
                             )
 

@@ -5,6 +5,7 @@ import DTO.FiltriRicercaDTO
 import DTO.InserzioneDTO
 import DTO.ModificaPasswordDTO
 import DTO.PrenotazioneDTO
+import DTO.RegistrazioneUtenteDTO
 import DTO.UtenteDTO
 import DTO.source.PhonePrefix
 import io.ktor.client.*
@@ -33,7 +34,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://eyxtm-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://kutna-87-17-140-60.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -450,6 +451,22 @@ suspend fun verificaSeAccountGoogle(email: String): Boolean {
             Log.e("API_GOOGLE", "CRASH DURANTE LA CHIAMATA: ${e.message}")
             e.printStackTrace()
             return@withContext false
+        }
+    }
+}
+
+suspend fun registraNuovoUtente(dati: RegistrazioneUtenteDTO): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.post("$urlServer/auth/registrazione") {
+                contentType(ContentType.Application.Json)
+                setBody(dati)
+            }
+            // HttpStatusCode.Created (201) o OK (200) indicano successo
+            response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            Log.e("API_REGISTRAZIONE", "Errore: ${e.message}")
+            false
         }
     }
 }
