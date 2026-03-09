@@ -108,80 +108,7 @@ fun ProfiloScreen(navController: NavController, email: String) {
 
     ) { innerPadding ->
 
-        // --- GESTIONE POPUP LOGOUT ---
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Modifica le tue\ninformazioni personali",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center
-                )
-            }
-            Spacer(modifier = Modifier.height(40.dp))
 
-            // --- BOTTONE 1: MODIFICA CREDENZIALI (Sempre attivo) ---
-            Button(
-                onClick = { navController.navigate(Screen.ModificaCredenzialiUtenteScreen.withMailUtente(email)) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro
-                ),
-                modifier = Modifier
-                    .height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 75.dp)
-            ) {
-                Text("Modifica Credenziali", fontSize = 17.sp)
-            }
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // --- BOTTONE 2: MODIFICA PASSWORD (Intelligente) ---
-            Button(
-                onClick = { navController.navigate(Screen.ModificaPasswordScreen.withArgs(email, D_tipoUtente.UTENTE)) },
-                enabled = datiCaricati && !isAccountGoogle, // Se è account Google, il bottone si disattiva
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro,
-                    disabledContainerColor = Color.LightGray, // Colore quando è disattivato
-                    disabledContentColor = Color.DarkGray     // Colore del testo quando è disattivato
-                ),
-                modifier = Modifier
-                    .height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 75.dp)
-            ) {
-                Text("Modifica Password", fontSize = 17.sp)
-            }
-
-            // Messaggio opzionale sotto il bottone per spiegare perché è grigio
-            if (datiCaricati && isAccountGoogle) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Password gestita tramite Google",
-                    color = Color.Gray,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(modifier = Modifier.height(30.dp))
-            myButton(
-                {mostraDialogConferma = true},
-                "Esci (Logout)"
-            )
-        }
         if (mostraDialogConferma) {
             Dialog(
                 onDismissRequest = { mostraDialogConferma = false },
@@ -348,20 +275,10 @@ fun ProfiloScreen(navController: NavController, email: String) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // 3. BOTTONE: LOGOUT
-            Button(
-                onClick = { mostraDialogConferma = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro
-                ),
-                modifier = Modifier
-                    .height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 75.dp)
-            ) {
-                Text("Esci (Logout)", fontSize = 17.sp)
-            }
+            myButton(
+                {mostraDialogConferma = true},
+                "Esci (Logout)"
+            )
 
             Spacer(modifier = Modifier.height(50.dp))
         }

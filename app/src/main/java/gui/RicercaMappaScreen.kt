@@ -170,7 +170,14 @@ fun RicercaMappaScreen(
                         )
                     }
                 }
-                .addOnFailureListener { listaSuggerimenti = emptyList() }
+                .addOnFailureListener { exception ->
+                    // ECCO IL RAGGI X: Questo ti dirà esattamente perché Google rifiuta la chiamata!
+                    android.util.Log.e("PLACES_API", "Errore suggerimenti: ${exception.message}")
+                    listaSuggerimenti = emptyList()
+                }
+        } else {
+            // Pulisce i suggerimenti se la barra di ricerca torna vuota
+            listaSuggerimenti = emptyList()
         }
     }
 
@@ -330,7 +337,7 @@ fun RicercaMappaScreen(
                         currentPeekHeight = 0.dp
                         scope.launch { scaffoldState.bottomSheetState.partialExpand() }
                         listaInserzioniNelCerchio = emptyList()
-                        // eseguiRicerca(query, scope, context, cameraPositionState)
+                        eseguiRicerca(query, scope, context, cameraPositionState)
                     },
                     active = active,
                     onActiveChange = { active = it },
