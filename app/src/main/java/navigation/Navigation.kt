@@ -1,5 +1,6 @@
 package navigation
 
+import DTO.FiltriRicercaDTO
 import DTO.InserzioneDTO
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -209,10 +210,22 @@ fun Navigation() {
 
             val locationObj = LatLng(lat, lng)
 
+            // --- NUOVA AGGIUNTA: PESCHIAMO I FILTRI ---
+            // 1. Cerchiamo il JSON nello "zainetto" della pagina precedente
+            val filtriJson = navController.previousBackStackEntry?.savedStateHandle?.get<String>("filtri_json")
+
+            // 2. Lo decodifichiamo in oggetto. Se non c'è, creiamo un filtro vuoto di default.
+            val filtriAttivi = if (filtriJson != null) {
+                kotlinx.serialization.json.Json.decodeFromString<FiltriRicercaDTO>(filtriJson)
+            } else {
+                FiltriRicercaDTO()
+            }
+
             RicercaMappaScreen(
                 location = locationObj,
                 navController = navController,
-                email = emailUtente
+                email = emailUtente,
+                filtri = filtriAttivi // <-- Assegniamo l'oggetto decodificato!
             )
         }
         composable(route = Screen.RicercaScreen.route){
