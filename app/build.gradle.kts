@@ -75,6 +75,8 @@ dependencies {
     implementation(libs.androidx.media3.common.ktx)
     implementation(libs.androidx.compose.remote.creation.core)
     implementation(libs.foundation.layout)
+    implementation(libs.ui)
+    implementation(libs.androidx.runtime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

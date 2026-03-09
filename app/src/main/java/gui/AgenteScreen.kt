@@ -96,7 +96,7 @@ fun AgenteScreen(username: String, navController: NavController) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF000080) // mioBluScuro
+                    containerColor = mioBluScuro
                 ),
                 title = {
                     Text(

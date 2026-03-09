@@ -3,6 +3,7 @@ package connection
 import DTO.AgenteDTO
 import DTO.FiltriRicercaDTO
 import DTO.InserzioneDTO
+import DTO.ModificaPasswordDTO
 import DTO.PrenotazioneDTO
 import DTO.UtenteDTO
 import DTO.source.PhonePrefix
@@ -15,6 +16,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.client.call.body
@@ -31,7 +33,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://eyxtm-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://zszlg-87-17-140-60.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -386,5 +388,53 @@ suspend fun inviaPrenotazione(prenotazione: PrenotazioneDTO): Boolean {
     } catch (e: Exception) {
         android.util.Log.e("API_PRENOTAZIONE", "Errore di connessione: ${e.message}")
         false
+    }
+}
+suspend fun aggiornaPasswordServer(dati: ModificaPasswordDTO): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.post("$urlServer/auth/modifica-password") {
+                contentType(ContentType.Application.Json)
+                setBody(dati)
+            }
+            response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            android.util.Log.e("API_PASSWORD", "Errore aggiornamento password: ${e.message}")
+            false
+        }
+    }
+}
+suspend fun verificaSeAccountGoogle(email: String): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            Log.d("API_GOOGLE", "1. Inizio chiamata per email: $email")
+
+            val response = client.get("$urlServer/utente/$email") {
+                contentType(ContentType.Application.Json)
+            }
+
+            Log.d("API_GOOGLE", "2. Risposta dal server: HTTP ${response.status}")
+
+            if (response.status == HttpStatusCode.OK) {
+                // Proviamo a convertire il JSON
+                val utenteScaricato = response.body<UtenteDTO>()
+
+                val passwordScaricata = utenteScaricato.password
+                Log.d("API_GOOGLE", "3. Password trovata nel DB: '$passwordScaricata'")
+
+                // Usiamo .trim() per rimuovere eventuali spazi vuoti invisibili prima o dopo!
+                val isGoogle = passwordScaricata.trim() == "Accesso_Google0"
+
+                Log.d("API_GOOGLE", "4. Il controllo restituisce: $isGoogle")
+                return@withContext isGoogle
+            } else {
+                Log.e("API_GOOGLE", "Errore dal server: ${response.status}")
+                return@withContext false
+            }
+        } catch (e: Exception) {
+            Log.e("API_GOOGLE", "CRASH DURANTE LA CHIAMATA: ${e.message}")
+            e.printStackTrace()
+            return@withContext false
+        }
     }
 }

@@ -1,5 +1,6 @@
 package navigation
 
+import DTO.D_tipoUtente
 import DTO.FiltriRicercaDTO
 import DTO.InserzioneDTO
 import android.os.Build
@@ -307,8 +308,38 @@ fun Navigation() {
         composable(route = Screen.ModificaCredenzialiScreen.route){
             ModificaCredenzialiScreen(navController)
         }
-        composable(route = Screen.ModificaPasswordScreen.route){
-            ModificaPasswordScreen(navController)
+        composable(
+            route = Screen.ModificaPasswordScreen.route,
+            arguments = listOf(
+                navArgument("identificativo") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("tipoUtente") {
+                    type = NavType.StringType
+                    defaultValue = D_tipoUtente.UTENTE.name
+                }
+            )
+        ) { backStackEntry ->
+
+            // 1. Estraiamo i dati passati nell'URL (l'email/username e il tipo utente come stringa)
+            val identificativo = backStackEntry.arguments?.getString("identificativo") ?: ""
+            val tipoStringa = backStackEntry.arguments?.getString("tipoUtente") ?: D_tipoUtente.UTENTE.name
+
+            // 2. Riconvertiamo la stringa ("AGENTE", "ADMIN", ecc.) nel tuo vero e proprio oggetto Enum
+            val tipoEnum = try {
+                D_tipoUtente.valueOf(tipoStringa)
+            } catch (e: Exception) {
+                // Fallback di sicurezza: se per qualche motivo l'URL è sporco, lo consideriamo UTENTE
+                D_tipoUtente.UTENTE
+            }
+
+            // 3. Chiamiamo la schermata passandole i parametri perfetti!
+            ModificaPasswordScreen(
+                navController = navController,
+                identificativoCaratteristico = identificativo,
+                tipoUtente = tipoEnum
+            )
         }
         composable(
             route = Screen.FiltriScreen.route,
