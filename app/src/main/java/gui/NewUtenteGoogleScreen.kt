@@ -58,6 +58,8 @@ import androidx.compose.runtime.DisposableEffect
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Dispatchers
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalContext
+import connection.SessionManager
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, kotlinx.coroutines.DelicateCoroutinesApi::class)
@@ -76,6 +78,7 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var isConfermato by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     BackHandler {
         coroutineScope.launch {
@@ -267,6 +270,8 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
                         // 3. Se va a buon fine, navighiamo alla schermata utente!
                         if (successo) {
                             isConfermato = true
+
+                            SessionManager.salvaSessione(context, email, 0)
 
                             navController.navigate(navigation.Screen.UtenteScreen.withMailUtente(email)) {
                                 // Rimuoviamo le vecchie schermate di login dalla cronologia

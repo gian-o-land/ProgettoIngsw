@@ -25,6 +25,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState // Importante per l'evidenziazione automatica
 import navigation.Screen
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import gui.GestoreNotifiche
 
 @Composable
 fun myBottomNavBar(navController: NavController, email : String) {
@@ -77,10 +80,17 @@ fun myBottomNavBar(navController: NavController, email : String) {
                     unselectedTextColor = Color.White
                 ),
                 icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label
-                    )
+                    if (item.label == "Notifiche" && GestoreNotifiche.haNuoveNotifiche.value) {
+                        //MOSTRA IL PALLINO ROSSO!
+                        BadgedBox(
+                            badge = { Badge { Text("!") } }
+                        ) {
+                            Icon(imageVector = item.icon, contentDescription = item.label)
+                        }
+                    } else {
+                        // Icona normale senza pallino
+                        Icon(imageVector = item.icon, contentDescription = item.label)
+                    }
                 },
                 label = { Text(item.label) },
                 selected = isSelected,

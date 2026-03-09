@@ -1,6 +1,7 @@
 package gui
 
 
+import DTO.D_stato
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -42,7 +43,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -50,28 +50,94 @@ import com.example.progettoingsw.R
 import com.google.android.gms.maps.model.LatLng
 import connection.scaricaUtente
 import navigation.Screen
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.ExistingPeriodicWorkPolicy
+import connection.scaricaPrenotazioniUtente
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 
 fun UtenteScreen(emailUtente:String,navController : NavController) {
-    var textFieldRicerca by remember {
-        mutableStateOf("")
-    }
-
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
     val locationRoma = LatLng(41.9028, 12.4964)
     val locationMilano = LatLng(45.4642, 9.1900)
     val locationNapoli = LatLng(40.8518, 14.2681)
 
-    var isLoading by remember { mutableStateOf(true) }
+    var nomeUtente by remember { mutableStateOf(connection.SessionManager.leggiNome(context) ?: "") }
+    var cognomeUtente by remember { mutableStateOf(connection.SessionManager.leggiCognome(context) ?: "") }
 
-    var utente by remember { mutableStateOf<DTO.UtenteDTO?>(null) }
+    var isLoading by remember { mutableStateOf(nomeUtente.isEmpty()) }
+
     LaunchedEffect(emailUtente) {
-        isLoading = true
-        // Questa chiamata viene fatta in background senza bloccare l'app
-        utente = scaricaUtente(emailUtente)
+        val datiAggiornati = scaricaUtente(emailUtente)
+
+        if (datiAggiornati != null) {
+            // Aggiorniamo le variabili a schermo
+            nomeUtente = datiAggiornati.nome
+            cognomeUtente = datiAggiornati.cognome
+
+            // Salviamo i dati freschi in memoria
+            connection.SessionManager.salvaNomeCognome(context, datiAggiornati.nome, datiAggiornati.cognome)
+        }
+
+        // Spegniamo il caricamento a schermo intero
         isLoading = false
+    }
+
+    // 1. GESTORE PERMESSI NOTIFICHE (Per Android 13+)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {}
+
+    // AVVIO DEL LAVORATORE IN BACKGROUND APP CHIUSA (WORKMANAGER)
+    LaunchedEffect(emailUtente) {
+        // Creiamo una richiesta per eseguire il controllo periodicamente
+        val workRequest = PeriodicWorkRequestBuilder<connection.NotificheWorker>(
+            15, TimeUnit.MINUTES // Minimo consentito da Android
+        ).build()
+
+        // Diciamo ad Android di metterlo in coda (KEEP significa che non lo duplica se esiste già)
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            "ControlloNotificheServer",
+            ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
+    }
+
+    // AVVIO DEL LAVORATORE IN BACKGROUND APP APERTA
+    LaunchedEffect(emailUtente) {
+        GestoreNotifiche.caricaStato(context)
+
+        while (true) {
+            val prenotazioni = scaricaPrenotazioniUtente(emailUtente)
+            val notificheChiuse = prenotazioni.count { it.stato != D_stato.ATTESA }
+
+            if (notificheChiuse > GestoreNotifiche.conteggioNotificheLette) {
+
+                // Salviamo in memoria
+                GestoreNotifiche.salvaNuoveNotifiche(context, notificheChiuse)
+
+                // Lanciamo la notifica
+                mostraNotificaAndroid(
+                    context = context,
+                    titolo = "Aggiornamento Prenotazione",
+                    messaggio = "Un agente ha risposto a una tua richiesta di visita."
+                )
+            }
+
+            // Pausa veloce di soli 10 secondi!
+            delay(10000L)
+        }
     }
 
     if (isLoading) {
@@ -89,8 +155,8 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                     containerColor =  mioBluScuro
                 ),
                 title = {
-                    val testoTitolo = if (utente != null) {
-                        "Ciao,\n${utente!!.nome} ${utente!!.cognome}"
+                    val testoTitolo = if (nomeUtente.isNotEmpty()) {
+                        "Ciao,\n$nomeUtente $cognomeUtente"
                     } else {
                         "Ciao,\nCaricamento..."
                     }
@@ -118,6 +184,12 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
         ) { innerPadding ->
 
+            // Appena si apre la pagina utente, chiediamo il permesso per le notifiche
+            LaunchedEffect(Unit) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
             Column(
                 modifier = Modifier
                     .padding(innerPadding)

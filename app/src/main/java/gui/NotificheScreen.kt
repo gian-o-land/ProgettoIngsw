@@ -38,26 +38,41 @@ import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import gui.template.myBottomNavBar
 import DTO.D_stato
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.CircularProgressIndicator
 import navigation.Screen
+import connection.scaricaPrenotazioniUtente
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun NotificheScreen(navController : NavController, email : String) {
     val scrollState = rememberLazyListState()
 
-    data class Notifica(val titolo: String, val contenuto: String, val stato: D_stato)
-    // Dati fittizi che riproducono l'immagine
-    val listaNotifiche = remember {
-        listOf(
-            Notifica("Notifica 1", "<<contenuto notifica>>", D_stato.ACCETTATA),
-            Notifica("Notifica 2", "<<contenuto notifica>>", D_stato.RIFIUTATA),
-            Notifica("Notifica 3", "<<contenuto notifica>>", D_stato.ATTESA),
-            Notifica("Notifica 4", "<<contenuto notifica>>", D_stato.ACCETTATA),
-            Notifica("Notifica 5", "<<contenuto notifica>>", D_stato.ACCETTATA),
-            Notifica("Notifica 6", "<<contenuto notifica>>", D_stato.ACCETTATA),
-            Notifica("Notifica 7", "<<contenuto notifica>>", D_stato.ACCETTATA),
-            Notifica("Notifica 8", "<<contenuto notifica>>", D_stato.ACCETTATA)
-        )
+    data class Notifica(val titolo: String, val contenuto: String, val stato: D_stato, val codiceInserzione: String)
+    var listaNotifiche by remember { mutableStateOf<List<Notifica>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+
+    // Scarichiamo i dati all'avvio della pagina
+    LaunchedEffect(email) {
+        GestoreNotifiche.azzeraPallino(context)
+
+        val prenotazioni = scaricaPrenotazioniUtente(email)
+
+        listaNotifiche = prenotazioni.map { p ->
+            Notifica(
+                titolo = "Visita ${p.idPrenotazione}",
+                contenuto = p.contenuto,
+                stato = p.stato,
+                codiceInserzione = p.codiceInserzione
+            )
+        }
+        isLoading = false
     }
 
     Scaffold(
@@ -103,79 +118,85 @@ fun NotificheScreen(navController : NavController, email : String) {
                 containerColor = mioBackgroung
             )
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp, bottom = 20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    "Gestisci le\ntue prenotazione",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center)
-            }
-            LazyColumn(
-                modifier = Modifier
-                    .background(mioBackgroung)
-                    .fillMaxWidth(),
-                state = scrollState
-            ) {
-                items(listaNotifiche){ notifica ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .clickable{
-                                navController.navigate(Screen.InserzioneScreen.route)
-                            },
-                        shape = RoundedCornerShape(30.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = mioBackgroung
-                        ),
-                        border = BorderStroke(1.dp, Color.Black),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 9.dp)
-                    ) {
-                        Row(
+            if (isLoading){
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = mioBluScuro)
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp, bottom = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "Gestisci le\ntue prenotazione",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                        color = mieScritte,
+                        textAlign = TextAlign.Center)
+                }
+                LazyColumn(
+                    modifier = Modifier
+                        .background(mioBackgroung)
+                        .fillMaxWidth(),
+                    state = scrollState
+                ) {
+                    items(listaNotifiche){ notifica ->
+                        Card(
                             modifier = Modifier
-                                .fillMaxSize(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .clickable{
+                                    navController.navigate(Screen.InserzioneScreen.route)
+                                },
+                            shape = RoundedCornerShape(30.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = mioBackgroung
+                            ),
+                            border = BorderStroke(1.dp, Color.Black),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 9.dp)
                         ) {
-                            Column(
+                            Row(
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
+                                    .fillMaxSize(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
+                                ) {
+                                    Text(
+                                        text = notifica.titolo,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 16.sp,
+                                        color = Color.Black
+                                    )
+                                    Text(
+                                        text = notifica.contenuto,
+                                        fontSize = 14.sp,
+                                        color = Color.DarkGray,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
                                 Text(
-                                    text = notifica.titolo,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 16.sp,
-                                    color = Color.Black
-                                )
-                                Text(
-                                    text = notifica.contenuto,
-                                    fontSize = 14.sp,
-                                    color = Color.DarkGray,
-                                    modifier = Modifier.padding(top = 4.dp)
+                                    text = notifica.stato.toString(),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp,
+                                    color = when(notifica.stato) {
+                                        D_stato.ACCETTATA -> Color(0xFF4CAF50)
+                                        D_stato.RIFIUTATA -> Color.Red
+                                        D_stato.ATTESA -> Color.DarkGray
+                                    },
+                                    modifier = Modifier.padding(end = 10.dp)
                                 )
                             }
-                            Text(
-                                text = notifica.stato.toString(),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 17.sp,
-                                color = when(notifica.stato) {
-                                    D_stato.ACCETTATA -> Color(0xFF4CAF50)
-                                    D_stato.RIFIUTATA -> Color.Red
-                                    D_stato.ATTESA -> Color.DarkGray
-                                },
-                                modifier = Modifier.padding(end = 10.dp)
-                            )
                         }
+                        Spacer(modifier = Modifier.height(15.dp))
                     }
-                    Spacer(modifier = Modifier.height(15.dp))
                 }
             }
         }

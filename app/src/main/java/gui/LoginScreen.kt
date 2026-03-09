@@ -56,6 +56,7 @@ import androidx.media3.common.util.Log
 import connection.connessioneLoginGoogle
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.util.UnstableApi
+import connection.SessionManager
 import connection.scaricaUtente
 
 @OptIn(UnstableApi::class)
@@ -93,7 +94,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 Image(
                     painter = painter,
                     contentDescription = descrizione,
-                    modifier = Modifier.height(180.dp))
+                    modifier = Modifier.height(160.dp).padding(top = 30.dp))
             }
         }
         Card(
@@ -167,6 +168,8 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                         if (dati?.telefono == "0000000000" && dati.password == "Accesso_Google0"){
                                             navController.navigate(Screen.NewUtenteGoogleScreen.withEmailGoogle(mailUtente))
                                         } else{
+                                            SessionManager.salvaSessione(context, mailUtente, 0)
+
                                             navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente)) {
                                                 popUpTo(0)
                                             }
@@ -249,20 +252,28 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                     coroutineScope.launch {
                         val risposta = connessioneLogin(textFieldEmail, textFieldPassword)
                         if (risposta==0){
-                              navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmail)){
+                            SessionManager.salvaSessione(context, textFieldEmail, 0)
+
+                            navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmail)){
                                   popUpTo(0)
                               }
 
                         }else if (risposta==1){
+                            SessionManager.salvaSessione(context, textFieldEmail, 1)
+
                             navController.navigate(Screen.AdminScreen.withMailAdmin(textFieldEmail)){
                                 popUpTo(0)
                             }
                         }else if (risposta==2){
+                            SessionManager.salvaSessione(context, textFieldEmail, 2)
+
                             navController.navigate(Screen.SottoadminScreen.withMailSottoadmin(textFieldEmail)){
                                 popUpTo(0)
                             }
 
                         }else if (risposta==3){
+                            SessionManager.salvaSessione(context, textFieldEmail, 3)
+
                             navController.navigate(Screen.AgenteScreen.withMailAgente(textFieldEmail)){
                                 popUpTo(0)
                             }
