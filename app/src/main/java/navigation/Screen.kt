@@ -1,5 +1,6 @@
 package navigation
 
+import DTO.D_tipoUtente
 import android.net.Uri
 import com.google.android.gms.maps.model.LatLng
 
@@ -79,7 +80,17 @@ sealed class Screen(val route: String) {
         }
     }
     data object ModificaCredenzialiScreen: Screen("modifica_credenziali_screen")
-    data object ModificaPasswordScreen: Screen("modifica_password_screen")
+    data object ModificaPasswordScreen : Screen("modifica_password_screen?identificativo={identificativo}&tipoUtente={tipoUtente}") {
+
+        fun withArgs(identificativo: String, tipoUtente: D_tipoUtente): String {
+            // Codifichiamo l'identificativo (specialmente utile se è un'email con la @)
+            val idCodificato = Uri.encode(identificativo)
+            // Trasformiamo l'enum in stringa e lo codifichiamo per sicurezza
+            val tipoCodificato = Uri.encode(tipoUtente.name)
+
+            return "modifica_password_screen?identificativo=$idCodificato&tipoUtente=$tipoCodificato"
+        }
+    }
     data object ProfiloAdminScreen: Screen("profilo_admin_screen?username={username}&ruolo={ruolo}") {
         fun withUsernameAndRole(username: String, ruolo: Int): String {
             return "profilo_admin_screen?username=${Uri.encode(username)}&ruolo=$ruolo"

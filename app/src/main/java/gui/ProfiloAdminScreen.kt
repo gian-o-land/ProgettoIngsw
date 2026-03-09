@@ -1,5 +1,6 @@
 package gui
 
+import DTO.D_tipoUtente
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -85,7 +86,7 @@ fun ProfiloAdminScreen(username: String, navController: NavController, ruolo: In
                 )
             }
             Spacer(modifier = Modifier.height(40.dp))
-            myButton({navController.navigate(Screen.ModificaPasswordScreen.route)}, "Modifica Password")
+            myButton({navController.navigate(Screen.ModificaPasswordScreen.withArgs(username, D_tipoUtente.ADMIN))}, "Modifica Password")
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
