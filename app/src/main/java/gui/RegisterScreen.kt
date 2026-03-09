@@ -331,11 +331,12 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                 contentDescription = descrizione,
                 contentScale = ContentScale.Inside,
                 modifier = Modifier
-                    .requiredHeight(headerMaxHeight) // Mantiene la size originale anche quando il box si stringe
+                    .requiredHeight(160.dp) // Mantiene la size originale anche quando il box si stringe
                     .graphicsLayer {
                         alpha = imageAlpha
                     }
                     .align(Alignment.BottomCenter) // Mantiene l'immagine centrata in basso mentre si chiude
+                    .padding(top = 10.dp, bottom = 20.dp)
             )
         }
     }

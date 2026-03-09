@@ -353,8 +353,8 @@ fun PrenotazioneScreen(
                                 Button(
                                     onClick = {
                                         prenotazioneEffettuata = false
-                                        navController.navigate(Screen.UtenteScreen.route) {
-                                            popUpTo(Screen.UtenteScreen.route) { inclusive = true }
+                                        navController.navigate(Screen.UtenteScreen.withMailUtente(email)) {
+                                            popUpTo(0)
                                         }
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = mioGialloOcra, contentColor = mioBluScuro),

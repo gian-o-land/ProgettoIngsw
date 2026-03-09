@@ -30,7 +30,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://wijiv-2a0e-43d-8b44-0-a1dc-186c-aa51-73a9.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://ybpmj-101-56-160-180.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -359,5 +359,20 @@ suspend fun inviaPrenotazione(prenotazione: PrenotazioneDTO): Boolean {
     } catch (e: Exception) {
         android.util.Log.e("API_PRENOTAZIONE", "Errore di connessione: ${e.message}")
         false
+    }
+}
+
+suspend fun scaricaPrenotazioniUtente(email: String): List<PrenotazioneDTO> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val risposta: HttpResponse = client.get("$urlServer/prenotazioni/utente/$email")
+            if (risposta.status == HttpStatusCode.OK) {
+                risposta.body()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }

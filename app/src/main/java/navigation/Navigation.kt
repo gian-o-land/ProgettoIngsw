@@ -47,6 +47,8 @@ import gui.ModificaCredenzialiUtenteScreen
 import gui.NewUtenteGoogleScreen
 import gui.NotificheAgenteScreen
 import gui.mioBluScuro
+import androidx.compose.ui.platform.LocalContext
+import connection.SessionManager
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -54,9 +56,28 @@ import gui.mioBluScuro
 fun Navigation() {
     val navController = rememberNavController()
 
+    val context = LocalContext.current
+
+    // 1. Leggiamo dalla memoria a lungo termine
+    val emailSalvata = SessionManager.leggiEmail(context)
+    val ruoloSalvato = SessionManager.leggiRuolo(context)
+
+    // 2. Decidiamo dinamicamente la schermata di partenza!
+    val schermataDiPartenza = if (emailSalvata != null && ruoloSalvato != -1) {
+        when (ruoloSalvato) {
+            0 -> Screen.UtenteScreen.withMailUtente(emailSalvata)
+            1 -> Screen.AdminScreen.withMailAdmin(emailSalvata)
+            2 -> Screen.SottoadminScreen.withMailSottoadmin(emailSalvata)
+            3 -> Screen.AgenteScreen.withMailAgente(emailSalvata)
+            else -> Screen.LoginScreen.route
+        }
+    } else {
+        Screen.LoginScreen.route // Nessuno salvato, si va al login!
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Screen.LoginScreen.route,
+        startDestination = schermataDiPartenza,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
@@ -64,11 +85,11 @@ fun Navigation() {
     ){
 
         composable(route = Screen.LoginScreen.route){
-            LoginScreen(painterResource(id = R.drawable.logo),"Logo", navController)
+            LoginScreen(painterResource(id = R.drawable.logo_lettering),"Logo", navController)
         }
 
         composable(route = Screen.RegisterScreen.route){
-            RegisterScreen(painterResource(id = R.drawable.logo),"Logo", navController)
+            RegisterScreen(painterResource(id = R.drawable.logo_lettering),"Logo", navController)
         }
 
         composable(
