@@ -28,6 +28,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import gui.GestoreNotifiche
+import gui.GestoreNotificheAgente
 
 @Composable
 fun myBottomNavBar(navController: NavController, email : String) {
@@ -83,7 +84,7 @@ fun myBottomNavBar(navController: NavController, email : String) {
                     if (item.label == "Notifiche" && GestoreNotifiche.haNuoveNotifiche.value) {
                         //MOSTRA IL PALLINO ROSSO!
                         BadgedBox(
-                            badge = { Badge { Text("!") } }
+                            badge = { Badge { Text("${GestoreNotifiche.conteggioNotificheNonLette.value}") } }
                         ) {
                             Icon(imageVector = item.icon, contentDescription = item.label)
                         }
@@ -293,10 +294,13 @@ fun myBottomNavBar_Agente(navController: NavController, username: String) {
                     unselectedTextColor = Color.White
                 ),
                 icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label
-                    )
+                    if (item.label == "Notifiche" && GestoreNotificheAgente.haNuoveNotifiche.value) {
+                        BadgedBox(
+                            badge = { Badge { Text("${GestoreNotificheAgente.conteggioNotificheNonLette.value}") } }
+                        ) { Icon(imageVector = item.icon, contentDescription = item.label) }
+                    } else {
+                        Icon(imageVector = item.icon, contentDescription = item.label)
+                    }
                 },
                 // Label (testo sotto)
                 label = { Text(item.label) },

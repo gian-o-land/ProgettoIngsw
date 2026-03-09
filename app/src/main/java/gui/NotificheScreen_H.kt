@@ -49,6 +49,7 @@ object GestoreNotifiche {
     var haNuoveNotifiche = mutableStateOf(false)
     var conteggioNotificheLette = 0
     private var isInizializzato = false
+    var conteggioNotificheNonLette = mutableStateOf(0)
 
     // 1. Legge la memoria all'avvio dell'app
     fun caricaStato(context: Context) {
@@ -57,25 +58,125 @@ object GestoreNotifiche {
             conteggioNotificheLette = prefs.getInt("conteggio", 0)
             haNuoveNotifiche.value = prefs.getBoolean("pallino", false)
             isInizializzato = true
+            conteggioNotificheNonLette.value = prefs.getInt("NonLette", 0)
         }
     }
 
     // 2. Salva il nuovo conteggio e accende il pallino
     fun salvaNuoveNotifiche(context: Context, conteggio: Int) {
-        conteggioNotificheLette = conteggio
+        conteggioNotificheNonLette.value = conteggio - conteggioNotificheLette
         haNuoveNotifiche.value = true
 
         val prefs = context.getSharedPreferences("NotifichePrefs", Context.MODE_PRIVATE)
         prefs.edit()
-            .putInt("conteggio", conteggio)
             .putBoolean("pallino", true)
+            .putInt("NonLette", conteggioNotificheNonLette.value)
             .apply()
     }
 
     // 3. Spegne il pallino quando apri la pagina notifiche
     fun azzeraPallino(context: Context) {
+        conteggioNotificheLette += conteggioNotificheNonLette.value
+        conteggioNotificheNonLette.value = 0
         haNuoveNotifiche.value = false
+
         val prefs = context.getSharedPreferences("NotifichePrefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("pallino", false).apply()
+        prefs.edit()
+            .putInt("conteggio", conteggioNotificheLette)
+            .putBoolean("pallino", false)
+            .putInt("NonLette", 0)
+            .apply()
+
+        //Spazza via tutte le notifiche dalla tendina di Android!
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancelAll()
+    }
+
+    // 4. Sincronizza in caso di cancellazioni dal database
+    fun sincronizzaCancellazioni(context: Context, notificheTotaliServer: Int) {
+        val totaleSalvato = conteggioNotificheLette + conteggioNotificheNonLette.value
+
+        // Se le notifiche sul server sono MENO di quelle che ci ricordiamo...
+        if (notificheTotaliServer < totaleSalvato) {
+
+            // ...abbassiamo i nostri contatori per pareggiare il conto!
+            if (notificheTotaliServer >= conteggioNotificheNonLette.value) {
+                // Riduciamo solo il contatore di quelle già lette
+                conteggioNotificheLette = notificheTotaliServer - conteggioNotificheNonLette.value
+            } else {
+                // Hanno cancellato così tanto che dobbiamo azzerare quelle lette
+                conteggioNotificheLette = 0
+                conteggioNotificheNonLette.value = notificheTotaliServer
+            }
+
+            // Se non ci sono più notifiche non lette, spegniamo il pallino
+            if (conteggioNotificheNonLette.value == 0) {
+                haNuoveNotifiche.value = false
+            }
+
+            // Salviamo la correzione nella memoria fissa del telefono
+            val prefs = context.getSharedPreferences("NotifichePrefs", Context.MODE_PRIVATE)
+            prefs.edit()
+                .putInt("conteggio", conteggioNotificheLette)
+                .putInt("NonLette", conteggioNotificheNonLette.value)
+                .putBoolean("pallino", haNuoveNotifiche.value)
+                .apply()
+        }
+    }
+}
+
+object GestoreNotificheAgente {
+    var haNuoveNotifiche = mutableStateOf(false)
+    var conteggioNotificheLette = 0
+    private var isInizializzato = false
+    var conteggioNotificheNonLette = mutableStateOf(0)
+
+    fun caricaStato(context: Context) {
+        if (!isInizializzato) {
+            val prefs = context.getSharedPreferences("NotificheAgentePrefs", Context.MODE_PRIVATE)
+            conteggioNotificheLette = prefs.getInt("conteggio", 0)
+            haNuoveNotifiche.value = prefs.getBoolean("pallino", false)
+            conteggioNotificheNonLette.value = prefs.getInt("NonLette", 0)
+            isInizializzato = true
+        }
+    }
+
+    fun salvaNuoveNotifiche(context: Context, conteggio: Int) {
+        conteggioNotificheNonLette.value = conteggio - conteggioNotificheLette
+        haNuoveNotifiche.value = true
+        context.getSharedPreferences("NotificheAgentePrefs", Context.MODE_PRIVATE).edit()
+            .putBoolean("pallino", true)
+            .putInt("NonLette", conteggioNotificheNonLette.value).apply()
+    }
+
+    fun azzeraPallino(context: Context) {
+        conteggioNotificheLette += conteggioNotificheNonLette.value
+        conteggioNotificheNonLette.value = 0
+        haNuoveNotifiche.value = false
+        context.getSharedPreferences("NotificheAgentePrefs", Context.MODE_PRIVATE).edit()
+            .putInt("conteggio", conteggioNotificheLette)
+            .putBoolean("pallino", false)
+            .putInt("NonLette", 0).apply()
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancelAll()
+    }
+
+    fun sincronizzaCancellazioni(context: Context, notificheTotaliServer: Int) {
+        val totaleSalvato = conteggioNotificheLette + conteggioNotificheNonLette.value
+        if (notificheTotaliServer < totaleSalvato) {
+            if (notificheTotaliServer >= conteggioNotificheNonLette.value) {
+                conteggioNotificheLette = notificheTotaliServer - conteggioNotificheNonLette.value
+            } else {
+                conteggioNotificheLette = 0
+                conteggioNotificheNonLette.value = notificheTotaliServer
+            }
+            if (conteggioNotificheNonLette.value == 0) haNuoveNotifiche.value = false
+
+            context.getSharedPreferences("NotificheAgentePrefs", Context.MODE_PRIVATE).edit()
+                .putInt("conteggio", conteggioNotificheLette)
+                .putInt("NonLette", conteggioNotificheNonLette.value)
+                .putBoolean("pallino", haNuoveNotifiche.value).apply()
+        }
     }
 }

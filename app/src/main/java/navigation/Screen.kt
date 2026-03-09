@@ -26,7 +26,7 @@ sealed class Screen(val route: String) {
         }
     }
     data object AgenteScreen: Screen("agente_screen?username={username}"){
-        fun withMailAgente(username: String): String{
+        fun withMailAgente(username: String?): String{
             return "agente_screen?username=${Uri.encode(username)}"
         }
     }

@@ -122,7 +122,15 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
             val prenotazioni = scaricaPrenotazioniUtente(emailUtente)
             val notificheChiuse = prenotazioni.count { it.stato != D_stato.ATTESA }
 
-            if (notificheChiuse > GestoreNotifiche.conteggioNotificheLette) {
+            val notificheGiaViste = GestoreNotifiche.conteggioNotificheLette + GestoreNotifiche.conteggioNotificheNonLette.value
+
+            //Se ci sono meno notifiche sul server rispetto a quelle salvate...
+            if (notificheChiuse < notificheGiaViste) {
+                // Eseguiamo l'auto-correzione al ribasso!
+                GestoreNotifiche.sincronizzaCancellazioni(context, notificheChiuse)
+            }
+            // SE INVECE CI SONO NUOVE NOTIFICHE DAL SERVER, SUONIAMO!
+            else if (notificheChiuse > notificheGiaViste) {
 
                 // Salviamo in memoria
                 GestoreNotifiche.salvaNuoveNotifiche(context, notificheChiuse)

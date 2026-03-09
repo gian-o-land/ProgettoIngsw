@@ -1,27 +1,16 @@
 package gui
 
+import DTO.D_stato
+import DTO.PrenotazioneDTO
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -35,39 +24,37 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import connection.aggiornaStatoPrenotazione
+import connection.scaricaPrenotazioniAgente
+import kotlinx.coroutines.launch
 
-
-data class Notifica(val titolo: String, val contenuto: String)
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun NotificheAgenteScreen(navController: NavController, username: String){
     val scrollState = rememberLazyListState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-    // Dati fittizi che riproducono l'immagine
-    val listaNotifiche = remember {
-        listOf(
-            Notifica("Notifica 1", "<<contenuto notifica>>"),
-            Notifica("Notifica 2", "<<contenuto notifica>>"),
-            Notifica("Notifica 3", "<<contenuto notifica>>"),
-            Notifica("Notifica 4", "<<contenuto notifica>>"),
-            Notifica("Notifica 5", "<<contenuto notifica>>"),
-            Notifica("Notifica 6", "<<contenuto notifica>>"),
-            Notifica("Notifica 7", "<<contenuto notifica>>"),
-            Notifica("Notifica 8", "<<contenuto notifica>>")
-        )
+    var listaPrenotazioni by remember { mutableStateOf<List<PrenotazioneDTO>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var popupSelection by remember { mutableStateOf<PrenotazioneDTO?>(null) }
+
+    // Ricarica la lista (usata all'avvio e dopo un aggiornamento)
+    fun ricaricaDati() {
+        coroutineScope.launch {
+            listaPrenotazioni = scaricaPrenotazioniAgente(username)
+            isLoading = false
+        }
     }
-    var popupSelection by remember { mutableStateOf<Notifica?>(null) }
+
+    LaunchedEffect(username) {
+        GestoreNotificheAgente.azzeraPallino(context)
+        ricaricaDati()
+    }
 
     Scaffold(
         modifier = Modifier
@@ -75,30 +62,22 @@ fun NotificheAgenteScreen(navController: NavController, username: String){
             .background(color = Color.White),
         containerColor =  Color.White,
         topBar = { CenterAlignedTopAppBar(
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor =  mioBluScuro
-            ),
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor =  mioBluScuro),
             title = {
                 Text(text="Notifiche",
                     fontWeight = FontWeight.Bold,
-                    color = mieiTitoli,
-                    textAlign = TextAlign.Center
-                )
-
-            },
+                    color = mieiTitoli)
+                    },
             navigationIcon = {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
+                Image(painterResource(id = R.drawable.logo),
                     "Logo",
-                    modifier = Modifier.height(50.dp).width(50.dp)
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp)
                 )
             }
-        )
-
-        },
-        bottomBar = {
-            myBottomNavBar_Agente(navController, username)
-        }
+        )},
+        bottomBar = { myBottomNavBar_Agente(navController, username) }
     ) { innerPadding ->
         Card(
             modifier = Modifier
@@ -108,71 +87,90 @@ fun NotificheAgenteScreen(navController: NavController, username: String){
                 containerColor = mioBackgroung
             )
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp, bottom = 20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    "Gestisci le rischieste\ndi prenotazione",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center)
-            }
-            LazyColumn(
-                modifier = Modifier
-                    .background(mioBackgroung)
-                    .fillMaxWidth(),
-                state = scrollState
-            ) {
-                items(listaNotifiche){ notifica ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .clickable{
-                                popupSelection = notifica
-                            },
-                        shape = RoundedCornerShape(30.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = mioBackgroung
-                        ),
-                        border = BorderStroke(1.dp, Color.Black),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 9.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
+            if(isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = mioBluScuro)
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp, bottom = 20.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "Gestisci le richieste\ndi prenotazione",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                        color = mieScritte,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                LazyColumn(
+                    modifier = Modifier
+                        .background(mioBackgroung)
+                        .fillMaxWidth(),
+                    state = scrollState
+                ) {
+                    items(listaPrenotazioni){ prenotazione ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable{ popupSelection = prenotazione },
+                            shape = RoundedCornerShape(30.dp),
+                            colors = CardDefaults.cardColors(containerColor = mioBackgroung),
+                            border = BorderStroke(1.dp, Color.Black),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 9.dp)
                         ) {
-                            Text(
-                                text = notifica.titolo,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 16.sp,
-                                color = Color.Black
-                            )
-                            Text(
-                                text = notifica.contenuto,
-                                fontSize = 14.sp,
-                                color = Color.DarkGray,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "Visita ${prenotazione.idPrenotazione}",
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 16.sp,
+                                        color = Color.Black
+                                    )
+                                    Text(
+                                        text = prenotazione.contenuto,
+                                        fontSize = 14.sp,
+                                        color = Color.DarkGray,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
+                                // Mostriamo lo stato attuale colorato!
+                                Text(
+                                    text = prenotazione.stato.toString(),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp,
+                                    color = when(prenotazione.stato) {
+                                        D_stato.ACCETTATA -> Color(0xFF4CAF50)
+                                        D_stato.RIFIUTATA -> Color.Red
+                                        D_stato.ATTESA -> Color.DarkGray
+                                    },
+                                    modifier = Modifier.padding(end = 15.dp)
+                                )
+                            }
                         }
+                        Spacer(modifier = Modifier.height(15.dp))
                     }
-                    Spacer(modifier = Modifier.height(15.dp))
                 }
             }
         }
+
         if (popupSelection != null){
             PopupNotifica(
-                popupSelection,
-                onSelectedChange = { nuovoValore ->
-                    // Se nuovoValore è null (chiusura), aggiorniamo lo stato locale
-                    popupSelection = nuovoValore
-                }
+                selected = popupSelection,
+                onSelectedChange = { popupSelection = it },
+                onStatoAggiornato = { ricaricaDati() } // Ricarichiamo la pagina dopo il click!
             )
         }
     }
@@ -180,96 +178,120 @@ fun NotificheAgenteScreen(navController: NavController, username: String){
 
 @Composable
 fun PopupNotifica(
-    selected: Notifica?,
-    onSelectedChange: (Notifica?) -> Unit
+    selected: PrenotazioneDTO?,
+    onSelectedChange: (PrenotazioneDTO?) -> Unit,
+    onStatoAggiornato: () -> Unit
 ) {
-    Dialog(
-        onDismissRequest = {
-            onSelectedChange(null)
-        }
-    ) {
+    val coroutineScope = rememberCoroutineScope()
+
+    Dialog(onDismissRequest = { onSelectedChange(null) }) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(190.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = mioBackgroung
-            ),
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+            colors = CardDefaults.cardColors(containerColor = mioBackgroung),
             border = BorderStroke(2.dp, mioBluScuro),
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(mioBluScuro),
+                modifier = Modifier.fillMaxWidth().height(50.dp).background(mioBluScuro),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Notifica:\n${selected?.titolo}",
+                    "Dettaglio Visita",
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp,
                     color = mieiTitoli,
                     modifier = Modifier.padding(start = 15.dp)
                 )
                 Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Chiudi",
+                    Icons.Default.Close,
+                    "Chiudi",
                     tint = mioGialloOcra,
-                    modifier = Modifier.padding(end = 10.dp)
+                    modifier = Modifier
+                        .padding(end = 10.dp)
                         .height(25.dp)
                         .width(25.dp)
                         .clickable { onSelectedChange(null) }
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+
+            Column(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "${selected?.contenuto}",
+                    text = "Immobile: ${selected?.codiceInserzione}",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                    color = mieScritte
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Utente: ${selected?.mailUtente}",
+                    fontSize = 15.sp
+                )
+                Text(
+                    text = "Data proposta: ${selected?.dataOra?.replace("T", " alle ")}",
+                    fontSize = 15.sp,
+                    color = Color.DarkGray
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(90.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = mioGialloOcra,
-                        contentColor = mioBluScuro
-                    ),
-                    modifier = Modifier.height(50.dp)
-                        .width(150.dp)
-                        .padding(start = 15.dp)
+
+            // MOSTRA I BOTTONI SOLO SE LO STATO È "ATTESA"! Altrimenti l'ha già gestita.
+            if (selected?.stato == D_stato.ATTESA) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text("Accetta", fontSize = 17.sp)
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                // 1. Manda l'aggiornamento al DB
+                                aggiornaStatoPrenotazione(selected.idPrenotazione, D_stato.ACCETTATA)
+                                // 2. Chiude il popup
+                                onSelectedChange(null)
+                                // 3. Aggiorna la lista
+                                onStatoAggiornato()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Verde!
+                    ) {
+                        Text(
+                        "Accetta",
+                        fontSize = 17.sp,
+                        color = Color.White
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                aggiornaStatoPrenotazione(selected.idPrenotazione, D_stato.RIFIUTATA)
+                                onSelectedChange(null)
+                                onStatoAggiornato()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red) // Rosso!
+                    ) {
+                        Text(
+                            "Rifiuta",
+                            fontSize = 17.sp,
+                            color = Color.White
+                        )
+                    }
                 }
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = mioGialloOcra,
-                        contentColor = mioBluScuro
-                    ),
-                    modifier = Modifier.height(50.dp)
-                        .width(150.dp)
-                        .padding(end = 15.dp)
+            } else {
+                // Messaggio se l'ha già gestita
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 15.dp),
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Text("Rifiuta", fontSize = 17.sp)
+                    Text(
+                        "Hai già elaborato questa richiesta.",
+                        color = Color.Gray,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    )
                 }
             }
         }
-
     }
 }
