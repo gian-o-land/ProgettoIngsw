@@ -6,6 +6,7 @@ import DTO.D_stato
 import DTO.InserzioneDTO
 import DTO.ModificaPasswordDTO
 import DTO.PrenotazioneDTO
+import DTO.RegistrazioneUtenteDTO
 import DTO.UtenteDTO
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
@@ -33,7 +34,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://lbutd-2a0e-43d-8b44-0-cdf3-eda6-448e-ade5.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://eyxtm-79-46-187-120.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -471,5 +472,21 @@ suspend fun aggiornaStatoPrenotazione(idPrenotazione: String, nuovoStato: D_stat
             }
             response.status.isSuccess()
         } catch (e: Exception) { false }
+    }
+}
+
+suspend fun registraNuovoUtente(dati: RegistrazioneUtenteDTO): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.post("$urlServer/auth/registrazione") {
+                contentType(ContentType.Application.Json)
+                setBody(dati)
+            }
+            // HttpStatusCode.Created (201) o OK (200) indicano successo
+            response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            Log.e("API_REGISTRAZIONE", "Errore: ${e.message}")
+            false
+        }
     }
 }

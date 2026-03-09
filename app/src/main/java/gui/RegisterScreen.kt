@@ -1,5 +1,6 @@
 package gui
 
+import DTO.RegistrazioneUtenteDTO
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -56,19 +57,37 @@ import gui.template.myButton
 import gui.template.myTextField
 import gui.template.myTextField_Password
 import DTO.source.*
+import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import connection.registraNuovoUtente
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavController) {
-    // CONFIGURAZIONE DIMENSIONI HEADER
-    val headerMaxHeight = 180.dp // Altezza espansa
-    val headerMinHeight = 40.dp  // Altezza collassata (barra blu)
+    val headerMaxHeight = 180.dp
+    val headerMinHeight = 40.dp
 
     val density = LocalDensity.current
     val headerMaxHeightPx = with(density) { headerMaxHeight.toPx() }
     val headerMinHeightPx = with(density) { headerMinHeight.toPx() }
     val collapseRangePx = headerMaxHeightPx - headerMinHeightPx
+
+    // VARIABILI AGGIUNTE PER FUNZIONAMENTO API E SNACKBAR
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
+
+    // Stato per controllare lo Snackbar
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // STATO UI FORM
     var email by remember { mutableStateOf("") }
@@ -82,9 +101,7 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
     var selectedPrefix by remember { mutableStateOf(DefaultPhonePrefix) }
 
     // STATO SCROLL E ANIMAZIONE
-    // Altezza corrente header (parte dal massimo)
     var currentHeaderHeightPx by remember { mutableFloatStateOf(headerMaxHeightPx) }
-    // Stato della lista
     val listState = rememberLazyListState()
 
     // --- LOGICA NESTED SCROLL (CUORE DEL MOVIMENTO)
@@ -93,7 +110,6 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val delta = available.y
 
-                // SCROLL VERSO L'ALTO (COLLASSO)
                 if (delta < 0) {
                     val oldHeight = currentHeaderHeightPx
                     val newHeight = (currentHeaderHeightPx + delta).coerceIn(headerMinHeightPx, headerMaxHeightPx)
@@ -105,7 +121,6 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                     }
                 }
 
-                // SCROLL VERSO IL BASSO (ESPANSIONE)
                 if (delta > 0) {
                     val isAtTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
 
@@ -126,30 +141,22 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
     }
 
     val currentHeaderHeightDp = with(density) { currentHeaderHeightPx.toDp() }
-
-    // Tiriamo su la lista per coprire lo spazio lasciato dal padding fisso
     val listTranslationY = -(headerMaxHeightPx - currentHeaderHeightPx)
-
-    // Dissolvenza basata sull'altezza
     val imageAlpha = ((currentHeaderHeightPx - headerMinHeightPx) / collapseRangePx).coerceIn(0f, 1f)
-
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(mioBluScuro) // Sfondo generale
+            .background(mioBluScuro)
             .nestedScroll(nestedScrollConnection)
     ) {
         // CONTENUTO (LISTA/FORM)
         LazyColumn(
             state = listState,
-            // Il padding è FISSO al massimo, poi trasliamo la lista sopra
             contentPadding = PaddingValues(top = headerMaxHeight),
             modifier = Modifier
                 .fillMaxSize()
-                // Applichiamo traslazione per seguire la barra
                 .graphicsLayer { translationY = listTranslationY }
-                // Aumentiamo l'altezza virtuale della lista per evitare il vuoto in fondo
                 .layout { measurable, constraints ->
                     val extraHeight = collapseRangePx.roundToInt()
                     val newConstraints = constraints.copy(
@@ -162,7 +169,6 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                     }
                 }
         ) {
-            // Mettiamo tutto il form in un singolo item della LazyColumn
             item {
                 Column(
                     modifier = Modifier
@@ -306,11 +312,72 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                         { nuovoTesto -> testPassword = nuovoTesto }
                     )
                     Spacer(modifier = Modifier.height(40.dp))
-                    myButton(
-                        myClick = {},
-                        testo = "Registrati"
-                    )
-                    // Aggiungiamo un extra spazio in fondo per scrollare comodamente
+
+                    // MODIFICA AL BOTTONE REGISTRATI
+                    if (isLoading) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            CircularProgressIndicator(color = mioBluScuro)
+                        }
+                    } else {
+                        myButton(
+                            myClick = {
+                                if (email.isBlank() || nome.isBlank() || cognome.isBlank() || telefono.isBlank() || password.isBlank()) {
+                                    Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
+                                    return@myButton
+                                }
+                                if (password != testPassword) {
+                                    Toast.makeText(context, "Le password non coincidono", Toast.LENGTH_SHORT).show()
+                                    return@myButton
+                                }
+
+                                // --- NUOVO CONTROLLO PASSWORD DAL DATABASE ---
+                                val isValidLength = password.length > 8
+                                val hasUpperCase = password.any { it.isUpperCase() }
+                                val hasLowerCase = password.any { it.isLowerCase() }
+                                val hasDigit = password.any { it.isDigit() }
+                                val hasSpecialChar = password.any { !it.isLetterOrDigit() }
+
+                                if (!isValidLength || !hasUpperCase || !hasLowerCase || !hasDigit || !hasSpecialChar) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "La password deve avere > 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                    return@myButton
+                                }
+                                // --------------------------------------------
+
+                                scope.launch {
+                                    isLoading = true
+
+                                    val nuovoUtente = RegistrazioneUtenteDTO(
+                                        email = email.trim(),
+                                        nome = nome.trim(),
+                                        cognome = cognome.trim(),
+                                        telefono = telefono.trim(),
+                                        password = password,
+                                        prefisso= selectedPrefix.displayName
+                                            .replace("(", "")
+                                            .replace(")", "")
+                                            .trim()
+                                    )
+
+                                    val successo = registraNuovoUtente(nuovoUtente)
+                                    isLoading = false
+
+                                    if (successo) {
+                                        Toast.makeText(context, "Registrazione completata!", Toast.LENGTH_SHORT).show()
+                                        navController.popBackStack()
+                                    } else {
+                                        Toast.makeText(context, "Errore di registrazione. L'email potrebbe essere già in uso.", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            },
+                            testo = "Registrati"
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(100.dp))
                 }
             }
@@ -323,22 +390,35 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                 .height(currentHeaderHeightDp)
                 .background(mioBluScuro)
                 .align(Alignment.TopCenter)
-                .clipToBounds() // Importante per non disegnare l'immagine fuori dal box
+                .clipToBounds()
         ) {
-            // Immagine con dissolvenza
             Image(
                 painter = painter,
                 contentDescription = descrizione,
                 contentScale = ContentScale.Inside,
                 modifier = Modifier
-                    .requiredHeight(160.dp) // Mantiene la size originale anche quando il box si stringe
+                    .requiredHeight(160.dp)
                     .graphicsLayer {
                         alpha = imageAlpha
                     }
-                    .align(Alignment.BottomCenter) // Mantiene l'immagine centrata in basso mentre si chiude
+                    .align(Alignment.BottomCenter)
                     .padding(top = 10.dp, bottom = 20.dp)
+            )
+        }
+
+        // --- SNACKBAR HOST (IN SOVRIMPRESSIONE) ---
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter) // Lo posiziona in basso, sopra tutti gli altri contenuti
+                .padding(horizontal = 35.dp, vertical = 20.dp)
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                contentColor = Color.White,
+                shape = RoundedCornerShape(8.dp) // Leggera smussatura per abbellirlo
             )
         }
     }
 }
-
