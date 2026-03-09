@@ -17,28 +17,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -154,7 +144,36 @@ fun ProfiloScreen(navController : NavController, email : String) {
             }
 
             Spacer(modifier = Modifier.height(30.dp))
-            myButton({navController.navigate(Screen.ModificaPasswordScreen.route)}, "Modifica Password")
+
+            // --- BOTTONE 2: MODIFICA PASSWORD (Intelligente) ---
+            Button(
+                onClick = { navController.navigate(Screen.ModificaPasswordScreen.withArgs(email, D_tipoUtente.UTENTE)) },
+                enabled = datiCaricati && !isAccountGoogle, // Se è account Google, il bottone si disattiva
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = mioGialloOcra,
+                    contentColor = mioBluScuro,
+                    disabledContainerColor = Color.LightGray, // Colore quando è disattivato
+                    disabledContentColor = Color.DarkGray     // Colore del testo quando è disattivato
+                ),
+                modifier = Modifier
+                    .height(50.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 75.dp)
+            ) {
+                Text("Modifica Password", fontSize = 17.sp)
+            }
+
+            // Messaggio opzionale sotto il bottone per spiegare perché è grigio
+            if (datiCaricati && isAccountGoogle) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Password gestita tramite Google",
+                    color = Color.Gray,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+
             Spacer(modifier = Modifier.height(30.dp))
             myButton(
                 {mostraDialogConferma = true},
@@ -260,37 +279,6 @@ fun ProfiloScreen(navController : NavController, email : String) {
                 }
 
             }
-
-            // --- BOTTONE 2: MODIFICA PASSWORD (Intelligente) ---
-            Button(
-                onClick = { navController.navigate(Screen.ModificaPasswordScreen.withArgs(email, D_tipoUtente.UTENTE)) },
-                enabled = datiCaricati && !isAccountGoogle, // Se è account Google, il bottone si disattiva
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = mioGialloOcra,
-                    contentColor = mioBluScuro,
-                    disabledContainerColor = Color.LightGray, // Colore quando è disattivato
-                    disabledContentColor = Color.DarkGray     // Colore del testo quando è disattivato
-                ),
-                modifier = Modifier
-                    .height(50.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 75.dp)
-            ) {
-                Text("Modifica Password", fontSize = 17.sp)
-            }
-
-            // Messaggio opzionale sotto il bottone per spiegare perché è grigio
-            if (datiCaricati && isAccountGoogle) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Password gestita tramite Google",
-                    color = Color.Gray,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(modifier = Modifier.height(50.dp))
         }
     }
 }
