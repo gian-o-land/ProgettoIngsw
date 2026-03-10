@@ -160,10 +160,11 @@ fun FiltriScreen(navController: NavController, email: String) {
                 onValoreCambiato = { statoCategoria = it }
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+            val labelPrezzo = if (statoCategoria == "In affitto") "Prezzo / mese" else "Prezzo"
 
             RigaMinMax(
                 icona = Icons.Default.AttachMoney,
-                testo = "Prezzo",
+                testo = labelPrezzo,
                 valoreMin = statoPrezzoMin,
                 onValueMinChange = { statoPrezzoMin = it },
                 valoreMax = statoPrezzoMax,

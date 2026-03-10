@@ -53,6 +53,7 @@ import kotlinx.serialization.encodeToString
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.ExistingPeriodicWorkPolicy
+import connection.scaricaAgente
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +65,23 @@ fun AgenteScreen(username: String, navController: NavController) {
     var listaInserzioniAgente by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
+    var nomeAgenzia by remember { mutableStateOf("Caricamento...") }
 
+// 2. Chiamata al server all'apertura della schermata
+    LaunchedEffect(username) { // Sostituisci 'identificativo' con la variabile che hai a disposizione
+        try {
+            val agenteScaricato = scaricaAgente(username)
+
+            if (agenteScaricato != null) {
+                // Sostituisci '.nomeAgenzia' con il nome reale della proprietà nel tuo AgenteDTO
+                nomeAgenzia = agenteScaricato.nomeAgenzia
+            } else {
+                nomeAgenzia = "Agenzia non trovata"
+            }
+        } catch (e: Exception) {
+            nomeAgenzia = "Errore di connessione"
+        }
+    }
     // --- SCARICAMENTO DATI AL CARICAMENTO DELLA PAGINA ---
     LaunchedEffect(username) {
         isLoading = true
@@ -180,9 +197,24 @@ fun AgenteScreen(username: String, navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
+                    text = "La tua ageniza: $nomeAgenzia",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = mieScritte,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(start = 20.dp)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(30.dp), // Un po' più alto per dare respiro
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
                     text = "I tuoi Immobili:",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
+                    fontSize = 20.sp,
                     color = mieScritte,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(start = 20.dp)

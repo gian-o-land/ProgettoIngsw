@@ -11,5 +11,6 @@ data class AgenteDTO(
     val password: String,
     val email: String,
     val adminCreatore: String?,
-    val selectedPrefix: String
+    val selectedPrefix: String,
+    val nomeAgenzia: String
 )
