@@ -63,6 +63,9 @@ sealed class Screen(val route: String) {
             return "$route?idInserzione=${Uri.encode(idInserzione)}"//return "$route/${Uri.encode(mailUtente)}"
         }
     }
+
+    data object InserzioneAgenteScreen: Screen("inserzione_agente_screen")
+
     data object FiltriScreen: Screen("filtri_screen?email={email}") {
         fun withMailUtente(email: String): String {
             return "filtri_screen?email=${Uri.encode(email)}"

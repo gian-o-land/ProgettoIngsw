@@ -266,7 +266,7 @@ fun AgenteScreen(username: String, navController: NavController) {
                                     // Stessa identica logica di navigazione con lo "zainetto" usata nella mappa
                                     val json = kotlinx.serialization.json.Json.encodeToString(inserzione)
                                     navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
-                                    navController.navigate(Screen.InserzioneScreen.route)
+                                    navController.navigate(Screen.InserzioneAgenteScreen.route)
                                 }
                             )
                         }

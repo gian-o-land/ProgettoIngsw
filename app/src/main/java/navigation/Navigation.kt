@@ -19,6 +19,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +52,8 @@ import gui.NotificheAgenteScreen
 import gui.mioBluScuro
 import androidx.compose.ui.platform.LocalContext
 import connection.SessionManager
+import gui.InserzioneAgenteScreen
+import kotlinx.serialization.json.Json
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -255,8 +259,8 @@ fun Navigation() {
 
         composable(route = Screen.InserzioneScreen.route) {
             // 1. Peschiamo sia il JSON che l'EMAIL dallo "zainetto" della pagina precedente
-            val json = navController.previousBackStackEntry?.savedStateHandle?.get<String>("inserzione_json")
-            val emailUtente = navController.previousBackStackEntry?.savedStateHandle?.get<String>("email_utente")
+            val json =  remember {  navController.previousBackStackEntry?.savedStateHandle?.get<String>("inserzione_json")}
+            val emailUtente = remember {  navController.previousBackStackEntry?.savedStateHandle?.get<String>("email_utente")}
 
             // Controlliamo che ci siano entrambi prima di aprire la pagina
             if (json != null && emailUtente != null) {
@@ -525,6 +529,27 @@ fun Navigation() {
                 navController = navController,
                 email = mailRecuperata
             )
+        }
+
+        composable(route = Screen.InserzioneAgenteScreen.route) {
+            // 1. Estraiamo i dati dallo zainetto della schermata precedente
+            val jsonInserzione = remember { navController.previousBackStackEntry?.savedStateHandle?.get<String>("inserzione_json") }
+
+            if (jsonInserzione != null) {
+                // 2. Trasformiamo il testo JSON di nuovo nel vero oggetto InserzioneDTO
+                val inserzioneObj = Json.decodeFromString<DTO.InserzioneDTO>(jsonInserzione)
+
+                // 3. Lanciamo la schermata!
+                // (Assicurati che i nomi dei parametri qui sotto corrispondano a quelli veri della tua InserzioneAgenteScreen)
+                InserzioneAgenteScreen(
+                    inserzione = inserzioneObj
+                )
+            } else {
+                // Schermata di sicurezza nel caso in cui i dati si siano persi
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Errore nel caricamento dell'inserzione.")
+                }
+            }
         }
     }
 }

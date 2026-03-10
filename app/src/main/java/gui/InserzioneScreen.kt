@@ -148,11 +148,11 @@ fun InserzioneScreen(
                 ),
                 title = {
                     Text(
-                        text = "Stai visualizzando:\n${inserzione.idInserzione}",
+                        text = "Inserzione",
                         fontWeight = FontWeight.Bold,
                         color = Color.White, // mieiTitoli
                         textAlign = TextAlign.Center,
-                        fontSize = 16.sp
+                        fontSize = 17.sp
                     )
                 },
                 navigationIcon = {
@@ -165,7 +165,6 @@ fun InserzioneScreen(
             )
         },
         bottomBar = {
-            myBottomNavBar(navController = navController, email= email)
         }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
