@@ -66,7 +66,7 @@ fun NotificheScreen(navController : NavController, email : String) {
 
         listaNotifiche = prenotazioni.map { p ->
             Notifica(
-                titolo = "Visita ${p.idPrenotazione}",
+                titolo = "Visita \n${p.idPrenotazione}",
                 contenuto = p.contenuto,
                 stato = p.stato,
                 codiceInserzione = p.codiceInserzione
@@ -143,7 +143,7 @@ fun NotificheScreen(navController : NavController, email : String) {
                         .fillMaxWidth(),
                     state = scrollState
                 ) {
-                    items(listaNotifiche){ notifica ->
+                    items(listaNotifiche.reversed()){ notifica ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()

@@ -241,6 +241,10 @@ fun PopupNotifica(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Button(
+                        modifier = Modifier
+                            .height(50.dp)
+                            .width(150.dp)
+                            .padding(start = 15.dp),
                         onClick = {
                             coroutineScope.launch {
                                 // 1. Manda l'aggiornamento al DB
@@ -261,6 +265,10 @@ fun PopupNotifica(
                     }
 
                     Button(
+                        modifier = Modifier
+                            .height(50.dp)
+                            .width(150.dp)
+                            .padding(end = 15.dp),
                         onClick = {
                             coroutineScope.launch {
                                 aggiornaStatoPrenotazione(selected.idPrenotazione, D_stato.RIFIUTATA)

@@ -157,7 +157,7 @@ fun RicercaMappaScreen(
             val request = FindAutocompletePredictionsRequest.builder()
                 .setSessionToken(sessionToken)
                 .setQuery(query)
-                .setCountries("IT")
+                //.setCountries("IT")
                 .build()
 
             placesClient.findAutocompletePredictions(request)
@@ -340,7 +340,18 @@ fun RicercaMappaScreen(
                         eseguiRicerca(query, scope, context, cameraPositionState)
                     },
                     active = active,
-                    onActiveChange = { active = it },
+                    onActiveChange = { nuovoStato ->
+                        active = nuovoStato
+                        if (nuovoStato) {
+                            // Quando l'utente tocca la barra per cercare, nascondiamo lo slider
+                            isPannelloSliderVisibile = false
+                        } else {
+                            // Quando chiude la ricerca, rimettiamo lo slider (se aveva già scelto un punto)
+                            if (puntoSelezionato != null) {
+                                isPannelloSliderVisibile = true
+                            }
+                        }
+                    },
                     placeholder = { Text("Cerca città") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
@@ -350,11 +361,22 @@ fun RicercaMappaScreen(
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                    colors = SearchBarDefaults.colors(
+                        containerColor = Color.White,
+                        dividerColor = Color.LightGray // Una riga sottile e pulita
+                    ),
+                    modifier = if (active) {
+                        Modifier.fillMaxWidth() // Nessun padding, occupa il 100% dello spazio!
+                    } else {
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp) // Torna piccola quando chiusa
+                    }
                 ) {
-                    LazyColumn {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().background(Color.White)
+                    ) {
                         items(listaSuggerimenti) { luogo ->
                             ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.White),
                                 headlineContent = { Text(luogo.testoPrincipale, fontWeight = FontWeight.Bold) },
                                 supportingContent = { Text(luogo.testoSecondario) },
                                 leadingContent = { Icon(Icons.Default.LocationOn, null) },
@@ -370,9 +392,9 @@ fun RicercaMappaScreen(
                 Surface(
                     border = BorderStroke(width = 1.dp, color = Color.Black),
                     modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(180.dp),
-                    shape = MaterialTheme.shapes.medium,
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                     shadowElevation = 8.dp,
-                    color = Color(0xFF000080) // mioBluScuro
+                    color = mioBluScuro
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -386,8 +408,8 @@ fun RicercaMappaScreen(
 
                         Slider(
                             colors = SliderDefaults.colors(
-                                thumbColor = Color(0xFFDAA520), // mioGialloOcra
-                                activeTrackColor = Color(0xFFDAA520),
+                                thumbColor = mioGialloOcra,
+                                activeTrackColor = mioGialloOcra,
                                 inactiveTrackColor = Color.Gray
                             ),
                             value = raggioKm,
@@ -420,7 +442,7 @@ fun RicercaMappaScreen(
                                     Toast.makeText(context, "Trovate ${risultati.size} case!", Toast.LENGTH_SHORT).show()
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDAA520), contentColor = Color(0xFF000080)),
+                            colors = ButtonDefaults.buttonColors(containerColor = mioGialloOcra, contentColor = mioBluScuro),
                             modifier = Modifier.height(50.dp).fillMaxWidth().padding(vertical = 5.dp, horizontal = 80.dp)
                         ) {
                             Text("Conferma", fontSize = 17.sp, fontWeight = FontWeight.Bold)
@@ -435,7 +457,7 @@ fun RicercaMappaScreen(
                     modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF000080))
+                    CircularProgressIndicator(color = mioBluScuro)
                 }
             }
         }
