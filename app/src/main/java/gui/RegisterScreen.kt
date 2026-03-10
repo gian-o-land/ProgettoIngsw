@@ -89,7 +89,6 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
     // Stato per controllare lo Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // STATO UI FORM
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var nome by remember { mutableStateOf("") }

@@ -77,6 +77,8 @@ dependencies {
     implementation(libs.foundation.layout)
     implementation(libs.ui)
     implementation(libs.androidx.runtime)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

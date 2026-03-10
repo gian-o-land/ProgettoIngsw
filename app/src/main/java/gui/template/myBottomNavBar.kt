@@ -112,7 +112,7 @@ fun myBottomNavBar(navController: NavController, email : String) {
 }
 
 @Composable
-fun  myBottomNavBar_Admin(navController: NavController, username: String) {
+fun myBottomNavBar_Admin(navController: NavController, username: String, agenziaAdmin: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -120,29 +120,36 @@ fun  myBottomNavBar_Admin(navController: NavController, username: String) {
         val route: String
     )
     val items = listOf(
-        BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.AdminScreen.withMailAdmin(username)),
-        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAdminScreen.withUsernameAndRole(username, 1)) // 1 = Admin
+        BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.AdminScreen.withArgs(username,agenziaAdmin)),
+        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAdminScreen.withArgs(username, 1, agenziaAdmin)) // 1 = Admin
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    NavigationBar(containerColor= mioBluScuro,
-        modifier =
-            Modifier.clip(
-                shape= RoundedCornerShape(
-                    topStart = 0.dp,
-                    topEnd = 0.dp,
-                    bottomStart = 0.dp,
-                    bottomEnd = 0.dp
-                )
+    NavigationBar(
+        containerColor = mioBluScuro,
+        modifier = Modifier.clip(
+            shape = RoundedCornerShape(
+                topStart = 0.dp,
+                topEnd = 0.dp,
+                bottomStart = 0.dp,
+                bottomEnd = 0.dp
             )
+        )
     ) {
-
         items.forEach { item ->
-            val isSelected = currentDestination?.hierarchy?.any {
-                it.route?.substringBefore("?") == item.route.substringBefore("?")
+            // --- MODIFICA CRUCIALE QUI ---
+            // Tagliamo sia i parametri query (?) sia i parametri path (/)
+            val isSelected = currentDestination?.hierarchy?.any { navDestination ->
+                val routeTemplate = navDestination.route ?: ""
+                val radiceAttuale = routeTemplate.substringBefore("?").substringBefore("/")
+                val radiceItem = item.route.substringBefore("?").substringBefore("/")
+
+                radiceAttuale == radiceItem && radiceAttuale.isNotEmpty()
             } == true
+            // -----------------------------
+
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.Black,
@@ -178,11 +185,9 @@ fun  myBottomNavBar_Admin(navController: NavController, username: String) {
             )
         }
     }
-
 }
-
 @Composable
-fun myBottomNavBar_Sottoadmin(navController: NavController, username: String) {
+fun myBottomNavBar_Sottoadmin(navController: NavController, username: String, agenziaAdmin: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -190,29 +195,37 @@ fun myBottomNavBar_Sottoadmin(navController: NavController, username: String) {
         val route: String
     )
     val items = listOf(
-        BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.SottoadminScreen.withMailSottoadmin(username)),
-        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAdminScreen.withUsernameAndRole(username, 2)) // 2 = Sottoadmin
+        BottomNavItem("Crea", Icons.Default.AddCircleOutline, Screen.SottoadminScreen.withArgs(username, agenziaAdmin)),
+        BottomNavItem("Profilo", Icons.Default.Person, Screen.ProfiloAdminScreen.withArgs(username, 2, agenziaAdmin)) // 2 = Sottoadmin
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    NavigationBar(containerColor= mioBluScuro,
-        modifier =
-            Modifier.clip(
-                shape= RoundedCornerShape(
-                    topStart = 0.dp,
-                    topEnd = 0.dp,
-                    bottomStart = 0.dp,
-                    bottomEnd = 0.dp
-                )
+    NavigationBar(
+        containerColor = mioBluScuro,
+        modifier = Modifier.clip(
+            shape = RoundedCornerShape(
+                topStart = 0.dp,
+                topEnd = 0.dp,
+                bottomStart = 0.dp,
+                bottomEnd = 0.dp
             )
+        )
     ) {
 
         items.forEach { item ->
-            val isSelected = currentDestination?.hierarchy?.any {
-                it.route?.substringBefore("?") == item.route.substringBefore("?")
+            // --- MODIFICA DI SICUREZZA ---
+            // Tagliamo in modo robusto sia i "?" che i "/"
+            val isSelected = currentDestination?.hierarchy?.any { navDestination ->
+                val routeTemplate = navDestination.route ?: ""
+                val radiceAttuale = routeTemplate.substringBefore("?").substringBefore("/")
+                val radiceItem = item.route.substringBefore("?").substringBefore("/")
+
+                radiceAttuale == radiceItem && radiceAttuale.isNotEmpty()
             } == true
+            // -----------------------------
+
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.Black,
@@ -248,9 +261,7 @@ fun myBottomNavBar_Sottoadmin(navController: NavController, username: String) {
             )
         }
     }
-
 }
-
 @Composable
 fun myBottomNavBar_Agente(navController: NavController, username: String) {
 

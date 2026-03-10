@@ -8,13 +8,25 @@ object SessionManager {
     private const val CHIAVE_RUOLO = "ruolo_salvato"
     private const val CHIAVE_NOME = "nome_salvato"
     private const val CHIAVE_COGNOME = "cognome_salvato"
+    private const val CHIAVE_AGENZIA = "agenzia_salvata"
+
+
+
 
     // 1. Salva i dati quando fai il login
-    fun salvaSessione(context: Context, email: String?, ruolo: Int) {
+    fun salvaSessioneUtente_Agente(context: Context, email: String?, ruolo: Int) {
         val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(CHIAVE_EMAIL, email)
             .putInt(CHIAVE_RUOLO, ruolo)
+            .apply() // .apply() salva in background senza bloccare l'app
+    }
+    fun salvaSessioneAdmin(context: Context, email: String?, ruolo: Int, agenzia: String) {
+        val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(CHIAVE_EMAIL, email)
+            .putInt(CHIAVE_RUOLO, ruolo)
+            .putString(CHIAVE_AGENZIA, agenzia)
             .apply() // .apply() salva in background senza bloccare l'app
     }
 
@@ -44,10 +56,15 @@ object SessionManager {
             .apply()
     }
 
+
     // Leggi il nome
     fun leggiNome(context: Context): String? {
         val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
         return prefs.getString(CHIAVE_NOME, null)
+    }
+    fun leggiAgenzia(context: Context): String? {
+        val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
+        return prefs.getString(CHIAVE_AGENZIA, null)
     }
 
     // Leggi il cognome
