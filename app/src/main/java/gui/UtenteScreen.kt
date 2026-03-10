@@ -236,8 +236,8 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                             imageVector = Icons.Default.Search,
                             contentDescription = "Cerca per comune o città",
                         )
-                        Spacer(modifier = Modifier.width(15.dp))
-                        Text("Cerca per comune o città", textAlign = TextAlign.Center, fontSize = 17.sp)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Filtra la tua ricerca", textAlign = TextAlign.Center, fontSize = 17.sp)
                     }
                 }
 
