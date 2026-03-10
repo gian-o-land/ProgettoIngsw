@@ -1,6 +1,9 @@
 package connection
 
+import DTO.AdminDTO
 import DTO.AgenteDTO
+import DTO.CreazioneAgenteDTO
+import DTO.CreazioneSottoadminDTO
 import DTO.FiltriRicercaDTO
 import DTO.D_stato
 import DTO.InserzioneDTO
@@ -34,7 +37,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "https://yypbl-2a0e-43d-8b44-0-92e-86c5-1445-c013.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
+val urlServer = "https://zwgsw-87-17-140-60.a.free.pinggy.link"  // da cambiare ogni volta se cambia quando riavvio pinggy
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -203,7 +206,18 @@ suspend fun scaricaTutteLeInserzioni(): List<InserzioneDTO> {
         emptyList()
     }
 }
-
+suspend fun scaricaInserzioniAgente(usernameAgente: String): List<InserzioneDTO> {
+    return try {
+        val risposta: HttpResponse = client.get("$urlServer/agente/$usernameAgente/inserzioni")
+        if (risposta.status == HttpStatusCode.OK) {
+            risposta.body()
+        } else {
+            emptyList()
+        }
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
 suspend fun scaricaAgente(identificativo: String): AgenteDTO? {
     return withContext(Dispatchers.IO) {
         try {
@@ -487,6 +501,113 @@ suspend fun registraNuovoUtente(dati: RegistrazioneUtenteDTO): Boolean {
         } catch (e: Exception) {
             Log.e("API_REGISTRAZIONE", "Errore: ${e.message}")
             false
+        }
+    }
+}
+
+suspend fun creaNuovoAgente(agente: CreazioneAgenteDTO): String? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.post("$urlServer/admin/crea-agente") {
+                contentType(ContentType.Application.Json)
+                setBody(agente)
+            }
+
+            if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
+                // Leggiamo la stringa inviata dal server (es. "Tecnocasa_AG0001") e la restituiamo
+                response.bodyAsText()
+            } else {
+                Log.e("API_CREA_AGENTE", "Errore dal server: ${response.status}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("API_CREA_AGENTE", "Eccezione di rete: ${e.message}")
+            null
+        }
+    }
+}
+suspend fun scaricaAdmin(username: String): AdminDTO? {
+    return withContext(Dispatchers.IO) {
+        try {
+            // Facciamo una richiesta GET passando l'username direttamente nell'URL
+            val response = client.get("$urlServer/admin/$username")
+
+            if (response.status == HttpStatusCode.OK) {
+                // Se il server risponde 200 OK, Ktor e kotlinx.serialization
+                // trasformeranno magicamente il JSON nel tuo AdminDTO (incluso l'Enum!)
+                response.body<AdminDTO>()
+            } else {
+                Log.e("API_SCARICA_ADMIN", "Errore dal server: ${response.status}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("API_SCARICA_ADMIN", "Eccezione di rete: ${e.message}")
+            null
+        }
+    }
+
+}
+
+suspend fun creaNuovoSottoadmin(sottoadmin: CreazioneSottoadminDTO): String? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.post("$urlServer/admin/crea-sottoadmin") {
+                contentType(ContentType.Application.Json)
+                setBody(sottoadmin)
+            }
+
+            if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
+                // Leggiamo la stringa inviata dal server (es. "Sadmin001") e la restituiamo
+                response.bodyAsText()
+            } else {
+                Log.e("API_CREA_SOTTOADMIN", "Errore dal server: ${response.status}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("API_CREA_SOTTOADMIN", "Eccezione di rete: ${e.message}")
+            null
+        }
+    }
+}
+
+suspend fun scaricaListaSottoadmin(usernameAdmin: String): List<String> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.get("$urlServer/admin/$usernameAdmin/sottoadmin")
+            if (response.status == HttpStatusCode.OK) {
+                response.body<List<String>>()
+            } else emptyList()
+        } catch (e: Exception) {
+            Log.e("API_LISTA_SOTTOADMIN", "Errore: ${e.message}")
+            emptyList()
+        }
+    }
+}
+
+suspend fun scaricaListaAgenti(usernameAdmin: String): List<String> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.get("$urlServer/admin/$usernameAdmin/agenti")
+            if (response.status == HttpStatusCode.OK) {
+                response.body<List<String>>()
+            } else emptyList()
+        } catch (e: Exception) {
+            Log.e("API_LISTA_AGENTI", "Errore: ${e.message}")
+            emptyList()
+        }
+    }
+}
+
+suspend fun scaricaInserzioniiAgente(usernameAgente: String): List<String> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = client.get("$urlServer/agente/$usernameAgente/inserzioni")
+            if (response.status == HttpStatusCode.OK) {
+                response.body<List<String>>() // Ktor lo trasforma in List<String> in automatico!
+            } else emptyList()
+        } catch (e: Exception) {
+            Log.e("API_IMMOBILI", "Errore: ${e.message}")
+            emptyList()
         }
     }
 }

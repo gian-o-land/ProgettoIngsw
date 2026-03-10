@@ -1,5 +1,6 @@
 package gui
 
+import DTO.InserzioneDTO
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -28,58 +29,69 @@ import com.example.progettoingsw.R
 import gui.template.myBottomNavBar_Sottoadmin
 import gui.template.myButton
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import connection.scaricaInserzioniAgente
+import connection.scaricaListaAgenti
 import gui.template.MyExpandableCard_Agenti
+import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SottoadminScreen(usernameSottoadmin : String, navController : NavController) {
-    val scrollState = rememberScrollState()
-
+fun SottoadminScreen(
+    usernameSottoadmin: String,
+    navController: NavController,
+    agenziaAdmin: String
+) {
+    // Dimensioni standard per coerenza grafica
     val headerHeight = 35.dp
-    val itemHeight = 51.dp // 50dp (riga) + 1dp (divisore)
+    val itemHeight = 51.dp
 
-    //Card Agenti
+    // 1. STATO DEI DATI
     val listStateAgenti = rememberLazyListState()
-    val listaAgenti = remember {
-        mutableStateListOf(
-            "Primo@Agenti",
-            "Secondo@Agenti",
-            "Terzo@Agenti",
-            "Quarto@Agenti",
-            "Quinto@Agenti"
-        )
-    }
-    var isExpandedAgenti by remember { mutableStateOf(false) }
-    val animatedHeightAgenti =
-        animatedHeight(listaAgenti, isExpandedAgenti, headerHeight, itemHeight)
+    val listaAgenti = remember { mutableStateListOf<String>() }
 
-    val indirizzo = "via sal cazzo, Piscitielli, Ita"
-    //popup agente
-    val listaImmobili = mapOf(
-        "Via:$indirizzo\nquadratura: 30m^2\nprezzo: 200000€" to R.drawable.immobile_esempio_1,
-        "immobile_esempio_2" to R.drawable.immobile_esempio_2,
-        "immobile_esempio_3" to R.drawable.immobile_esempio_3,
-        "immobile_esempio_4" to R.drawable.immobile_esempio_4,
-        "immobile_esempio_5" to R.drawable.immobile_esempio_5
-    )
+    // Mappa che collega ogni Agente alle sue inserzioni reali (DTO)
+    val mappaInserzioniDegliAgenti = remember { mutableStateMapOf<String, List<InserzioneDTO>>() }
+
+    // 2. RECUPERO DATI DAL SERVER
+    LaunchedEffect(usernameSottoadmin) {
+        // Scarichiamo gli agenti creati da questo Sottoadmin
+        val agentiScaricati = scaricaListaAgenti(usernameSottoadmin)
+
+        if (agentiScaricati.isNotEmpty()) {
+            listaAgenti.clear()
+            listaAgenti.addAll(agentiScaricati)
+
+            // Per ogni agente scaricato, recuperiamo le sue inserzioni dal DB
+            agentiScaricati.forEach { nomeAgente ->
+                val inserzioniVere = scaricaInserzioniAgente(nomeAgente)
+                mappaInserzioniDegliAgenti[nomeAgente] = inserzioniVere
+            }
+        } else {
+            listaAgenti.clear()
+            listaAgenti.add("Nessun agente creato")
+        }
+    }
+
+    // Stati per l'animazione della card
+    var isExpandedAgenti by remember { mutableStateOf(false) }
+    val animatedHeightAgenti = animatedHeight(listaAgenti, isExpandedAgenti, headerHeight, itemHeight)
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(mioBackgroung),
-        containerColor = mioBackgroung,
+        modifier = Modifier.fillMaxSize().background(mioBluScuro),
+        containerColor = mioBluScuro,
         topBar = {
             CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = mioBluScuro
-                ),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = mioBluScuro),
                 title = {
                     Text(
                         text = "Ciao,\n$usernameSottoadmin",
@@ -91,49 +103,65 @@ fun SottoadminScreen(usernameSottoadmin : String, navController : NavController)
                 navigationIcon = {
                     Image(
                         painter = painterResource(id = R.drawable.logo),
-                        "Logo",
+                        contentDescription = "Logo",
                         modifier = Modifier.height(50.dp).width(50.dp)
                     )
-                })
+                }
+            )
         },
-        bottomBar = { myBottomNavBar_Sottoadmin(navController, usernameSottoadmin) }
+        bottomBar = {
+            myBottomNavBar_Sottoadmin(navController, usernameSottoadmin, agenziaAdmin)
+        }
     ) { innerPadding ->
+        // Foglio bianco arrotondato che riempie lo schermo
         Column(
-            modifier = Modifier.padding(innerPadding)
-                .verticalScroll(scrollState)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = innerPadding.calculateTopPadding())
+                .background(
+                    color = mioBackgroung,
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                )
+                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                .padding(bottom = innerPadding.calculateBottomPadding()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(30.dp))
+
+            Text(
+                text = "Gestione\nCollaboratori",
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = mieScritte,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(30.dp))
+
+            // CARD ESPANDIBILE AGENTI
+            MyExpandableCard_Agenti(
+                animatedHeight = animatedHeightAgenti,
+                headerHeight = headerHeight,
+                isExpanded = isExpandedAgenti,
+                onExpandedChange = { nuovoValore -> isExpandedAgenti = nuovoValore },
+                listState = listStateAgenti,
+                lista = listaAgenti,
+                titolo = "I tuoi Agenti",
+                // Passiamo la mappa di DTO: l'errore Argument Mismatch sparisce qui!
+                listaPopup = mappaInserzioniDegliAgenti,
+                itemHeight = 200.dp
+            )
+
             Spacer(Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Crea\ni tuoi collaboratori",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center
-                )
-            }
-            Spacer(Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                MyExpandableCard_Agenti(
-                    animatedHeight = animatedHeightAgenti,
-                    headerHeight = headerHeight,
-                    isExpanded = isExpandedAgenti,
-                    onExpandedChange = { nuovoValore -> isExpandedAgenti = nuovoValore },
-                    listState = listStateAgenti,
-                    lista = listaAgenti,
-                    titolo = "I tuoi Agenti",
-                    listaPopup = listaImmobili,
-                    itemHeight = 200.dp
-                )
-            }
-            Spacer(Modifier.height(10.dp))
-            myButton({}, "Crea Agente")
+
+            // BOTTONE CREAZIONE
+            myButton(
+                myClick = {
+                    navController.navigate(Screen.CreazioneAgenteScreen.withArgs(usernameSottoadmin, agenziaAdmin))
+                },
+                testo = "Crea Agente"
+            )
+
             Spacer(modifier = Modifier.height(30.dp))
         }
     }

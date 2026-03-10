@@ -59,6 +59,7 @@ import connection.connessioneLoginGoogle
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.util.UnstableApi
 import connection.SessionManager
+import connection.scaricaAdmin
 import connection.scaricaAgente
 import connection.scaricaUtente
 
@@ -178,7 +179,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                             if (dati?.telefono == "0000000000" && dati.password == "Accesso_Google0"){
                                                 navController.navigate(Screen.NewUtenteGoogleScreen.withEmailGoogle(mailUtente))
                                             } else{
-                                                SessionManager.salvaSessione(context, mailUtente, 0)
+                                                SessionManager.salvaSessioneUtente_Agente(context, mailUtente, 0)
 
                                                 navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente)) {
                                                     popUpTo(0)
@@ -262,22 +263,41 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                         coroutineScope.launch {
                             val risposta = connessioneLogin(textFieldEmail, textFieldPassword)
                             if (risposta==0){
-                                SessionManager.salvaSessione(context, textFieldEmail, 0)
+                                SessionManager.salvaSessioneUtente_Agente(context, textFieldEmail, 0)
 
                                 navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmail)){
                                     popUpTo(0)
                                 }
 
-                            }else if (risposta==1){
-                                SessionManager.salvaSessione(context, textFieldEmail, 1)
+                            }else if (risposta == 1) {
+                                // 1. Attiviamo la rotellina di caricamento
+                                isLoading = true
 
-                                navController.navigate(Screen.AdminScreen.withMailAdmin(textFieldEmail)){
+                                // 2. Scarichiamo i dati dell'Admin dal server
+                                val adminScaricato = scaricaAdmin(textFieldEmail)
+
+                                // 3. Estraiamo il nome dell'agenzia (se è null, mettiamo un valore di fallback sicuro)
+                                val agenziaAdmin = adminScaricato?.nomeAgenzia ?: "Nessuna Agenzia"
+
+                                // 4. Salviamo la sessione
+                                SessionManager.salvaSessioneAdmin(context, textFieldEmail, 1,agenziaAdmin)
+
+                                // 5. Spegniamo il caricamento e navighiamo passando la variabile corretta!
+                                isLoading = false
+                                navController.navigate(Screen.AdminScreen.withArgs(textFieldEmail, agenziaAdmin)) {
                                     popUpTo(0)
                                 }
                             }else if (risposta==2){
-                                SessionManager.salvaSessione(context, textFieldEmail, 2)
 
-                                navController.navigate(Screen.SottoadminScreen.withMailSottoadmin(textFieldEmail)){
+                                isLoading = true
+
+                                val sottoadminScaricato = scaricaAdmin(textFieldEmail)
+                                val agenziaSottoadmin = sottoadminScaricato?.nomeAgenzia ?: "Nessuna Agenzia"
+
+                                SessionManager.salvaSessioneAdmin(context, textFieldEmail, 2, agenziaSottoadmin)
+                                isLoading = false
+
+                                navController.navigate(Screen.SottoadminScreen.withArgs(textFieldEmail, agenziaSottoadmin)){
                                     popUpTo(0)
                                 }
 
@@ -285,7 +305,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                 isLoading = true
                                 val agente = scaricaAgente(textFieldEmail)
 
-                                SessionManager.salvaSessione(context, agente?.username, 3)
+                                SessionManager.salvaSessioneUtente_Agente(context, agente?.username, 3)
 
                                 isLoading = false
                                 navController.navigate(Screen.AgenteScreen.withMailAgente(agente?.username)){

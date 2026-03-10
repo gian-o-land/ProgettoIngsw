@@ -1,5 +1,6 @@
 package gui
 
+import DTO.InserzioneDTO
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -22,67 +23,88 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import gui.template.myBottomNavBar_Admin
 import gui.template.myButton
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import connection.scaricaInserzioniAgente
+import connection.scaricaListaAgenti
+import connection.scaricaListaSottoadmin
 import gui.template.MyExpandableCard_Agenti
 import gui.template.MyExpandableCard_Sottoadmin
 import navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminScreen(usernameAdmin : String, navController : NavController){
-    val scrollState = rememberScrollState()
+fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAdmin: String){
 
-    //Card Sottoadmin
+    // 1. Liste
+    val listaSottoadmin = remember { mutableStateListOf<String>() }
+    val listaAgenti = remember { mutableStateListOf<String>() }
+
+    // 2. Mappe per i Popup
+    val mappaAgentiDeiSottoadmin = remember { mutableStateMapOf<String, List<String>>() }
+
+    // --- MODIFICA 1: La mappa ora contiene direttamente le liste di InserzioneDTO! ---
+    val mappaInserzioniDegliAgenti = remember { mutableStateMapOf<String, List<InserzioneDTO>>() }
+
     val listStateSottoadmin = rememberLazyListState()
-    val listaSottoadmin = remember {
-        mutableStateListOf(
-            "Primo@sottoadmin",
-            "Secondo@sottoadmin",
-            "Terzo@sottoadmin",
-            "Quarto@sottoadmin",
-            "Quinto@sottoadmin"
-        )
+    val listStateAgenti = rememberLazyListState()
+
+    // 3. LAUNCHED EFFECT: Popoliamo tutto dal DB.
+    LaunchedEffect(usernameAdmin) {
+        val sottoadminScaricati = scaricaListaSottoadmin(usernameAdmin)
+        val agentiScaricati = scaricaListaAgenti(usernameAdmin)
+
+        // --- POPOLIAMO I SOTTOADMIN E I LORO AGENTI ---
+        if (sottoadminScaricati.isNotEmpty()) {
+            listaSottoadmin.clear()
+            listaSottoadmin.addAll(sottoadminScaricati)
+
+            sottoadminScaricati.forEach { nomeSottoadmin ->
+                val agentiDelSotto = scaricaListaAgenti(nomeSottoadmin)
+                mappaAgentiDeiSottoadmin[nomeSottoadmin] = if (agentiDelSotto.isNotEmpty()) agentiDelSotto else listOf("Nessun agente creato")
+            }
+        } else {
+            listaSottoadmin.clear()
+            listaSottoadmin.add("Nessun sottoadmin creato")
+        }
+
+        // --- POPOLIAMO GLI AGENTI E I LORO IMMOBILI REALI ---
+        if (agentiScaricati.isNotEmpty()) {
+            listaAgenti.clear()
+            listaAgenti.addAll(agentiScaricati)
+
+            agentiScaricati.forEach { nomeAgente ->
+                // Scarichiamo i dati REALI dal database tramite i DTO
+                val inserzioniVere = scaricaInserzioniAgente(nomeAgente)
+
+                // --- MODIFICA 2: Assegniamo direttamente la lista di DTO alla mappa ---
+                // Se è vuota, passerà semplicemente una lista vuota (emptyList) che il tuo popup saprà gestire
+                mappaInserzioniDegliAgenti[nomeAgente] = inserzioniVere
+            }
+        } else {
+            listaAgenti.clear()
+            listaAgenti.add("Nessun agente creato")
+        }
     }
+
     var isExpandedSottoadmin by remember { mutableStateOf(false) }
     val headerHeight = 35.dp
-    val itemHeight = 51.dp // 50dp (riga) + 1dp (divisore)
+    val itemHeight = 51.dp
     val animatedHeightSottoadmin = animatedHeight(listaSottoadmin, isExpandedSottoadmin, headerHeight, itemHeight)
 
-    //Card Agenti
-    val listStateAgenti = rememberLazyListState()
-    val listaAgenti = remember {
-        mutableStateListOf(
-            "Primo@Agenti",
-            "Secondo@Agenti",
-            "Terzo@Agenti",
-            "Quarto@Agenti",
-            "Quinto@Agenti"
-        )
-    }
     var isExpandedAgenti by remember { mutableStateOf(false) }
     val animatedHeightAgenti = animatedHeight(listaAgenti, isExpandedAgenti, headerHeight, itemHeight)
-
-    val indirizzo = "via sal cazzo, Piscitielli, Ita"
-    //popup agente
-    val listaImmobili = mapOf(
-            "Via:$indirizzo\nquadratura: 30m^2\nprezzo: 200000€" to R.drawable.immobile_esempio_1,
-            "immobile_esempio_2" to R.drawable.immobile_esempio_2,
-            "immobile_esempio_3" to R.drawable.immobile_esempio_3,
-            "immobile_esempio_4" to R.drawable.immobile_esempio_4,
-            "immobile_esempio_5" to R.drawable.immobile_esempio_5
-    )
 
     Scaffold(
         modifier = Modifier
@@ -95,36 +117,23 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
             ),
             title = {
                 Text(text= "Ciao,\n$usernameAdmin",
-                            fontWeight = FontWeight.Bold,
-                            color = mieiTitoli,
-                            textAlign = TextAlign.Center)
+                    fontWeight = FontWeight.Bold,
+                    color = mieiTitoli,
+                    textAlign = TextAlign.Center)
             },
             navigationIcon = {
                 Image(
-                painter = painterResource(id = R.drawable.logo),
-                "Logo",
-                modifier = Modifier.height(50.dp).width(50.dp)
+                    painter = painterResource(id = R.drawable.logo),
+                    "Logo",
+                    modifier = Modifier.height(50.dp).width(50.dp)
                 )
             })
         },
-        bottomBar = { myBottomNavBar_Admin(navController, usernameAdmin) }
+        bottomBar = { myBottomNavBar_Admin(navController, usernameAdmin, agenziaAdmin) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)
-                .verticalScroll(scrollState)
         ) {
-            Spacer(Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Crea\ni tuoi collaboratori",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center
-                )
-            }
             Spacer(Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -138,15 +147,18 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                     listState = listStateSottoadmin,
                     lista = listaSottoadmin,
                     titolo = "I tuoi Sottoadmin",
-                    listaPopup = listaAgenti,
+                    listaPopup = mappaAgentiDeiSottoadmin,
                     itemHeight = itemHeight,
-                    listaImmobili = listaImmobili,
+
+                    // --- MODIFICA QUI: Cambiato nome parametro e passata la mappa dei DTO ---
+                    mappaInserzioniAgenti = mappaInserzioniDegliAgenti,
+
                     itemHeightImmobile = 200.dp
                 )
             }
             Spacer(Modifier.height(10.dp))
             myButton({
-                navController.navigate(Screen.SottoadminScreen.route)
+                navController.navigate(Screen.CreazioneSottoadminScreen.withArgs(usernameAdmin, agenziaAdmin))
             }, "Crea Sottoadmin")
             Spacer(Modifier.height(60.dp))
             Row(
@@ -157,20 +169,23 @@ fun AdminScreen(usernameAdmin : String, navController : NavController){
                     animatedHeight = animatedHeightAgenti,
                     headerHeight = headerHeight,
                     isExpanded = isExpandedAgenti,
-                    onExpandedChange = {nuovoValore -> isExpandedAgenti = nuovoValore},
+                    onExpandedChange = { nuovoValore -> isExpandedAgenti = nuovoValore},
                     listState = listStateAgenti,
                     lista = listaAgenti,
                     titolo = "I tuoi Agenti",
-                    listaPopup = listaImmobili,
+                    // --- MODIFICA 3: Passiamo la mappa con le vere InserzioneDTO! ---
+                    listaPopup = mappaInserzioniDegliAgenti,
                     itemHeight = 200.dp
                 )
             }
             Spacer(Modifier.height(10.dp))
-            myButton({
-                navController.navigate(Screen.AgenteScreen.route)
-            }, "Crea Agente")
+            myButton(
+                myClick = {
+                    navController.navigate(Screen.CreazioneAgenteScreen.withArgs(usernameAdmin, agenziaAdmin))
+                },
+                testo = "Crea Agente"
+            )
             Spacer(modifier = Modifier.height(30.dp))
         }
-
     }
 }

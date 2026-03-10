@@ -50,6 +50,8 @@ import gui.NotificheAgenteScreen
 import gui.mioBluScuro
 import androidx.compose.ui.platform.LocalContext
 import connection.SessionManager
+import gui.CreazioneAgenteScreen
+import gui.CreazioneSottoadminScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -62,13 +64,15 @@ fun Navigation() {
     // 1. Leggiamo dalla memoria a lungo termine
     val emailSalvata = SessionManager.leggiEmail(context)
     val ruoloSalvato = SessionManager.leggiRuolo(context)
+    val agenziaSalvata = SessionManager.leggiAgenzia(context)
+
 
     // 2. Decidiamo dinamicamente la schermata di partenza!
     val schermataDiPartenza = if (emailSalvata != null && ruoloSalvato != -1) {
         when (ruoloSalvato) {
             0 -> Screen.UtenteScreen.withMailUtente(emailSalvata)
-            1 -> Screen.AdminScreen.withMailAdmin(emailSalvata)
-            2 -> Screen.SottoadminScreen.withMailSottoadmin(emailSalvata)
+            1 -> Screen.AdminScreen.withArgs(emailSalvata, agenziaSalvata)
+            2 -> Screen.SottoadminScreen.withArgs(emailSalvata,agenziaSalvata)
             3 -> Screen.AgenteScreen.withMailAgente(emailSalvata)
             else -> Screen.LoginScreen.route
         }
@@ -115,44 +119,55 @@ fun Navigation() {
         }
 
         composable(
-            route = Screen.AdminScreen.route,
-
+            route = Screen.AdminScreen.route, // Assicurati che in Screen.kt la rotta sia "admin_screen/{usernameAdmin}/{agenziaAdmin}"
             arguments = listOf(
                 navArgument("usernameAdmin") {
                     type = NavType.StringType
                     defaultValue = "<UsernameAdmin>" // Valore se arrivi dalla Navbar (senza parametri)
                     nullable = true
+                },
+                // --- NUOVO ARGOMENTO AGGIUNTO ---
+                navArgument("agenziaAdmin") {
+                    type = NavType.StringType
+                    defaultValue = "<NomeAgenzia>" // Valore di default se manca
+                    nullable = true
                 }
             )
         ) { entry ->
-            // Recupera l'argomento
+            // Recupera entrambi gli argomenti
             val usernameRecuperato = entry.arguments?.getString("usernameAdmin") ?: "<UsernameAdmin>"
+            val agenziaRecuperata = entry.arguments?.getString("agenziaAdmin") ?: "<NomeAgenzia>"
 
-            // Passalo alla schermata
+            // Passali alla schermata
             AdminScreen(
                 navController = navController,
-                usernameAdmin = usernameRecuperato
+                usernameAdmin = usernameRecuperato,
+                agenziaAdmin = agenziaRecuperata // <-- Parametro passato correttamente!
             )
         }
 
         composable(
             route = Screen.SottoadminScreen.route,
-
             arguments = listOf(
                 navArgument("usernameSottoadmin") {
                     type = NavType.StringType
-                    defaultValue = "<UsernameSottoadmin>" // Valore se arrivi dalla Navbar (senza parametri)
-                    nullable = true
+                    defaultValue = ""
+                },
+                // --- NUOVO PARAMETRO AGGIUNTO ---
+                navArgument("agenziaAdmin") {
+                    type = NavType.StringType
+                    defaultValue = "Nessuna Agenzia"
                 }
             )
-        ) { entry ->
-            // Recupera l'argomento
-            val usernameRecuperato = entry.arguments?.getString("usernameSottoadmin") ?: "<UsernameSottoadmin>"
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("usernameSottoadmin") ?: ""
+            val agenzia = backStackEntry.arguments?.getString("agenziaAdmin") ?: ""
 
-            // Passalo alla schermata
+            // Chiamata alla tua schermata aggiornata!
             SottoadminScreen(
+                usernameSottoadmin = username,
                 navController = navController,
-                usernameSottoadmin = usernameRecuperato
+                agenziaAdmin = agenzia
             )
         }
 
@@ -381,25 +396,24 @@ fun Navigation() {
         composable(
             route = Screen.ProfiloAdminScreen.route,
             arguments = listOf(
-                navArgument("username") {
+                navArgument("username") { type = NavType.StringType },
+                navArgument("ruolo") { type = NavType.IntType },
+                // --- NUOVO PARAMETRO AGGIUNTO QUI ---
+                navArgument("agenziaAdmin") {
                     type = NavType.StringType
-                    defaultValue = "<Username>"
-                    nullable = true
-                },
-                navArgument("ruolo") {
-                    type = NavType.IntType // Usiamo IntType
-                    defaultValue = 1 // Valore di default: Admin
+                    defaultValue = "Nessuna Agenzia" // Sempre utile avere un default
                 }
             )
-        ) { entry ->
-            val usernameRecuperato = entry.arguments?.getString("username") ?: "<Username>"
-            // Usiamo getInt per recuperare il ruolo
-            val ruoloRecuperato = entry.arguments?.getInt("ruolo") ?: 1
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            val ruolo = backStackEntry.arguments?.getInt("ruolo") ?: 0
+            val agenzia = backStackEntry.arguments?.getString("agenziaAdmin") ?: ""
 
             ProfiloAdminScreen(
-                username = usernameRecuperato,
-                ruolo = ruoloRecuperato,
-                navController = navController
+                username = username,
+                navController = navController,
+                ruolo = ruolo,
+                agenziaAdmin = agenzia
             )
         }
         composable(
@@ -524,6 +538,40 @@ fun Navigation() {
             NewUtenteGoogleScreen(
                 navController = navController,
                 email = mailRecuperata
+            )
+        }
+
+        composable(
+            route = Screen.CreazioneAgenteScreen.route,
+            arguments = listOf(
+                navArgument("usernameAdmin") { type = NavType.StringType; defaultValue = "" },
+                navArgument("agenziaAdmin") { type = NavType.StringType; defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val usernameSalvato = backStackEntry.arguments?.getString("usernameAdmin") ?: ""
+            val agenziaSalvata = backStackEntry.arguments?.getString("agenziaAdmin") ?: ""
+
+            CreazioneAgenteScreen(
+                navController = navController,
+                usernameAdmin = usernameSalvato,
+                agenziaAdmin = agenziaSalvata
+            )
+        }
+
+        composable(
+            route = Screen.CreazioneSottoadminScreen.route,
+            arguments = listOf(
+                navArgument("usernameAdmin") { type = NavType.StringType },
+                navArgument("agenziaAdmin") { type = NavType.StringType }
+            )
+        ) { entry ->
+            val usernameAdmin = entry.arguments?.getString("usernameAdmin") ?: ""
+            val agenziaAdmin = entry.arguments?.getString("agenziaAdmin") ?: ""
+
+            CreazioneSottoadminScreen(
+                navController = navController,
+                usernameAdmin = usernameAdmin,
+                agenziaAdmin = agenziaAdmin
             )
         }
     }

@@ -1,5 +1,6 @@
 package gui.template
 
+import DTO.InserzioneDTO
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +43,8 @@ import gui.mieiTitoli
 import gui.mioBackgroung
 import gui.mioBluScuro
 import gui.simpleVerticalScrollbar
+import kotlin.collections.emptyMap
+
 
 @Composable
 fun MyExpandableCard_Sottoadmin(
@@ -48,11 +53,12 @@ fun MyExpandableCard_Sottoadmin(
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     listState: LazyListState,
-    lista: List<String>,
+    lista: List<String>, // Nomi dei Sottoadmin
     titolo: String,
-    listaPopup: List<String>,
+    listaPopup: Map<String, List<String>>, // Mappa Sottoadmin -> Suoi Agenti
     itemHeight: Dp,
-    listaImmobili: Map<String, Int>,
+    // --- MODIFICA 1: Cambiato il tipo per accettare la mappa dei DTO reali ---
+    mappaInserzioniAgenti: Map<String, List<InserzioneDTO>>,
     itemHeightImmobile: Dp
 ){
     var popupSelection by remember { mutableStateOf<String?>(null) }
@@ -94,9 +100,7 @@ fun MyExpandableCard_Sottoadmin(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(end = 2.dp)
-                .simpleVerticalScrollbar(
-                    state = listState
-                )
+                .simpleVerticalScrollbar(state = listState)
         ) {
             items(lista){ itemLista ->
                 Row(
@@ -123,21 +127,21 @@ fun MyExpandableCard_Sottoadmin(
             }
         }
     }
+
     if (popupSelection != null) {
         ShowPopup_Sottoadmin(
             selected = popupSelection,
             onSelectedChange = { nuovoValore ->
-                // Se nuovoValore è null (chiusura), aggiorniamo lo stato locale
                 popupSelection = nuovoValore
             },
-            listaAgenti = listaPopup,
+            listaAgenti = listaPopup[popupSelection] ?: listOf("Nessun agente trovato"),
             itemHeight = itemHeight,
-            listaImmobili = listaImmobili,
+            // --- MODIFICA 2: Usiamo il nome parametro corretto "mappaInserzioniAgenti" ---
+            mappaInserzioniAgenti = mappaInserzioniAgenti,
             itemHeightImmobile = itemHeightImmobile
         )
     }
 }
-
 @Composable
 fun MyExpandableCard_Agenti(
     animatedHeight: Dp,
@@ -145,9 +149,9 @@ fun MyExpandableCard_Agenti(
     isExpanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     listState: LazyListState,
-    lista: List<String>,
+    lista: List<String>, // Nomi degli agenti
     titolo: String,
-    listaPopup: Map<String, Int>,
+    listaPopup: Map<String, List<InserzioneDTO>>, // Mappa Agente -> Sue Inserzioni
     itemHeight: Dp
 ){
     var popupSelection by remember { mutableStateOf<String?>(null) }
@@ -156,61 +160,48 @@ fun MyExpandableCard_Agenti(
         modifier = Modifier
             .height(animatedHeight)
             .width(300.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = mioBackgroung,
-        ),
+        colors = CardDefaults.cardColors(containerColor = mioBackgroung),
         border = BorderStroke(2.dp, mioBluScuro)
     ) {
+        // Header della Card (Cliccabile per espandere)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(mioBluScuro)
                 .height(headerHeight)
-                .clickable{ onExpandedChange(!isExpanded)},
+                .clickable { onExpandedChange(!isExpanded) },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = titolo,
-                fontWeight = FontWeight.Normal,
-                fontSize = 17.sp,
+            Text(
+                text = titolo,
                 color = mieiTitoli,
-                textAlign = TextAlign.Center,
                 modifier = Modifier.padding(start = 15.dp)
             )
             Icon(
                 imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = "Espandi",
+                contentDescription = null,
                 tint = mieiTitoli,
                 modifier = Modifier.padding(end = 10.dp)
             )
         }
+
+        // Lista degli Agenti
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 2.dp)
-                .simpleVerticalScrollbar(
-                    state = listState
-                )
+            modifier = Modifier.fillMaxWidth()
         ) {
-            items(lista){ itemLista ->
+            items(lista) { nomeAgente ->
+                HorizontalDivider(color = Color.Black, thickness = 0.5.dp)
                 Row(
-                    modifier = Modifier.height(1.dp)
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.Black)
-                ) { }
-                Row(
-                    modifier = Modifier.fillMaxWidth()
                         .height(50.dp)
-                        .clickable {
-                            popupSelection = itemLista
-                        },
-                    horizontalArrangement = Arrangement.Start,
+                        .clickable { popupSelection = nomeAgente }, // Cliccando l'agente si apre il popup
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = itemLista,
-                        fontSize = 16.sp,
+                        text = nomeAgente,
                         color = mieScritte,
                         modifier = Modifier.padding(start = 15.dp)
                     )
@@ -218,14 +209,14 @@ fun MyExpandableCard_Agenti(
             }
         }
     }
-    if (popupSelection != null){
+
+    // --- IL POPUP ---
+    if (popupSelection != null) {
         ShowPopup_Agente(
             selected = popupSelection,
-            onSelectedChange = { nuovoValore ->
-                // Se nuovoValore è null (chiusura), aggiorniamo lo stato locale
-                popupSelection = nuovoValore
-            },
-            listaImmobili = listaPopup,
+            onSelectedChange = { popupSelection = it },
+            // FIX ERRORE: Specifichiamo il tipo <InserzioneDTO>
+            listaImmobili = listaPopup[popupSelection] ?: emptyList<InserzioneDTO>(),
             itemHeight = itemHeight
         )
     }
