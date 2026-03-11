@@ -157,7 +157,6 @@ fun RicercaMappaScreen(
             val request = FindAutocompletePredictionsRequest.builder()
                 .setSessionToken(sessionToken)
                 .setQuery(query)
-                //.setCountries("IT")
                 .build()
 
             placesClient.findAutocompletePredictions(request)

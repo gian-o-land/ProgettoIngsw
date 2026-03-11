@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -59,7 +60,9 @@ fun MyExpandableCard_Sottoadmin(
     itemHeight: Dp,
     // --- MODIFICA 1: Cambiato il tipo per accettare la mappa dei DTO reali ---
     mappaInserzioniAgenti: Map<String, List<InserzioneDTO>>,
-    itemHeightImmobile: Dp
+    itemHeightImmobile: Dp,
+    navController: NavController,
+    isLoading: Boolean
 ){
     var popupSelection by remember { mutableStateOf<String?>(null) }
 
@@ -77,7 +80,11 @@ fun MyExpandableCard_Sottoadmin(
                 .fillMaxWidth()
                 .background(mioBluScuro)
                 .height(headerHeight)
-                .clickable{ onExpandedChange(!isExpanded)},
+                .clickable{
+                    if (!isLoading){
+                        onExpandedChange(!isExpanded)
+                    }
+                          },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -88,12 +95,22 @@ fun MyExpandableCard_Sottoadmin(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(start = 15.dp)
             )
-            Icon(
-                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = "Espandi",
-                tint = mieiTitoli,
-                modifier = Modifier.padding(end = 10.dp)
-            )
+            if (isLoading) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(end = 15.dp)
+                        .size(24.dp), // Lo facciamo piccolino per stare bene nella riga
+                    color = mieiTitoli,
+                    strokeWidth = 2.5.dp
+                )
+            } else {
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Espandi",
+                    tint = mieiTitoli,
+                    modifier = Modifier.padding(end = 10.dp)
+                )
+            }
         }
         LazyColumn(
             state = listState,
@@ -138,7 +155,8 @@ fun MyExpandableCard_Sottoadmin(
             itemHeight = itemHeight,
             // --- MODIFICA 2: Usiamo il nome parametro corretto "mappaInserzioniAgenti" ---
             mappaInserzioniAgenti = mappaInserzioniAgenti,
-            itemHeightImmobile = itemHeightImmobile
+            itemHeightImmobile = itemHeightImmobile,
+            navController = navController
         )
     }
 }
@@ -152,7 +170,9 @@ fun MyExpandableCard_Agenti(
     lista: List<String>, // Nomi degli agenti
     titolo: String,
     listaPopup: Map<String, List<InserzioneDTO>>, // Mappa Agente -> Sue Inserzioni
-    itemHeight: Dp
+    itemHeight: Dp,
+    navController: NavController,
+    isLoading: Boolean
 ){
     var popupSelection by remember { mutableStateOf<String?>(null) }
 
@@ -169,7 +189,11 @@ fun MyExpandableCard_Agenti(
                 .fillMaxWidth()
                 .background(mioBluScuro)
                 .height(headerHeight)
-                .clickable { onExpandedChange(!isExpanded) },
+                .clickable {
+                    if (!isLoading){
+                        onExpandedChange(!isExpanded)
+                    }
+                           },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -178,12 +202,22 @@ fun MyExpandableCard_Agenti(
                 color = mieiTitoli,
                 modifier = Modifier.padding(start = 15.dp)
             )
-            Icon(
-                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                tint = mieiTitoli,
-                modifier = Modifier.padding(end = 10.dp)
-            )
+            if (isLoading) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(end = 15.dp)
+                        .size(24.dp), // Lo facciamo piccolino per stare bene nella riga
+                    color = mieiTitoli,
+                    strokeWidth = 2.5.dp
+                )
+            } else {
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Espandi",
+                    tint = mieiTitoli,
+                    modifier = Modifier.padding(end = 10.dp)
+                )
+            }
         }
 
         // Lista degli Agenti
@@ -217,7 +251,8 @@ fun MyExpandableCard_Agenti(
             onSelectedChange = { popupSelection = it },
             // FIX ERRORE: Specifichiamo il tipo <InserzioneDTO>
             listaImmobili = listaPopup[popupSelection] ?: emptyList<InserzioneDTO>(),
-            itemHeight = itemHeight
+            itemHeight = itemHeight,
+            navController = navController
         )
     }
 }

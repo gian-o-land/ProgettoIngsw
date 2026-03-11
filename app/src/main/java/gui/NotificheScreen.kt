@@ -181,6 +181,17 @@ fun NotificheScreen(navController : NavController, email : String) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = mioBluScuro)
                 }
+            } else if (listaNotifiche.isEmpty()){
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Non hai effettuato prenotazione!",
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray
+                    )
+                }
             } else {
                 Row(
                     modifier = Modifier

@@ -60,10 +60,12 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
     val listStateSottoadmin = rememberLazyListState()
     val listStateAgenti = rememberLazyListState()
 
+    var isLoadingSottoadmin by remember { mutableStateOf(true) }
+    var isLoadingAgenti by remember { mutableStateOf(true) }
+
     // 3. LAUNCHED EFFECT: Popoliamo tutto dal DB.
     LaunchedEffect(usernameAdmin) {
         val sottoadminScaricati = scaricaListaSottoadmin(usernameAdmin)
-        val agentiScaricati = scaricaListaAgenti(usernameAdmin)
 
         // --- POPOLIAMO I SOTTOADMIN E I LORO AGENTI ---
         if (sottoadminScaricati.isNotEmpty()) {
@@ -73,11 +75,23 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
             sottoadminScaricati.forEach { nomeSottoadmin ->
                 val agentiDelSotto = scaricaListaAgenti(nomeSottoadmin)
                 mappaAgentiDeiSottoadmin[nomeSottoadmin] = if (agentiDelSotto.isNotEmpty()) agentiDelSotto else listOf("Nessun agente creato")
+
+                // 🔥 ECCO LA MAGIA AGGIUNTA:
+                // Diciamo all'app di scaricare le inserzioni anche per gli agenti dei Sottoadmin!
+                agentiDelSotto.forEach { nomeAgenteDelSotto ->
+                    val inserzioniVereSotto = scaricaInserzioniAgente(nomeAgenteDelSotto)
+                    mappaInserzioniDegliAgenti[nomeAgenteDelSotto] = inserzioniVereSotto
+                }
             }
         } else {
             listaSottoadmin.clear()
             listaSottoadmin.add("Nessun sottoadmin creato")
         }
+        isLoadingSottoadmin = false
+    }
+
+    LaunchedEffect(usernameAdmin) {
+        val agentiScaricati = scaricaListaAgenti(usernameAdmin)
 
         // --- POPOLIAMO GLI AGENTI E I LORO IMMOBILI REALI ---
         if (agentiScaricati.isNotEmpty()) {
@@ -96,6 +110,8 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
             listaAgenti.clear()
             listaAgenti.add("Nessun agente creato")
         }
+
+        isLoadingAgenti = false
     }
 
     var isExpandedSottoadmin by remember { mutableStateOf(false) }
@@ -153,7 +169,9 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
                     // --- MODIFICA QUI: Cambiato nome parametro e passata la mappa dei DTO ---
                     mappaInserzioniAgenti = mappaInserzioniDegliAgenti,
 
-                    itemHeightImmobile = 200.dp
+                    itemHeightImmobile = 200.dp,
+                    navController = navController,
+                    isLoading = isLoadingSottoadmin
                 )
             }
             Spacer(Modifier.height(10.dp))
@@ -175,7 +193,9 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
                     titolo = "I tuoi Agenti",
                     // --- MODIFICA 3: Passiamo la mappa con le vere InserzioneDTO! ---
                     listaPopup = mappaInserzioniDegliAgenti,
-                    itemHeight = 200.dp
+                    itemHeight = 200.dp,
+                    navController = navController,
+                    isLoading = isLoadingAgenti
                 )
             }
             Spacer(Modifier.height(10.dp))

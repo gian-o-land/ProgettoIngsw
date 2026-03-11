@@ -62,6 +62,8 @@ fun SottoadminScreen(
     // Mappa che collega ogni Agente alle sue inserzioni reali (DTO)
     val mappaInserzioniDegliAgenti = remember { mutableStateMapOf<String, List<InserzioneDTO>>() }
 
+    var isLoadingAgenti by remember { mutableStateOf(true) }
+
     // 2. RECUPERO DATI DAL SERVER
     LaunchedEffect(usernameSottoadmin) {
         // Scarichiamo gli agenti creati da questo Sottoadmin
@@ -80,6 +82,8 @@ fun SottoadminScreen(
             listaAgenti.clear()
             listaAgenti.add("Nessun agente creato")
         }
+
+        isLoadingAgenti = false
     }
 
     // Stati per l'animazione della card
@@ -119,10 +123,8 @@ fun SottoadminScreen(
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
                 .background(
-                    color = mioBackgroung,
-                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                    color = mioBackgroung
                 )
-                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                 .padding(bottom = innerPadding.calculateBottomPadding()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -149,7 +151,9 @@ fun SottoadminScreen(
                 titolo = "I tuoi Agenti",
                 // Passiamo la mappa di DTO: l'errore Argument Mismatch sparisce qui!
                 listaPopup = mappaInserzioniDegliAgenti,
-                itemHeight = 200.dp
+                itemHeight = 200.dp,
+                navController = navController,
+                isLoading = isLoadingAgenti
             )
 
             Spacer(Modifier.height(20.dp))

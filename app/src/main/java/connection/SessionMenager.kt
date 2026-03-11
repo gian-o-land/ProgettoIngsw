@@ -14,14 +14,14 @@ object SessionManager {
 
 
     // 1. Salva i dati quando fai il login
-    fun salvaSessioneUtente_Agente(context: Context, email: String?, ruolo: Int) {
+    fun salvaSessioneUtente(context: Context, email: String?, ruolo: Int) {
         val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(CHIAVE_EMAIL, email)
             .putInt(CHIAVE_RUOLO, ruolo)
             .apply() // .apply() salva in background senza bloccare l'app
     }
-    fun salvaSessioneAdmin(context: Context, email: String?, ruolo: Int, agenzia: String) {
+    fun salvaSessione(context: Context, email: String?, ruolo: Int, agenzia: String) {
         val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(CHIAVE_EMAIL, email)

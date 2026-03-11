@@ -179,7 +179,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                             if (dati?.telefono == "0000000000" && dati.password == "Accesso_Google0"){
                                                 navController.navigate(Screen.NewUtenteGoogleScreen.withEmailGoogle(mailUtente))
                                             } else{
-                                                SessionManager.salvaSessioneUtente_Agente(context, mailUtente, 0)
+                                                SessionManager.salvaSessioneUtente(context, mailUtente, 0)
 
                                                 navController.navigate(Screen.UtenteScreen.withMailUtente(mailUtente)) {
                                                     popUpTo(0)
@@ -263,7 +263,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                         coroutineScope.launch {
                             val risposta = connessioneLogin(textFieldEmail, textFieldPassword)
                             if (risposta==0){
-                                SessionManager.salvaSessioneUtente_Agente(context, textFieldEmail, 0)
+                                SessionManager.salvaSessioneUtente(context, textFieldEmail, 0)
 
                                 navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmail)){
                                     popUpTo(0)
@@ -280,7 +280,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                 val agenziaAdmin = adminScaricato?.nomeAgenzia ?: "Nessuna Agenzia"
 
                                 // 4. Salviamo la sessione
-                                SessionManager.salvaSessioneAdmin(context, textFieldEmail, 1,agenziaAdmin)
+                                SessionManager.salvaSessione(context, textFieldEmail, 1,agenziaAdmin)
 
                                 // 5. Spegniamo il caricamento e navighiamo passando la variabile corretta!
                                 isLoading = false
@@ -294,7 +294,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                 val sottoadminScaricato = scaricaAdmin(textFieldEmail)
                                 val agenziaSottoadmin = sottoadminScaricato?.nomeAgenzia ?: "Nessuna Agenzia"
 
-                                SessionManager.salvaSessioneAdmin(context, textFieldEmail, 2, agenziaSottoadmin)
+                                SessionManager.salvaSessione(context, textFieldEmail, 2, agenziaSottoadmin)
                                 isLoading = false
 
                                 navController.navigate(Screen.SottoadminScreen.withArgs(textFieldEmail, agenziaSottoadmin)){
@@ -304,8 +304,9 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                             }else if (risposta==3){
                                 isLoading = true
                                 val agente = scaricaAgente(textFieldEmail)
+                                val agenziaAgente = agente?.nomeAgenzia ?: "Nessuna Agenzia"
 
-                                SessionManager.salvaSessioneUtente_Agente(context, agente?.username, 3)
+                                SessionManager.salvaSessione(context, agente?.username, 3, agenziaAgente)
 
                                 isLoading = false
                                 navController.navigate(Screen.AgenteScreen.withMailAgente(agente?.username)){

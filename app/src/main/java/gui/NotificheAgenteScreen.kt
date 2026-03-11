@@ -134,6 +134,17 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = mioBluScuro)
                 }
+            } else if (listaNotifiche.isEmpty()){
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Non sono presenti notifiche!",
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray
+                    )
+                }
             } else {
                 Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 20.dp), horizontalArrangement = Arrangement.Center) {
                     Text("Gestisci le richieste\ndi prenotazione", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = mieScritte, textAlign = TextAlign.Center)

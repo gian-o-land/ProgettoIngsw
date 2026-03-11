@@ -65,23 +65,27 @@ fun AgenteScreen(username: String, navController: NavController) {
     var listaInserzioniAgente by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
-    var nomeAgenzia by remember { mutableStateOf("Caricamento...") }
+    var nomeAgenzia by remember { mutableStateOf(connection.SessionManager.leggiAgenzia(context) ?: "") }
+
+    var isLoadingAgenzia by remember { mutableStateOf(nomeAgenzia.isEmpty()) }
 
 // 2. Chiamata al server all'apertura della schermata
     LaunchedEffect(username) { // Sostituisci 'identificativo' con la variabile che hai a disposizione
-        try {
-            val agenteScaricato = scaricaAgente(username)
+        // Scarichiamo i dati aggiornati dal server
+        val agenteDati = scaricaAgente(username)
 
-            if (agenteScaricato != null) {
-                // Sostituisci '.nomeAgenzia' con il nome reale della proprietà nel tuo AgenteDTO
-                nomeAgenzia = agenteScaricato.nomeAgenzia
-            } else {
-                nomeAgenzia = "Agenzia non trovata"
-            }
-        } catch (e: Exception) {
-            nomeAgenzia = "Errore di connessione"
+        if (agenteDati != null) {
+            // Aggiorniamo la variabile a schermo
+            nomeAgenzia = agenteDati.nomeAgenzia
+
+            // Salviamo l'agenzia nella memoria fissa per i futuri accessi istantanei!
+            connection.SessionManager.salvaSessione(context, username, 3, agenteDati.nomeAgenzia)
         }
+
+        // Alla fine, spegniamo SEMPRE il caricamento!
+        isLoadingAgenzia = false
     }
+
     // --- SCARICAMENTO DATI AL CARICAMENTO DELLA PAGINA ---
     LaunchedEffect(username) {
         isLoading = true
@@ -134,141 +138,147 @@ fun AgenteScreen(username: String, navController: NavController) {
         )
     }
 
-    Scaffold(
-        floatingActionButton = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                ExtendedFloatingActionButton(
-                    onClick = { navController.navigate(Screen.CaricaImmobiliScreen.withUsernameAgente(username)) },
-                    containerColor = mioGialloOcra,
-                    contentColor =mioBluScuro,
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Default.Apartment, contentDescription = "Carica Immobile")
-                    Text("Carica Immobile")
-                }
-            }
-        },
-        floatingActionButtonPosition = FabPosition.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White),
-        containerColor = Color.White,
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = mioBluScuro
-                ),
-                title = {
-                    Text(
-                        text = "Ciao,\n$username",
-                        fontWeight = FontWeight.Bold,
-                        color = mieiTitoli,
-                        textAlign = TextAlign.Center,
-                        fontSize = 18.sp
-                    )
-                },
-                navigationIcon = {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .height(50.dp)
-                            .width(50.dp)
-                    )
-                }
-            )
-        },
-        bottomBar = {
-            myBottomNavBar_Agente(navController = navController, username)
+    if (isLoadingAgenzia) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = mioBluScuro)
         }
-    ) { innerPadding ->
-        Column(
+    } else {
+        Scaffold(
+            floatingActionButton = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    ExtendedFloatingActionButton(
+                        onClick = { navController.navigate(Screen.CaricaImmobiliScreen.withUsernameAgente(username)) },
+                        containerColor = mioGialloOcra,
+                        contentColor =mioBluScuro,
+                        shape = CircleShape
+                    ) {
+                        Icon(Icons.Default.Apartment, contentDescription = "Carica Immobile")
+                        Text("Carica Immobile")
+                    }
+                }
+            },
+            floatingActionButtonPosition = FabPosition.Center,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp), // Un po' più alto per dare respiro
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "La tua ageniza: $nomeAgenzia",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(start = 20.dp)
+                .background(color = Color.White),
+            containerColor = Color.White,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = mioBluScuro
+                    ),
+                    title = {
+                        Text(
+                            text = "Ciao,\n$username",
+                            fontWeight = FontWeight.Bold,
+                            color = mieiTitoli,
+                            textAlign = TextAlign.Center,
+                            fontSize = 18.sp
+                        )
+                    },
+                    navigationIcon = {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .height(50.dp)
+                                .width(50.dp)
+                        )
+                    }
                 )
+            },
+            bottomBar = {
+                myBottomNavBar_Agente(navController = navController, username)
             }
-            Row(
+        ) { innerPadding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(30.dp), // Un po' più alto per dare respiro
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .padding(innerPadding)
             ) {
-                Text(
-                    text = "I tuoi Immobili:",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = mieScritte,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(start = 20.dp)
-                )
-            }
-
-            // --- CONTROLLO STATO: CARICAMENTO, VUOTO O LISTA PIENA ---
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = mioBluScuro)
-                }
-            } else if (listaInserzioniAgente.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Non hai ancora caricato immobili.\nPremi 'Carica Immobile' per iniziare!",
-                        textAlign = TextAlign.Center,
-                        color = Color.Gray
-                    )
-                }
-            } else {
-                LazyColumn(
-                    state = listState,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                    contentPadding = PaddingValues(bottom = 80.dp) // Spazio per il FAB
+                        .height(60.dp), // Un po' più alto per dare respiro
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(listaInserzioniAgente) { inserzione ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 10.dp), // Spazio tra una card e l'altra
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // --- USIAMO LA TUA CARD REALE! ---
-                            myCardInserzione(
-                                inserzione = inserzione,
-                                myModifier = Modifier
-                                    .height(200.dp)
-                                    .width(320.dp), // Leggermente più larga per far respirare i testi
-                                onClick = {
-                                    // Stessa identica logica di navigazione con lo "zainetto" usata nella mappa
-                                    val json = kotlinx.serialization.json.Json.encodeToString(inserzione)
-                                    navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
-                                    navController.navigate(Screen.InserzioneAgenteScreen.route)
-                                }
-                            )
+                    Text(
+                        text = "La tua ageniza: $nomeAgenzia",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = mieScritte,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(start = 20.dp)
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp), // Un po' più alto per dare respiro
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "I tuoi Immobili:",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = mieScritte,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(start = 20.dp)
+                    )
+                }
+
+                // --- CONTROLLO STATO: CARICAMENTO, VUOTO O LISTA PIENA ---
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = mioBluScuro)
+                    }
+                } else if (listaInserzioniAgente.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Non hai ancora caricato immobili.\nPremi 'Carica Immobile' per iniziare!",
+                            textAlign = TextAlign.Center,
+                            color = Color.Gray
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentPadding = PaddingValues(bottom = 80.dp) // Spazio per il FAB
+                    ) {
+                        items(listaInserzioniAgente) { inserzione ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 10.dp), // Spazio tra una card e l'altra
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // --- USIAMO LA TUA CARD REALE! ---
+                                myCardInserzione(
+                                    inserzione = inserzione,
+                                    myModifier = Modifier
+                                        .height(200.dp)
+                                        .width(320.dp), // Leggermente più larga per far respirare i testi
+                                    onClick = {
+                                        // Stessa identica logica di navigazione con lo "zainetto" usata nella mappa
+                                        val json = kotlinx.serialization.json.Json.encodeToString(inserzione)
+                                        navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
+                                        navController.navigate(Screen.InserzioneAgenteScreen.route)
+                                    }
+                                )
+                            }
                         }
                     }
                 }

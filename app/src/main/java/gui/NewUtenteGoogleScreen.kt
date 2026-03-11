@@ -271,7 +271,7 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
                         if (successo) {
                             isConfermato = true
 
-                            SessionManager.salvaSessioneUtente_Agente(context, email, 0)
+                            SessionManager.salvaSessioneUtente(context, email, 0)
 
                             navController.navigate(navigation.Screen.UtenteScreen.withMailUtente(email)) {
                                 // Rimuoviamo le vecchie schermate di login dalla cronologia

@@ -49,7 +49,11 @@ import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage // Importante per le foto reali!
 import DTO.InserzioneDTO
 import androidx.compose.material3.HorizontalDivider
+import androidx.navigation.NavController
 import com.example.progettoingsw.R
+import kotlinx.serialization.encodeToString
+import navigation.Screen
+
 @SuppressLint("UnnecessaryComposedModifier")
 fun Modifier.simpleVerticalScrollbar(
     state: LazyListState,
@@ -125,7 +129,8 @@ fun ShowPopup_Sottoadmin(
     itemHeight: Dp,
     // --- MODIFICA: Riceviamo la mappa che collega ogni agente alle sue inserzioni DTO ---
     mappaInserzioniAgenti: Map<String, List<InserzioneDTO>>,
-    itemHeightImmobile: Dp
+    itemHeightImmobile: Dp,
+    navController: NavController
 ) {
     val liststateSottoadminPopup = rememberLazyListState()
     val maxItemsToShow = 3
@@ -228,7 +233,9 @@ fun ShowPopup_Sottoadmin(
             // FIX: Passiamo la lista di DTO corretta filtrando per l'agente selezionato
             // Specifichiamo <InserzioneDTO> per non far arrabbiare il compilatore!
             listaImmobili = mappaInserzioniAgenti[popupAgenteSelection] ?: emptyList<InserzioneDTO>(),
-            itemHeight = itemHeightImmobile
+            itemHeight = itemHeightImmobile,
+            navController = navController,
+            onCloseAllPopups = { onSelectedChange(null) }
         )
     }
 }
@@ -241,7 +248,9 @@ fun ShowPopup_Agente(
     selected: String?,
     onSelectedChange: (String?) -> Unit,
     listaImmobili: List<InserzioneDTO>, // MODIFICATO: Ora riceve la lista di DTO
-    itemHeight: Dp
+    itemHeight: Dp,
+    navController: NavController,
+    onCloseAllPopups: () -> Unit = {}
 ){
     val liststateAgentePopup = rememberLazyListState()
 
@@ -319,7 +328,15 @@ fun ShowPopup_Agente(
                                     immobile = immobile,
                                     modifier = Modifier
                                         .height(itemHeight - 20.dp)
-                                        .width(260.dp)
+                                        .width(260.dp),
+                                    onClick = {
+                                        onSelectedChange(null)
+                                        onCloseAllPopups()
+
+                                        val json = kotlinx.serialization.json.Json.encodeToString(immobile)
+                                        navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
+                                        navController.navigate(Screen.InserzioneAgenteScreen.route)
+                                    }
                                 )
                             }
                         }
@@ -333,13 +350,14 @@ fun ShowPopup_Agente(
 @Composable
 fun MyCardInserzioneReale(
     immobile: InserzioneDTO,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     // Prendiamo l'URL della prima immagine (Copertina)
     val urlFoto = immobile.immagini.firstOrNull()?.url
 
     Card(
-        modifier = modifier,
+        modifier = modifier.clickable{ onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(4.dp),
         border = BorderStroke(0.5.dp, Color.LightGray)
