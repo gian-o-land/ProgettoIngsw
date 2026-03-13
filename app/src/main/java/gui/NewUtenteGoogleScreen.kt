@@ -54,6 +54,7 @@ import gui.template.myButton
 import gui.template.myTextField
 import kotlinx.coroutines.launch
 import androidx.activity.compose.BackHandler
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.DisposableEffect
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Dispatchers
@@ -102,6 +103,7 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color.White),
@@ -251,40 +253,42 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
             Spacer(modifier = Modifier.height(40.dp))
             myButton(
                 myClick = {
-                    // Lanciamo la coroutine
-                    coroutineScope.launch {
+                    // 1. Controllo campi vuoti
+                    if (textFieldNomeModificato.isBlank() ||
+                        textFieldCognomeModificato.isBlank() ||
+                        textFieldTelefonoModificato.isBlank()
+                    ) {
+                        android.widget.Toast.makeText(context, "Per favore, compila tutti i campi", android.widget.Toast.LENGTH_SHORT).show()
+                        return@myButton
+                    }
 
-                        // 1. Assembliamo il DTO coi dati inseriti
+                    // 2. Controllo lunghezza numero di telefono (esattamente 10 cifre)
+                    if (textFieldTelefonoModificato.trim().length != 10) {
+                        android.widget.Toast.makeText(context, "Il numero di telefono deve essere di 10 cifre", android.widget.Toast.LENGTH_SHORT).show()
+                        return@myButton
+                    }
+
+                    // Se i controlli passano, procediamo con la chiamata al server
+                    coroutineScope.launch {
                         val dto = UtenteDTO(
                             email = email,
-                            telefono = textFieldTelefonoModificato,
-                            password = "Accesso_Google0", // Manteniamo la password fittizia per gli utenti Google
-                            nome = textFieldNomeModificato,
-                            cognome = textFieldCognomeModificato,
+                            telefono = textFieldTelefonoModificato.trim(),
+                            password = "Accesso_Google0",
+                            nome = textFieldNomeModificato.trim(),
+                            cognome = textFieldCognomeModificato.trim(),
                             selectedPrefix = selectedPrefix.prefix
                         )
 
-                        // 2. Chiamiamo il server
                         val successo = connection.completaProfiloGoogle(dto)
 
-                        // 3. Se va a buon fine, navighiamo alla schermata utente!
                         if (successo) {
                             isConfermato = true
-
                             SessionManager.salvaSessioneUtente(context, email, 0)
-
                             navController.navigate(navigation.Screen.UtenteScreen.withMailUtente(email)) {
-                                // Rimuoviamo le vecchie schermate di login dalla cronologia
                                 popUpTo(0)
                             }
                         } else {
-                            coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("È avvenuto un errore di connessione\nper favore risporvare")
-                            }
-                            textFieldNomeModificato = ""
-                            textFieldTelefonoModificato = ""
-                            textFieldCognomeModificato = ""
-                            selectedPrefix = DefaultPhonePrefix
+                            snackbarHostState.showSnackbar("Errore di connessione, per favore riprovare")
                         }
                     }
                 },
