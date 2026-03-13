@@ -116,7 +116,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
     // AVVIO DEL LAVORATORE IN BACKGROUND APP APERTA
     LaunchedEffect(emailUtente) {
-        GestoreNotifiche.caricaStato(context)
+        GestoreNotifiche.caricaStato(context, emailUtente)
 
         while (true) {
             val prenotazioni = scaricaPrenotazioniUtente(emailUtente)
@@ -127,13 +127,13 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
             //Se ci sono meno notifiche sul server rispetto a quelle salvate...
             if (notificheChiuse < notificheGiaViste) {
                 // Eseguiamo l'auto-correzione al ribasso!
-                GestoreNotifiche.sincronizzaCancellazioni(context, notificheChiuse)
+                GestoreNotifiche.sincronizzaCancellazioni(context, notificheChiuse, emailUtente)
             }
             // SE INVECE CI SONO NUOVE NOTIFICHE DAL SERVER, SUONIAMO!
             else if (notificheChiuse > notificheGiaViste) {
 
                 // Salviamo in memoria
-                GestoreNotifiche.salvaNuoveNotifiche(context, notificheChiuse)
+                GestoreNotifiche.salvaNuoveNotifiche(context, notificheChiuse, emailUtente)
 
                 // Lanciamo la notifica
                 mostraNotificaAndroid(

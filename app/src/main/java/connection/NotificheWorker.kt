@@ -5,7 +5,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import DTO.D_stato
 import gui.GestoreNotifiche
-import gui.GestoreNotificheAgente
 import gui.mostraNotificaAndroid
 
 class NotificheWorker(
@@ -20,7 +19,7 @@ class NotificheWorker(
         // Se non c'è nessuno loggato, fermiamo il lavoro
 
         // 2. Carichiamo lo stato delle notifiche lette
-        GestoreNotifiche.caricaStato(applicationContext)
+        GestoreNotifiche.caricaStato(applicationContext, emailUtente)
 
         try {
             // 3. Facciamo la chiamata al server
@@ -31,11 +30,11 @@ class NotificheWorker(
 
             //AUTO-CORREZIONE SE IL SERVER HA MENO NOTIFICHE
             if (notificheChiuse < notificheGiaViste) {
-                GestoreNotifiche.sincronizzaCancellazioni(applicationContext, notificheChiuse)
+                GestoreNotifiche.sincronizzaCancellazioni(applicationContext, notificheChiuse, emailUtente)
             }
             // 4. Se invece ci sono novità reali, salviamo e spariamo la notifica!
             else if (notificheChiuse > notificheGiaViste) {
-                GestoreNotifiche.salvaNuoveNotifiche(applicationContext, notificheChiuse)
+                GestoreNotifiche.salvaNuoveNotifiche(applicationContext, notificheChiuse, emailUtente)
 
                 mostraNotificaAndroid(
                     context = applicationContext,
@@ -62,7 +61,7 @@ class NotificheWorkerAgente(
         // Se non c'è nessuno loggato, fermiamo il lavoro
 
         // 2. Carichiamo lo stato delle notifiche dalla cassaforte dell'AGENTE
-        GestoreNotificheAgente.caricaStato(applicationContext)
+        GestoreNotifiche.caricaStato(applicationContext, usernameAgente)
 
         try {
             // 3. Scarichiamo le prenotazioni dell'agente
@@ -72,15 +71,15 @@ class NotificheWorkerAgente(
             val notificheInAttesa = prenotazioni.count { it.stato == D_stato.ATTESA }
 
             // Calcoliamo quante notifiche in attesa conoscevamo già
-            val notificheGiaViste = GestoreNotificheAgente.conteggioNotificheLette + GestoreNotificheAgente.conteggioNotificheNonLette.value
+            val notificheGiaViste = GestoreNotifiche.conteggioNotificheLette + GestoreNotifiche.conteggioNotificheNonLette.value
 
             // 4. AUTO-CORREZIONE (Es. un utente ha annullato la sua prenotazione mentre l'app era chiusa)
             if (notificheInAttesa < notificheGiaViste) {
-                GestoreNotificheAgente.sincronizzaCancellazioni(applicationContext, notificheInAttesa)
+                GestoreNotifiche.sincronizzaCancellazioni(applicationContext, notificheInAttesa, usernameAgente)
             }
             // 5. NUOVE NOTIFICHE REALI
             else if (notificheInAttesa > notificheGiaViste) {
-                GestoreNotificheAgente.salvaNuoveNotifiche(applicationContext, notificheInAttesa)
+                GestoreNotifiche.salvaNuoveNotifiche(applicationContext, notificheInAttesa, usernameAgente)
 
                 // Spariamo la notifica sul telefono
                 mostraNotificaAndroid(

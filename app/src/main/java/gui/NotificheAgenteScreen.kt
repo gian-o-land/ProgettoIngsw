@@ -112,7 +112,7 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
     }
 
     LaunchedEffect(username) {
-        GestoreNotificheAgente.azzeraPallino(context)
+        GestoreNotifiche.azzeraPallino(context, username)
         ricaricaDati()
     }
 

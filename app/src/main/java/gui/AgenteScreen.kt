@@ -99,19 +99,19 @@ fun AgenteScreen(username: String, navController: NavController) {
     }
 
     LaunchedEffect(username) {
-        GestoreNotificheAgente.caricaStato(context)
+        GestoreNotifiche.caricaStato(context, username)
 
         while (true) {
             val prenotazioni = connection.scaricaPrenotazioniAgente(username)
 
             //L'agente viene notificato SOLO per quelle in ATTESA!
             val notificheInAttesa = prenotazioni.count { it.stato == DTO.D_stato.ATTESA }
-            val notificheGiaViste = GestoreNotificheAgente.conteggioNotificheLette + GestoreNotificheAgente.conteggioNotificheNonLette.value
+            val notificheGiaViste = GestoreNotifiche.conteggioNotificheLette + GestoreNotifiche.conteggioNotificheNonLette.value
 
             if (notificheInAttesa < notificheGiaViste) {
-                GestoreNotificheAgente.sincronizzaCancellazioni(context, notificheInAttesa)
+                GestoreNotifiche.sincronizzaCancellazioni(context, notificheInAttesa, username)
             } else if (notificheInAttesa > notificheGiaViste) {
-                GestoreNotificheAgente.salvaNuoveNotifiche(context, notificheInAttesa)
+                GestoreNotifiche.salvaNuoveNotifiche(context, notificheInAttesa, username)
 
                 mostraNotificaAndroid(
                     context = context,

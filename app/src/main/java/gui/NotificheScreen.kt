@@ -96,7 +96,7 @@ fun NotificheScreen(navController : NavController, email : String) {
     var popupSelection by remember { mutableStateOf<Notifica?>(null) }
 
     LaunchedEffect(email) {
-        GestoreNotifiche.azzeraPallino(context)
+        GestoreNotifiche.azzeraPallino(context, email)
         val prenotazioni = scaricaPrenotazioniUtente(email)
 
         listaNotifiche = coroutineScope {
