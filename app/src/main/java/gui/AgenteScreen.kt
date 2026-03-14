@@ -54,6 +54,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.ExistingPeriodicWorkPolicy
 import connection.scaricaAgente
+import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,6 +104,12 @@ fun AgenteScreen(username: String, navController: NavController) {
 
         while (true) {
             val prenotazioni = connection.scaricaPrenotazioniAgente(username)
+
+            //SCUDO PROTEZIONE BACKGROUND: Se la lista è vuota (blocco rete OS), saltiamo il giro
+            if (prenotazioni.isEmpty()) {
+                delay(10000L)
+                continue
+            }
 
             //L'agente viene notificato SOLO per quelle in ATTESA!
             val notificheInAttesa = prenotazioni.count { it.stato == DTO.D_stato.ATTESA }

@@ -126,10 +126,25 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
         )},
         bottomBar = { myBottomNavBar_Agente(navController, username) }
     ) { innerPadding ->
-        Card(
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
-            colors = CardDefaults.cardColors(containerColor = mioBackgroung)
+        Column(
+            modifier = Modifier.padding(innerPadding).fillMaxSize()
         ) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 20.dp),
+                horizontalArrangement = Arrangement.Center
+            )
+            {
+                Text(
+                    "Gestisci le richieste\ndi prenotazione",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = mieScritte,
+                    textAlign = TextAlign.Center
+                )
+            }
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = mioBluScuro)
@@ -145,12 +160,9 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
                         color = Color.Gray
                     )
                 }
-            } else {
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 20.dp), horizontalArrangement = Arrangement.Center) {
-                    Text("Gestisci le richieste\ndi prenotazione", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = mieScritte, textAlign = TextAlign.Center)
-                }
+            }else {
                 LazyColumn(modifier = Modifier.background(mioBackgroung).fillMaxWidth(), state = scrollState) {
-                    items(listaNotifiche.reversed()) { notifica ->
+                    items(listaNotifiche) { notifica ->
                         Card(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).clickable { popupSelection = notifica },
                             shape = RoundedCornerShape(30.dp),

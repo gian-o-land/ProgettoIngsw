@@ -120,6 +120,13 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
         while (true) {
             val prenotazioni = scaricaPrenotazioniUtente(emailUtente)
+
+            //SCUDO PROTEZIONE BACKGROUND: Se la lista è vuota (blocco rete OS), saltiamo il giro
+            if (prenotazioni.isEmpty()) {
+                delay(10000L)
+                continue
+            }
+
             val notificheChiuse = prenotazioni.count { it.stato != D_stato.ATTESA }
 
             val notificheGiaViste = GestoreNotifiche.conteggioNotificheLette + GestoreNotifiche.conteggioNotificheNonLette.value
@@ -216,28 +223,35 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Button(
-                    onClick = { navController.navigate(Screen.FiltriScreen.route) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = mioBackgroung,
-                        contentColor = mieScritte,
-                    ),
-                    border = BorderStroke(1.dp, Color.Gray),
-                    shape = RectangleShape,
-                    modifier = Modifier.padding(horizontal = 35.dp)
-                        .width(400.dp)
-                        .height(45.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                    Button(
+                        onClick = { navController.navigate(Screen.FiltriScreen.route) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = mioBackgroung,
+                            contentColor = mieScritte,
+                        ),
+                        border = BorderStroke(1.dp, Color.Gray),
+                        shape = RectangleShape,
+                        modifier = Modifier
+                            .width(250.dp)
+                            .height(45.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Cerca per comune o città",
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text("Filtra la tua ricerca", textAlign = TextAlign.Center, fontSize = 17.sp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Cerca per comune o città",
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text("Filtra la tua ricerca", textAlign = TextAlign.Center, fontSize = 17.sp)
+                        }
                     }
                 }
 

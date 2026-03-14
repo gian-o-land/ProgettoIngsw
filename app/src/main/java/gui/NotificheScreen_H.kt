@@ -79,7 +79,7 @@ object GestoreNotifiche {
             .putInt("conteggio", conteggioNotificheLette)
             .putBoolean("pallino", false)
             .putInt("NonLette", 0)
-            .apply()
+            .commit()
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancelAll()

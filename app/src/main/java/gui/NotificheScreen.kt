@@ -137,8 +137,8 @@ fun NotificheScreen(navController : NavController, email : String) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.White),
-        containerColor =  Color.White,
+            .background(color = mioBackgroung),
+        containerColor =  mioBackgroung,
         topBar = { CenterAlignedTopAppBar(
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor =  mioBluScuro
@@ -169,14 +169,27 @@ fun NotificheScreen(navController : NavController, email : String) {
         }
 
     ) { innerPadding ->
-        Card(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
-            colors = CardDefaults.cardColors(
-                containerColor = mioBackgroung
-            )
+                .fillMaxSize()
         ) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "Gestisci le\ntue prenotazione",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = mieScritte,
+                    textAlign = TextAlign.Center
+                )
+            }
             if (isLoading){
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = mioBluScuro)
@@ -192,35 +205,21 @@ fun NotificheScreen(navController : NavController, email : String) {
                         color = Color.Gray
                     )
                 }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp, bottom = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        "Gestisci le\ntue prenotazione",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
-                        color = mieScritte,
-                        textAlign = TextAlign.Center)
-                }
+            }else{
                 LazyColumn(
                     modifier = Modifier
                         .background(mioBackgroung)
                         .fillMaxWidth(),
                     state = scrollState
                 ) {
-                    items(listaNotifiche.reversed()){ notifica ->
+                    items(listaNotifiche){ notifica ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                                 .clickable{
                                     popupSelection = notifica
-                                },
+                                          },
                             shape = RoundedCornerShape(30.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = mioBackgroung
@@ -248,11 +247,10 @@ fun NotificheScreen(navController : NavController, email : String) {
                                             withStyle(style = SpanStyle(color = Color.Black)) {
                                                 append(notifica.comune)
                                             }
-                                        },
+                                                                    },
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 16.sp
                                     )
-
                                     // 2. TESTO DEL CONTENUTO MULTI-COLORE
                                     Text(
                                         text = buildAnnotatedString {
@@ -262,7 +260,7 @@ fun NotificheScreen(navController : NavController, email : String) {
                                             withStyle(style = SpanStyle(color = Color.Black)) {
                                                 append(notifica.contenuto) // Questo ora è il nome!
                                             }
-                                        },
+                                                                    },
                                         fontSize = 14.sp,
                                         modifier = Modifier.padding(top = 4.dp)
                                     )
@@ -275,7 +273,7 @@ fun NotificheScreen(navController : NavController, email : String) {
                                         D_stato.ACCETTATA -> Color(0xFF4CAF50)
                                         D_stato.RIFIUTATA -> Color.Red
                                         D_stato.ATTESA -> Color.DarkGray
-                                    },
+                                                                 },
                                     modifier = Modifier.padding(end = 10.dp)
                                 )
                             }
@@ -285,14 +283,14 @@ fun NotificheScreen(navController : NavController, email : String) {
                 }
             }
         }
-        if (popupSelection != null) {
-            PopupNotificaUtente(
-                selected = popupSelection,
-                onSelectedChange = { popupSelection = it },
-                navController = navController,
-                emailUtente = email
-            )
-        }
+    }
+    if (popupSelection != null) {
+        PopupNotificaUtente(
+            selected = popupSelection,
+            onSelectedChange = { popupSelection = it },
+            navController = navController,
+            emailUtente = email
+        )
     }
 }
 
