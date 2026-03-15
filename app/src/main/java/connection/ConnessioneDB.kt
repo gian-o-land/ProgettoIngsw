@@ -449,14 +449,7 @@ suspend fun verificaSeAccountGoogle(email: String): Boolean {
                 // Proviamo a convertire il JSON
                 val utenteScaricato = response.body<UtenteDTO>()
 
-                val passwordScaricata = utenteScaricato.password
-                Log.d("API_GOOGLE", "3. Password trovata nel DB: '$passwordScaricata'")
-
-                // Usiamo .trim() per rimuovere eventuali spazi vuoti invisibili prima o dopo!
-                val isGoogle = passwordScaricata.trim() == "Accesso_Google0"
-
-                Log.d("API_GOOGLE", "4. Il controllo restituisce: $isGoogle")
-                return@withContext isGoogle
+                return@withContext utenteScaricato.isGoogle
             } else {
                 Log.e("API_GOOGLE", "Errore dal server: ${response.status}")
                 return@withContext false

@@ -176,7 +176,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                             Log.d("LOGIN_GOOGLE", "Accesso riuscito per: $mailUtente")
 
                                             val dati = scaricaUtente(mailUtente)
-                                            if (dati?.telefono == "0000000000" && dati.password == "Accesso_Google0"){
+                                            if (dati?.telefono == "0000000000" && dati.isGoogle){
                                                 navController.navigate(Screen.NewUtenteGoogleScreen.withEmailGoogle(mailUtente))
                                             } else{
                                                 SessionManager.salvaSessioneUtente(context, mailUtente, 0)

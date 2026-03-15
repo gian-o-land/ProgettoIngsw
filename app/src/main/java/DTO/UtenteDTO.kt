@@ -9,5 +9,6 @@ data class UtenteDTO(
     val password: String,
     val nome: String,
     val cognome: String,
-    val selectedPrefix: String
+    val selectedPrefix: String,
+    val isGoogle: Boolean = false
 )
