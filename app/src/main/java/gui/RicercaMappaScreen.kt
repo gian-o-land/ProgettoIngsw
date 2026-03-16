@@ -69,6 +69,7 @@ import connection.scaricaInserzioniFiltrate
 import connection.scaricaTutteLeInserzioni
 import gui.template.myCardInserzione
 import kotlinx.serialization.encodeToString
+import androidx.compose.animation.core.animateDpAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,12 +96,24 @@ fun RicercaMappaScreen(
     var listaTutteLeInserzioni by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
     var listaInserzioniNelCerchio by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
     var isLoadingData by remember { mutableStateOf(true) } // Per mostrare un caricamento iniziale se vuoi
+    var currentPeekHeight by remember { mutableStateOf(0.dp) }
 
     var isPannelloSliderVisibile by remember { mutableStateOf(false) }
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.Hidden,
-            skipHiddenState = false
+            skipHiddenState = false,
+            confirmValueChange = { nuovoStato ->
+                // Se il nuovo stato verso cui sta andando è 'Hidden' (cioè si sta chiudendo del tutto)...
+                if (nuovoStato == SheetValue.Hidden) {
+                    // ...lo permettiamo SOLO se noi dal codice abbiamo azzerato l'altezza.
+                    // Se l'altezza è > 0 (es. 58.dp), significa che ci sono case trovate
+                    // e l'utente sta provando a chiuderla col dito. In quel caso blocchiamo (false).
+                    currentPeekHeight == 0.dp
+                } else {
+                    true // Permettiamo liberamente di fare su e giù tra PartiallyExpanded ed Expanded
+                }
+            }
         )
     )
     var isBottomSheetEnabled by remember { mutableStateOf(false) }
@@ -113,7 +126,6 @@ fun RicercaMappaScreen(
     val placesClient = remember { Places.createClient(context) }
     val sessionToken = remember { AutocompleteSessionToken.newInstance() }
     var listaSuggerimenti by remember { mutableStateOf<List<SuggerimentoPlace>>(emptyList()) }
-    var currentPeekHeight by remember { mutableStateOf(0.dp) }
     var pulisciAlRitorno by rememberSaveable { mutableStateOf(false) }
 
     // --- SCARICHIAMO I DATI AL CARICAMENTO DELLA PAGINA CON I FILTRI ---
@@ -215,13 +227,20 @@ fun RicercaMappaScreen(
         }
     }
 
+    // --- CALCOLO DINAMICO DEGLI ANGOLI ---
+    // Se la tendina si sta espandendo, il raggio va a 24.dp, altrimenti resta piatto a 0.dp
+    val targetRadius = if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) 24.dp else 0.dp
+    val cornerRadius by animateDpAsState(targetValue = targetRadius, label = "radiusAnimation")
+
     BottomSheetScaffold(
+        sheetShape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
         scaffoldState = scaffoldState,
         sheetContainerColor = Color.White,
         sheetContentColor = Color.White,
         sheetPeekHeight = currentPeekHeight,
         sheetDragHandle = null,
         sheetSwipeEnabled = isBottomSheetEnabled,
+        containerColor = mioBackgroung,
         sheetContent = {
             Column(
                 modifier = Modifier
@@ -274,6 +293,7 @@ fun RicercaMappaScreen(
                     puntoSelezionato = coordinataCliccata
                     isPannelloSliderVisibile = true
                     isBottomSheetEnabled = false
+                    currentPeekHeight = 0.dp
                     scope.launch { scaffoldState.bottomSheetState.hide() }
                     listaInserzioniNelCerchio = emptyList()
                 }
@@ -334,7 +354,7 @@ fun RicercaMappaScreen(
                         active = false
                         isBottomSheetEnabled = false
                         currentPeekHeight = 0.dp
-                        scope.launch { scaffoldState.bottomSheetState.partialExpand() }
+                        scope.launch { scaffoldState.bottomSheetState.hide() }
                         listaInserzioniNelCerchio = emptyList()
                         eseguiRicerca(query, scope, context, cameraPositionState)
                     },
@@ -344,6 +364,8 @@ fun RicercaMappaScreen(
                         if (nuovoStato) {
                             // Quando l'utente tocca la barra per cercare, nascondiamo lo slider
                             isPannelloSliderVisibile = false
+                            currentPeekHeight = 0.dp
+                            scope.launch { scaffoldState.bottomSheetState.hide() }
                         } else {
                             // Quando chiude la ricerca, rimettiamo lo slider (se aveva già scelto un punto)
                             if (puntoSelezionato != null) {
@@ -433,12 +455,15 @@ fun RicercaMappaScreen(
                                 listaInserzioniNelCerchio = risultati
                                 isPannelloSliderVisibile = false
                                 isBottomSheetEnabled = true // Permettiamo lo swipe del menu inferiore
-                                currentPeekHeight = 50.dp   // Mostriamo un po' del menu in basso
 
                                 if (risultati.isEmpty()) {
+                                    currentPeekHeight = 0.dp
                                     Toast.makeText(context, "Nessuna casa trovata in questo raggio", Toast.LENGTH_SHORT).show()
+                                    scope.launch { scaffoldState.bottomSheetState.hide() }
                                 } else {
+                                    currentPeekHeight = 58.dp
                                     Toast.makeText(context, "Trovate ${risultati.size} case!", Toast.LENGTH_SHORT).show()
+                                    scope.launch { scaffoldState.bottomSheetState.expand() }
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = mioGialloOcra, contentColor = mioBluScuro),
