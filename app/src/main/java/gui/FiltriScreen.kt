@@ -87,6 +87,18 @@ fun FiltriScreen(navController: NavController, email: String) {
     var statoBalcone by remember { mutableStateOf(false) }
     var statoTerrazzo by remember { mutableStateOf(false) }
 
+    fun isMinMaggioreDiMax(min: String, max: String): Boolean {
+        if (min.isBlank() || max.isBlank()) return false
+        val minVal = min.toIntOrNull() ?: 0
+        val maxVal = max.toIntOrNull() ?: Int.MAX_VALUE
+        return minVal > maxVal
+    }
+
+    // --- CALCOLO DEGLI ERRORI PER LE RIGHE ---
+    val errorePrezzo = isMinMaggioreDiMax(statoPrezzoMin, statoPrezzoMax)
+    val erroreQuadratura = isMinMaggioreDiMax(statoQuadraturaMin, statoQuadraturaMax)
+    val erroreLocali = isMinMaggioreDiMax(statoLocaliMin, statoLocaliMax)
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -168,7 +180,8 @@ fun FiltriScreen(navController: NavController, email: String) {
                 valoreMin = statoPrezzoMin,
                 onValueMinChange = { statoPrezzoMin = it },
                 valoreMax = statoPrezzoMax,
-                onValueMaxChange = { statoPrezzoMax = it }
+                onValueMaxChange = { statoPrezzoMax = it },
+                isError = errorePrezzo
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -178,7 +191,8 @@ fun FiltriScreen(navController: NavController, email: String) {
                 valoreMin = statoQuadraturaMin,
                 onValueMinChange = { statoQuadraturaMin = it },
                 valoreMax = statoQuadraturaMax,
-                onValueMaxChange = { statoQuadraturaMax = it }
+                onValueMaxChange = { statoQuadraturaMax = it },
+                isError = erroreQuadratura
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -188,7 +202,8 @@ fun FiltriScreen(navController: NavController, email: String) {
                 valoreMin = statoLocaliMin,
                 onValueMinChange = { statoLocaliMin = it },
                 valoreMax = statoLocaliMax,
-                onValueMaxChange = { statoLocaliMax = it }
+                onValueMaxChange = { statoLocaliMax = it },
+                isError = erroreLocali
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
@@ -276,11 +291,17 @@ fun FiltriScreen(navController: NavController, email: String) {
             // --- BOTTONE DI RICERCA CON PASSAGGIO FILTRI E LOGICA SNACKBAR ---
             myButton(
                 myClick = {
-                    if (textLocalita.isBlank()) {
+                    val ciSonoErroriMinMax = errorePrezzo || erroreQuadratura || erroreLocali
+
+                    if (textLocalita.isBlank() || ciSonoErroriMinMax) {
                         showErrors = true
                         coroutineScope.launch {
                             snackbarHostState.currentSnackbarData?.dismiss()
-                            snackbarHostState.showSnackbar("Inserisci una località per poter cercare!")
+                            if (textLocalita.isBlank()) {
+                                snackbarHostState.showSnackbar("Inserisci una località per poter cercare!")
+                            } else {
+                                snackbarHostState.showSnackbar("Attenzione: i valori Min non possono essere maggiori dei Max.")
+                            }
                         }
                     } else {
                         showErrors = false
@@ -416,7 +437,8 @@ fun RigaMinMax(
     valoreMin: String,
     onValueMinChange: (String) -> Unit,
     valoreMax: String,
-    onValueMaxChange: (String) -> Unit
+    onValueMaxChange: (String) -> Unit,
+    isError: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -436,7 +458,11 @@ fun RigaMinMax(
         ) {
             OutlinedTextField(
                 value = valoreMin,
-                onValueChange = onValueMinChange, // Aggiorna la variabile madre Min!
+                onValueChange = { nuovoValore ->
+                    // Filtra l'input: accetta solo cifre (niente negativi o lettere)
+                    onValueMinChange(nuovoValore.filter { it.isDigit() })
+                },
+                isError = isError,
                 label = { Text("Min") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -445,7 +471,10 @@ fun RigaMinMax(
             )
             OutlinedTextField(
                 value = valoreMax,
-                onValueChange = onValueMaxChange, // Aggiorna la variabile madre Max!
+                onValueChange = { nuovoValore ->
+                    onValueMaxChange(nuovoValore.filter { it.isDigit() })
+                },
+                isError = isError,
                 label = { Text("Max") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
