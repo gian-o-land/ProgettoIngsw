@@ -50,8 +50,8 @@ import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import connection.SessionManager
 import connection.verificaSeAccountGoogle
-import gui.template.myBottomNavBar
-import gui.template.myButton
+import gui.template.MyBottomNavBar
+import gui.template.MyButton
 import navigation.Screen
 
 @Composable
@@ -61,7 +61,7 @@ fun ProfiloScreen(navController: NavController, email: String) {
 
     // Variabili di stato
     var mostraDialogConferma by remember { mutableStateOf(false) }
-    var isAccountGoogle by remember { mutableStateOf(true) } // Partiamo da true per sicurezza
+    var isAccountGoogle by remember { mutableStateOf(true) }
     var datiCaricati by remember { mutableStateOf(false) }
 
     // Controllo API all'apertura per la password di Google
@@ -100,7 +100,7 @@ fun ProfiloScreen(navController: NavController, email: String) {
             )
         },
         bottomBar = {
-            myBottomNavBar(
+            MyBottomNavBar(
                 navController = navController,
                 email = email
             )
@@ -205,7 +205,6 @@ fun ProfiloScreen(navController: NavController, email: String) {
             }
         }
 
-        // --- SCHERMATA PRINCIPALE (Contenuto Centrale) ---
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -227,7 +226,6 @@ fun ProfiloScreen(navController: NavController, email: String) {
             }
             Spacer(modifier = Modifier.height(40.dp))
 
-            // 1. BOTTONE: MODIFICA CREDENZIALI
             Button(
                 onClick = { navController.navigate(Screen.ModificaCredenzialiUtenteScreen.withMailUtente(email)) },
                 colors = ButtonDefaults.buttonColors(
@@ -244,10 +242,9 @@ fun ProfiloScreen(navController: NavController, email: String) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // 2. BOTTONE: MODIFICA PASSWORD (con controllo Google)
             Button(
                 onClick = { navController.navigate(Screen.ModificaPasswordScreen.withArgs(email, D_tipoUtente.UTENTE)) },
-                enabled = datiCaricati && !isAccountGoogle, // Si disattiva se l'account è Google
+                enabled = datiCaricati && !isAccountGoogle,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = mioGialloOcra,
                     contentColor = mioBluScuro,
@@ -262,7 +259,6 @@ fun ProfiloScreen(navController: NavController, email: String) {
                 Text("Modifica Password", fontSize = 17.sp)
             }
 
-            // Testo esplicativo se il bottone della password è disattivato
             if (datiCaricati && isAccountGoogle) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -275,7 +271,7 @@ fun ProfiloScreen(navController: NavController, email: String) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            myButton(
+            MyButton(
                 {mostraDialogConferma = true},
                 "Esci (Logout)"
             )

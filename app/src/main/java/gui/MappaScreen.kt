@@ -1,6 +1,5 @@
 package gui
 
-import androidx.navigation.NavController
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -15,7 +14,7 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
-fun MappaScreen(location: LatLng,navController : NavController) {
+fun MappaScreen(location: LatLng) {
 
 
     val cameraPositionState = rememberCameraPositionState {
@@ -28,7 +27,7 @@ fun MappaScreen(location: LatLng,navController : NavController) {
         )
     }
     GoogleMap(
-        modifier = Modifier.fillMaxSize(), // La mappa occupa tutto lo spazio disponibile
+        modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         properties = mapProperties
 

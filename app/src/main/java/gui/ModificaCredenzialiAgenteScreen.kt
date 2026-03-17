@@ -20,7 +20,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -42,8 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myButton
-import gui.template.myTextField
+import gui.template.MyButton
+import gui.template.MyTextField
 import DTO.source.CommonPhonePrefixes
 import DTO.source.DefaultPhonePrefix
 import android.widget.Toast
@@ -54,7 +53,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import connection.modificaCredenzialiAgente
-import connection.modificaCredenzialiUtente
 import connection.scaricaAgente
 import kotlinx.coroutines.launch
 
@@ -82,7 +80,6 @@ fun ModificaCredenzialiAgenteScreen(navController : NavController, username: Str
         isFetching = true
         val agente = scaricaAgente(username)
         if (agente != null) {
-            // Riempiamo anche nome e cognome
             textFieldNomeModificato = agente.nome
             textFieldCognomeModificato = agente.cognome
 
@@ -157,7 +154,7 @@ fun ModificaCredenzialiAgenteScreen(navController : NavController, username: Str
                 Spacer(modifier = Modifier.height(15.dp))
 
                 // --- NUOVI CAMPI NOME E COGNOME ---
-                myTextField(
+                MyTextField(
                     Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                     "Nome",
                     textFieldNomeModificato,
@@ -165,7 +162,7 @@ fun ModificaCredenzialiAgenteScreen(navController : NavController, username: Str
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                myTextField(
+                MyTextField(
                     Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                     "Cognome",
                     textFieldCognomeModificato,
@@ -174,7 +171,7 @@ fun ModificaCredenzialiAgenteScreen(navController : NavController, username: Str
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // --- VECCHI CAMPI EMAIL E TELEFONO ---
-                myTextField(
+                MyTextField(
                     Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                     "Email",
                     textFieldEmailModificato,
@@ -259,30 +256,29 @@ fun ModificaCredenzialiAgenteScreen(navController : NavController, username: Str
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // --- BOTTONE ---
-                myButton(
+                MyButton(
                     myClick = {
-                        // REGOLA 1: Controllo campi vuoti
+                        // Controllo campi vuoti
                         if (textFieldEmailModificato.isBlank() ||
                             textFieldTelefonoModificato.isBlank() ||
                             textFieldNomeModificato.isBlank() ||
                             textFieldCognomeModificato.isBlank()
                         ) {
                             Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
-                            return@myButton // Blocca l'esecuzione
+                            return@MyButton
                         }
 
-                        // REGOLA 2: Controllo lunghezza telefono (esattamente 10 cifre)
+                        // Controllo lunghezza telefono (esattamente 10 cifre)
                         if (textFieldTelefonoModificato.length != 10) {
                             Toast.makeText(context, "Il numero di telefono non valido", Toast.LENGTH_SHORT).show()
-                            return@myButton
+                            return@MyButton
                         }
 
-                        // REGOLA 3: Controllo formato email (deve contenere @ e .)
+                        // Controllo formato email (deve contenere @ e .)
                         val emailRegex = "^.+@.+\\..+$".toRegex()
                         if (!textFieldEmailModificato.matches(emailRegex)) {
                             Toast.makeText(context, "Indirizzo email non valido", Toast.LENGTH_SHORT).show()
-                            return@myButton
+                            return@MyButton
                         }
 
                         // Se supera tutti i controlli, procediamo.

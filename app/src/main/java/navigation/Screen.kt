@@ -11,7 +11,6 @@ sealed class Screen(val route: String) {
 
     data object UtenteScreen : Screen("utente_screen?mailUtente={mailUtente}") {
 
-        // Funzione helper per navigare verso questa pagina
         fun withMailUtente(mailUtente: String): String {
             return "utente_screen?mailUtente=${Uri.encode(mailUtente)}"
         }
@@ -32,46 +31,20 @@ sealed class Screen(val route: String) {
             return "agente_screen?username=${Uri.encode(username)}"
         }
     }
-    data object MappaScreen : Screen("mappa_screen") {
-
-        // 1. Questa variabile serve al NavHost per sapere COSA aspettarsi
-        // Corrisponde a: "mappa_screen?lat={lat}&lng={lng}"
-        val routeWithArgs = "$route?lat={lat}&lng={lng}"
-
-        // 2. Questa funzione serve al NavController per sapere DOVE andare
-        fun withLocation(location: LatLng): String {
-            // Estraiamo i double e li mettiamo nella stringa
-            return "$route?lat=${location.latitude}&lng=${location.longitude}"
-        }
-    }
+    data object MappaScreen : Screen("mappa_screen")
     data object RicercaScreen: Screen("ricerca_screen")
     data object RicercaMappaScreen : Screen("ricerca_mappa_screen") {
-
-        // 1. Questa variabile serve al NavHost per sapere COSA aspettarsi
-        // Corrisponde a: "ricerca_mappa_screen?lat={lat}&lng={lng}&email={email}"
-        val routeWithArgs = "$route?lat={lat}&lng={lng}&email={email}"
-
-        // 2. Questa funzione serve al NavController per sapere DOVE andare
         fun withLocation(location: LatLng, email: String): String {
-            // Estraiamo i double e l'email e li mettiamo nella stringa
             return "$route?lat=${location.latitude}&lng=${location.longitude}&email=$email"
         }
 
     }
 
-    data object InserzioneScreen: Screen("inserzione_screen"){
-        fun withIdInserzione(idInserzione: String): String{
-            return "$route?idInserzione=${Uri.encode(idInserzione)}"//return "$route/${Uri.encode(mailUtente)}"
-        }
-    }
+    data object InserzioneScreen: Screen("inserzione_screen")
 
     data object InserzioneAgenteScreen: Screen("inserzione_agente_screen")
 
-    data object FiltriScreen: Screen("filtri_screen?email={email}") {
-        fun withMailUtente(email: String): String {
-            return "filtri_screen?email=${Uri.encode(email)}"
-        }
-    }
+    data object FiltriScreen: Screen("filtri_screen?email={email}")
     data object PrenotazioneScreen: Screen("prenotazione_screen")
 
     data object NotificheScreen: Screen("notifiche_screen?email={email}") {
@@ -83,13 +56,10 @@ sealed class Screen(val route: String) {
             return "profilo_screen?email=${Uri.encode(email)}"
         }
     }
-    data object ModificaCredenzialiScreen: Screen("modifica_credenziali_screen")
     data object ModificaPasswordScreen : Screen("modifica_password_screen?identificativo={identificativo}&tipoUtente={tipoUtente}") {
 
         fun withArgs(identificativo: String, tipoUtente: D_tipoUtente): String {
-            // Codifichiamo l'identificativo (specialmente utile se è un'email con la @)
             val idCodificato = Uri.encode(identificativo)
-            // Trasformiamo l'enum in stringa e lo codifichiamo per sicurezza
             val tipoCodificato = Uri.encode(tipoUtente.name)
 
             return "modifica_password_screen?identificativo=$idCodificato&tipoUtente=$tipoCodificato"

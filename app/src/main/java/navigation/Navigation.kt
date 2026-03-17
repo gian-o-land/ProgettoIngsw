@@ -32,7 +32,6 @@ import gui.AdminScreen
 import gui.FiltriScreen
 import gui.InserzioneScreen
 import gui.MappaScreen
-import gui.ModificaCredenzialiScreen
 import gui.ModificaPasswordScreen
 import gui.NotificheScreen
 import gui.RicercaMappaScreen
@@ -65,13 +64,11 @@ fun Navigation() {
 
     val context = LocalContext.current
 
-    // 1. Leggiamo dalla memoria a lungo termine
     val emailSalvata = SessionManager.leggiEmail(context)
     val ruoloSalvato = SessionManager.leggiRuolo(context)
     val agenziaSalvata = SessionManager.leggiAgenzia(context)
 
 
-    // 2. Decidiamo dinamicamente la schermata di partenza!
     val schermataDiPartenza = if (emailSalvata != null && ruoloSalvato != -1) {
         when (ruoloSalvato) {
             0 -> Screen.UtenteScreen.withMailUtente(emailSalvata)
@@ -81,7 +78,7 @@ fun Navigation() {
             else -> Screen.LoginScreen.route
         }
     } else {
-        Screen.LoginScreen.route // Nessuno salvato, si va al login!
+        Screen.LoginScreen.route
     }
 
     NavHost(
@@ -107,15 +104,13 @@ fun Navigation() {
             arguments = listOf(
                 navArgument("mailUtente") {
                     type = NavType.StringType
-                    defaultValue = "<NomeCognomeUtente>" // Valore se arrivi dalla Navbar (senza parametri)
+                    defaultValue = "<NomeCognomeUtente>"
                     nullable = true
                 }
             )
         ) { entry ->
-            // Recupera l'argomento
             val mailRecuperata = entry.arguments?.getString("mailUtente") ?: "<NomeCognomeUtente>"
 
-            // Passalo alla schermata
             UtenteScreen(
                 navController = navController,
                 emailUtente = mailRecuperata
@@ -123,30 +118,27 @@ fun Navigation() {
         }
 
         composable(
-            route = Screen.AdminScreen.route, // Assicurati che in Screen.kt la rotta sia "admin_screen/{usernameAdmin}/{agenziaAdmin}"
+            route = Screen.AdminScreen.route,
             arguments = listOf(
                 navArgument("usernameAdmin") {
                     type = NavType.StringType
-                    defaultValue = "<UsernameAdmin>" // Valore se arrivi dalla Navbar (senza parametri)
+                    defaultValue = "<UsernameAdmin>"
                     nullable = true
                 },
-                // --- NUOVO ARGOMENTO AGGIUNTO ---
                 navArgument("agenziaAdmin") {
                     type = NavType.StringType
-                    defaultValue = "<NomeAgenzia>" // Valore di default se manca
+                    defaultValue = "<NomeAgenzia>"
                     nullable = true
                 }
             )
         ) { entry ->
-            // Recupera entrambi gli argomenti
             val usernameRecuperato = entry.arguments?.getString("usernameAdmin") ?: "<UsernameAdmin>"
             val agenziaRecuperata = entry.arguments?.getString("agenziaAdmin") ?: "<NomeAgenzia>"
 
-            // Passali alla schermata
             AdminScreen(
                 navController = navController,
                 usernameAdmin = usernameRecuperato,
-                agenziaAdmin = agenziaRecuperata // <-- Parametro passato correttamente!
+                agenziaAdmin = agenziaRecuperata
             )
         }
 
@@ -157,7 +149,6 @@ fun Navigation() {
                     type = NavType.StringType
                     defaultValue = ""
                 },
-                // --- NUOVO PARAMETRO AGGIUNTO ---
                 navArgument("agenziaAdmin") {
                     type = NavType.StringType
                     defaultValue = "Nessuna Agenzia"
@@ -167,7 +158,6 @@ fun Navigation() {
             val username = backStackEntry.arguments?.getString("usernameSottoadmin") ?: ""
             val agenzia = backStackEntry.arguments?.getString("agenziaAdmin") ?: ""
 
-            // Chiamata alla tua schermata aggiornata!
             SottoadminScreen(
                 usernameSottoadmin = username,
                 navController = navController,
@@ -181,7 +171,7 @@ fun Navigation() {
             arguments = listOf(
                 navArgument("username") {
                     type = NavType.StringType
-                    defaultValue = "<UsernameAgente>" // Valore se arrivi dalla Navbar (senza parametri)
+                    defaultValue = "<UsernameAgente>"
                     nullable = true
                 }
             )
@@ -199,7 +189,7 @@ fun Navigation() {
         composable(
             route = Screen.MappaScreen.route + "?lat={lat}&lng={lng}",
             arguments = listOf(
-                navArgument("lat") {// non supporta tipo double quindi uso prima string e poi lo converto
+                navArgument("lat") {
                     type = NavType.StringType
                     defaultValue = "0.0"
                 },
@@ -215,8 +205,7 @@ fun Navigation() {
             val locationObj = LatLng(lat, lng)
 
             MappaScreen(
-                location = locationObj,
-                navController = navController
+                location = locationObj
             )
         }
 
@@ -224,7 +213,6 @@ fun Navigation() {
             RicercaScreen(navController)
         }
         composable(
-            // Aggiungiamo &email={email} alla rotta
             route = Screen.RicercaMappaScreen.route + "?lat={lat}&lng={lng}&email={email}",
             arguments = listOf(
                 navArgument("lat") {
@@ -235,28 +223,23 @@ fun Navigation() {
                     type = NavType.StringType
                     defaultValue = "0.0"
                 },
-                // Aggiungiamo l'argomento per l'email
                 navArgument("email") {
                     type = NavType.StringType
-                    defaultValue = "" // Valore di default in caso mancasse
+                    defaultValue = ""
                 }
             )
         ) { entry ->
             val lat = entry.arguments?.getString("lat")?.toDoubleOrNull() ?: 0.0
             val lng = entry.arguments?.getString("lng")?.toDoubleOrNull() ?: 0.0
 
-            // Estraiamo l'email dagli argomenti
             val emailUtente = entry.arguments?.getString("email") ?: ""
 
             val locationObj = LatLng(lat, lng)
 
-            // --- NUOVA AGGIUNTA: PESCHIAMO I FILTRI ---
-            // 1. Cerchiamo il JSON nello "zainetto" della pagina precedente
             val filtriJson = navController.previousBackStackEntry?.savedStateHandle?.get<String>("filtri_json")
 
-            // 2. Lo decodifichiamo in oggetto. Se non c'è, creiamo un filtro vuoto di default.
             val filtriAttivi = if (filtriJson != null) {
-                kotlinx.serialization.json.Json.decodeFromString<FiltriRicercaDTO>(filtriJson)
+                Json.decodeFromString<FiltriRicercaDTO>(filtriJson)
             } else {
                 FiltriRicercaDTO()
             }
@@ -265,7 +248,7 @@ fun Navigation() {
                 location = locationObj,
                 navController = navController,
                 email = emailUtente,
-                filtri = filtriAttivi // <-- Assegniamo l'oggetto decodificato!
+                filtri = filtriAttivi
             )
         }
         composable(route = Screen.RicercaScreen.route){
@@ -273,23 +256,18 @@ fun Navigation() {
         }
 
         composable(route = Screen.InserzioneScreen.route) {
-            // 1. Peschiamo sia il JSON che l'EMAIL dallo "zainetto" della pagina precedente
             val json =  remember {  navController.previousBackStackEntry?.savedStateHandle?.get<String>("inserzione_json")}
             val emailUtente = remember {  navController.previousBackStackEntry?.savedStateHandle?.get<String>("email_utente")}
 
-            // Controlliamo che ci siano entrambi prima di aprire la pagina
             if (json != null && emailUtente != null) {
-                // 2. Ritrasformiamo il JSON in oggetto e mostriamo la pagina
-                val inserzioneOggetto = kotlinx.serialization.json.Json.decodeFromString<InserzioneDTO>(json)
+                val inserzioneOggetto = Json.decodeFromString<InserzioneDTO>(json)
 
-                // Passiamo l'oggetto e l'email alla funzione!
                 InserzioneScreen(
                     navController = navController,
                     inserzione = inserzioneOggetto,
                     email = emailUtente
                 )
             } else {
-                // 3. Schermata di emergenza (se manca il JSON o manca l'email)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -304,7 +282,6 @@ fun Navigation() {
             }
         }
         composable(
-            // Definiamo la rotta con i due parametri nell'URL
             route = Screen.PrenotazioneScreen.route + "?email={email}&idInserzione={idInserzione}",
             arguments = listOf(
                 navArgument("email") {
@@ -344,9 +321,6 @@ fun Navigation() {
             )
         }
 
-        composable(route = Screen.ModificaCredenzialiScreen.route){
-            ModificaCredenzialiScreen(navController)
-        }
         composable(
             route = Screen.ModificaPasswordScreen.route,
             arguments = listOf(
@@ -361,19 +335,15 @@ fun Navigation() {
             )
         ) { backStackEntry ->
 
-            // 1. Estraiamo i dati passati nell'URL (l'email/username e il tipo utente come stringa)
             val identificativo = backStackEntry.arguments?.getString("identificativo") ?: ""
             val tipoStringa = backStackEntry.arguments?.getString("tipoUtente") ?: D_tipoUtente.UTENTE.name
 
-            // 2. Riconvertiamo la stringa ("AGENTE", "ADMIN", ecc.) nel tuo vero e proprio oggetto Enum
             val tipoEnum = try {
                 D_tipoUtente.valueOf(tipoStringa)
-            } catch (e: Exception) {
-                // Fallback di sicurezza: se per qualche motivo l'URL è sporco, lo consideriamo UTENTE
+            } catch (_: Exception) {
                 D_tipoUtente.UTENTE
             }
 
-            // 3. Chiamiamo la schermata passandole i parametri perfetti!
             ModificaPasswordScreen(
                 navController = navController,
                 identificativoCaratteristico = identificativo,
@@ -402,10 +372,9 @@ fun Navigation() {
             arguments = listOf(
                 navArgument("username") { type = NavType.StringType },
                 navArgument("ruolo") { type = NavType.IntType },
-                // --- NUOVO PARAMETRO AGGIUNTO QUI ---
                 navArgument("agenziaAdmin") {
                     type = NavType.StringType
-                    defaultValue = "Nessuna Agenzia" // Sempre utile avere un default
+                    defaultValue = "Nessuna Agenzia"
                 }
             )
         ) { backStackEntry ->
@@ -580,20 +549,15 @@ fun Navigation() {
         }
 
         composable(route = Screen.InserzioneAgenteScreen.route) {
-            // 1. Estraiamo i dati dallo zainetto della schermata precedente
             val jsonInserzione = remember { navController.previousBackStackEntry?.savedStateHandle?.get<String>("inserzione_json") }
 
             if (jsonInserzione != null) {
-                // 2. Trasformiamo il testo JSON di nuovo nel vero oggetto InserzioneDTO
-                val inserzioneObj = Json.decodeFromString<DTO.InserzioneDTO>(jsonInserzione)
+                val inserzioneObj = Json.decodeFromString<InserzioneDTO>(jsonInserzione)
 
-                // 3. Lanciamo la schermata!
-                // (Assicurati che i nomi dei parametri qui sotto corrispondano a quelli veri della tua InserzioneAgenteScreen)
                 InserzioneAgenteScreen(
                     inserzione = inserzioneObj
                 )
             } else {
-                // Schermata di sicurezza nel caso in cui i dati si siano persi
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Errore nel caricamento dell'inserzione.")
                 }

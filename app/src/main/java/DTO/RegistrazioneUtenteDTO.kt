@@ -8,6 +8,6 @@ data class RegistrazioneUtenteDTO(
     val nome: String,
     val cognome: String,
     val prefisso: String,
-    val telefono: String, // Qui uniremo il prefisso e il numero
+    val telefono: String,
     val password: String
 )

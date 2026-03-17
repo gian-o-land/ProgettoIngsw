@@ -43,17 +43,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import connection.scaricaTutteLeInserzioni
-import gui.template.myBottomNavBar_Agente
+import gui.template.MyBottomNavBar_Agente
 import navigation.Screen
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import gui.template.myCardInserzione
+import gui.template.MyCardInserzione
 import kotlinx.serialization.encodeToString
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.ExistingPeriodicWorkPolicy
 import connection.scaricaAgente
+import connection.scaricaInserzioniAgente
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
@@ -61,8 +61,6 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun AgenteScreen(username: String, navController: NavController) {
     val listState = rememberLazyListState()
-
-    // --- VARIABILI DI STATO PER I DATI REALI ---
     var listaInserzioniAgente by remember { mutableStateOf<List<InserzioneDTO>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
@@ -70,8 +68,8 @@ fun AgenteScreen(username: String, navController: NavController) {
 
     var isLoadingAgenzia by remember { mutableStateOf(nomeAgenzia.isEmpty()) }
 
-// 2. Chiamata al server all'apertura della schermata
-    LaunchedEffect(username) { // Sostituisci 'identificativo' con la variabile che hai a disposizione
+    // Chiamata al server all'apertura della schermata
+    LaunchedEffect(username) {
         // Scarichiamo i dati aggiornati dal server
         val agenteDati = scaricaAgente(username)
 
@@ -79,7 +77,7 @@ fun AgenteScreen(username: String, navController: NavController) {
             // Aggiorniamo la variabile a schermo
             nomeAgenzia = agenteDati.nomeAgenzia
 
-            // Salviamo l'agenzia nella memoria fissa per i futuri accessi istantanei!
+            // Salviamo l'agenzia nella memoria fissa per i futuri accessi istantanei
             connection.SessionManager.salvaSessione(context, username, 3, agenteDati.nomeAgenzia)
         }
 
@@ -90,11 +88,7 @@ fun AgenteScreen(username: String, navController: NavController) {
     // --- SCARICAMENTO DATI AL CARICAMENTO DELLA PAGINA ---
     LaunchedEffect(username) {
         isLoading = true
-        // Scarichiamo tutte le inserzioni dal database
-        val tutteLeInserzioni = scaricaTutteLeInserzioni()
-
-        // Filtriamo SOLO quelle create da questo specifico agente
-        listaInserzioniAgente = tutteLeInserzioni.filter { it.agenteCreatore == username }
+        listaInserzioniAgente = scaricaInserzioniAgente(username)
 
         isLoading = false
     }
@@ -126,7 +120,7 @@ fun AgenteScreen(username: String, navController: NavController) {
                     messaggio = "Un utente ha richiesto una visita per un tuo immobile."
                 )
             }
-            kotlinx.coroutines.delay(10000L) // Controlla ogni 10 secondi
+            delay(10000L)
         }
     }
 
@@ -137,7 +131,7 @@ fun AgenteScreen(username: String, navController: NavController) {
             15, TimeUnit.MINUTES
         ).build()
 
-        // Lo mettiamo in coda assicurandoci che abbia un NOME UNICO ("ControlloNotificheAgenteServer")
+        // Lo mettiamo in coda assicurandoci che abbia un NOME UNICO
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             "ControlloNotificheAgenteServer",
             ExistingPeriodicWorkPolicy.KEEP,
@@ -198,7 +192,7 @@ fun AgenteScreen(username: String, navController: NavController) {
                 )
             },
             bottomBar = {
-                myBottomNavBar_Agente(navController = navController, username)
+                MyBottomNavBar_Agente(navController = navController, username)
             }
         ) { innerPadding ->
             Column(
@@ -209,7 +203,7 @@ fun AgenteScreen(username: String, navController: NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp), // Un po' più alto per dare respiro
+                        .height(60.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -224,7 +218,7 @@ fun AgenteScreen(username: String, navController: NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(30.dp), // Un po' più alto per dare respiro
+                        .height(30.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -262,24 +256,23 @@ fun AgenteScreen(username: String, navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f),
-                        contentPadding = PaddingValues(bottom = 80.dp) // Spazio per il FAB
+                        contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
                         items(listaInserzioniAgente) { inserzione ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 10.dp), // Spazio tra una card e l'altra
+                                    .padding(vertical = 10.dp),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 // --- USIAMO LA TUA CARD REALE! ---
-                                myCardInserzione(
+                                MyCardInserzione(
                                     inserzione = inserzione,
                                     myModifier = Modifier
                                         .height(200.dp)
-                                        .width(320.dp), // Leggermente più larga per far respirare i testi
+                                        .width(320.dp),
                                     onClick = {
-                                        // Stessa identica logica di navigazione con lo "zainetto" usata nella mappa
                                         val json = kotlinx.serialization.json.Json.encodeToString(inserzione)
                                         navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
                                         navController.navigate(Screen.InserzioneAgenteScreen.route)

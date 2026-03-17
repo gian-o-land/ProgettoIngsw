@@ -4,11 +4,8 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,8 +47,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 import com.example.progettoingsw.R
-import gui.template.myButton
-import gui.template.myTextField
+import gui.template.MyButton
+import gui.template.MyTextField
 import DTO.source.CommonPhonePrefixes
 import DTO.source.DefaultPhonePrefix
 import androidx.compose.foundation.layout.Box
@@ -159,7 +156,7 @@ fun ModificaCredenzialiUtenteScreen(navController: NavController, emailOriginale
                 Spacer(modifier = Modifier.height(15.dp))
 
                 // --- CAMPI DI TESTO ---
-                myTextField(
+                MyTextField(
                     Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                     "Nome",
                     textFieldNomeModificato,
@@ -167,7 +164,7 @@ fun ModificaCredenzialiUtenteScreen(navController: NavController, emailOriginale
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                myTextField(
+                MyTextField(
                     Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                     "Cognome",
                     textFieldCognomeModificato,
@@ -175,7 +172,7 @@ fun ModificaCredenzialiUtenteScreen(navController: NavController, emailOriginale
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 
-                myTextField(
+                MyTextField(
                     Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                     "Email",
                     textFieldEmailModificato,
@@ -247,29 +244,29 @@ fun ModificaCredenzialiUtenteScreen(navController: NavController, emailOriginale
                 Spacer(modifier = Modifier.height(40.dp))
 
                 // --- BOTTONE DI SALVATAGGIO ---
-                myButton(
+                MyButton(
                     myClick = {
-                        // REGOLA 1: Controllo campi vuoti
+                        // Controllo campi vuoti
                         if (textFieldEmailModificato.isBlank() ||
                             textFieldTelefonoModificato.isBlank() ||
                             textFieldNomeModificato.isBlank() ||
                             textFieldCognomeModificato.isBlank()
                         ) {
                             Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
-                            return@myButton // Blocca l'esecuzione
+                            return@MyButton
                         }
 
-                        // REGOLA 2: Controllo lunghezza telefono (esattamente 10 cifre)
+                        // Controllo lunghezza telefono (esattamente 10 cifre)
                         if (textFieldTelefonoModificato.length != 10) {
                             Toast.makeText(context, "Il numero di telefono non valido", Toast.LENGTH_SHORT).show()
-                            return@myButton
+                            return@MyButton
                         }
 
-                        // REGOLA 3: Controllo formato email (deve contenere @ e .)
+                        // Controllo formato email (deve contenere @ e .)
                         val emailRegex = "^.+@.+\\..+$".toRegex()
                         if (!textFieldEmailModificato.matches(emailRegex)) {
                             Toast.makeText(context, "Indirizzo email non valido", Toast.LENGTH_SHORT).show()
-                            return@myButton
+                            return@MyButton
                         }
 
                         // Se supera tutti i controlli, procediamo.
@@ -281,9 +278,8 @@ fun ModificaCredenzialiUtenteScreen(navController: NavController, emailOriginale
                                 .replace(")", "")
                                 .trim()
 
-                            // Chiamiamo la funzione per l'UTENTE
                             val successo = modificaCredenzialiUtente(
-                                emailOriginale = emailOriginale, // Passiamo la vecchia mail per trovarlo nel DB
+                                emailOriginale = emailOriginale,
                                 nuovoNome = textFieldNomeModificato,
                                 nuovoCognome = textFieldCognomeModificato,
                                 nuovaEmail = textFieldEmailModificato,

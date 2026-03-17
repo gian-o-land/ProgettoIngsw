@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myBottomNavBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.Icon
@@ -58,7 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import gui.template.myBottoneOrario
+import gui.template.MyBottoneOrario
 import java.text.SimpleDateFormat
 import java.time.LocalTime
 import java.util.Date
@@ -99,7 +98,7 @@ fun PrenotazioneScreen(
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator(
-                color = mioBluScuro, // Usa il colore del tuo tema!
+                color = mioBluScuro,
                 modifier = Modifier.size(50.dp)
             )
         }
@@ -135,7 +134,6 @@ fun PrenotazioneScreen(
         }
 
         // --- LOGICA METEO COMPLETAMENTE DISACCOPPIATA ---
-        // Ricorda che meteoDelGiornoSelezionato ora restituisce un oggetto InfoMeteo
         val meteoDelGiornoSelezionato = usaMeteo(
             latitude = inserzioneTrovata?.latitudine,
             longitude = inserzioneTrovata?.longitudine,
@@ -274,8 +272,8 @@ fun PrenotazioneScreen(
                         .padding(horizontal = 12.dp, vertical = 5.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    myBottoneOrario(id = LocalTime.of(10, 30), text = "09:00 - 11:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(10, 30) }
-                    myBottoneOrario(id = LocalTime.of(12, 30), text = "11:00 - 13:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(12, 30) }
+                    MyBottoneOrario(id = LocalTime.of(10, 30), text = "09:00 - 11:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(10, 30) }
+                    MyBottoneOrario(id = LocalTime.of(12, 30), text = "11:00 - 13:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(12, 30) }
                 }
 
                 Row(
@@ -284,8 +282,8 @@ fun PrenotazioneScreen(
                         .padding(horizontal = 12.dp, vertical = 5.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    myBottoneOrario(id = LocalTime.of(14, 30), text = "14:00 - 16:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(14, 30) }
-                    myBottoneOrario(id = LocalTime.of(16, 30), text = "16:00 - 18:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(16, 30) }
+                    MyBottoneOrario(id = LocalTime.of(14, 30), text = "14:00 - 16:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(14, 30) }
+                    MyBottoneOrario(id = LocalTime.of(16, 30), text = "16:00 - 18:00", selezionato = orarioSelezionato) { orarioSelezionato = LocalTime.of(16, 30) }
                 }
 
                 // --- RIGA CON IL RISULTATO E L'ICONA DEL METEO ---
@@ -309,7 +307,6 @@ fun PrenotazioneScreen(
                     if (meteoDelGiornoSelezionato != null) {
                         val (iconaMeteo, coloreMeteo) = getIconaEColore(meteoDelGiornoSelezionato.condizione)
 
-                        // Raggruppo l'icona e il testo in una colonna per tenerli vicini e centrati
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.padding(start = 8.dp)
@@ -318,10 +315,9 @@ fun PrenotazioneScreen(
                                 imageVector = iconaMeteo,
                                 contentDescription = "Meteo",
                                 tint = coloreMeteo,
-                                modifier = Modifier.size(28.dp) // Ridotto leggermente per far spazio al testo
+                                modifier = Modifier.size(28.dp)
                             )
 
-                            // Mostra Temp Minima e Massima sotto l'icona
                             Text(
                                 text = "${meteoDelGiornoSelezionato.tempMin}° / ${meteoDelGiornoSelezionato.tempMax}°",
                                 fontSize = 12.sp,
@@ -376,30 +372,24 @@ fun PrenotazioneScreen(
                 ) { data ->
                     androidx.compose.material3.Snackbar(
                         snackbarData = data,
-                        containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                        containerColor = Color(0xFFB00020),
                         contentColor = Color.White
                     )
                 }
                 Button(
                     onClick = {
-                        // Lanciamo l'operazione di rete in background
                         coroutineScope.launch {
 
-                            // Assicuriamoci che tutti i dati essenziali siano pronti
                             if (giornoSelezionato != null && orarioSelezionato != null && inserzioneTrovata != null) {
 
-                                // 1. Trasformiamo i millisecondi in una vera data (LocalDate) in formato UTC
                                 val dataLocale = Instant.ofEpochMilli(giornoSelezionato)
                                     .atZone(ZoneId.of("UTC"))
                                     .toLocalDate()
 
-                                // Uniamo Data e Ora per creare la stringa perfetta per il server (es. "2024-05-20T10:30")
                                 val dataOraStringa = java.time.LocalDateTime.of(dataLocale, orarioSelezionato).toString()
 
-                                // 2. Generiamo un ID univoco per la prenotazione
                                 val codiceUnivoco = generaCodicePrenotazione()
 
-                                // 3. Assembliamo il "pacco" (DTO)
                                 val nuovaPrenotazione = PrenotazioneDTO(
                                     idPrenotazione = codiceUnivoco,
                                     dataOra = dataOraStringa,
@@ -407,13 +397,11 @@ fun PrenotazioneScreen(
                                     stato = D_stato.ATTESA,
                                     mailUtente = email,
                                     codiceInserzione = idInserzione,
-                                    usernameAgente = inserzioneTrovata!!.agenteCreatore // Preso dall'inserzione che abbiamo scaricato
+                                    usernameAgente = inserzioneTrovata!!.agenteCreatore
                                 )
 
-                                // 4. Spediamo al server!
                                 val successo = connection.inviaPrenotazione(nuovaPrenotazione)
 
-                                // 5. Se il server dice che va tutto bene, mostriamo il popup
                                 if (successo) {
                                     prenotazioneEffettuata = true
                                 } else {
@@ -446,14 +434,12 @@ fun PrenotazioneScreen(
 }
 
 fun generaCodicePrenotazione(): String {
-    // Definiamo i caratteri da cui pescare
     val numeri = "0123456789"
     val lettere = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
     // Generiamo i tre blocchi separatamente pescando a caso
-    val inizio = (1..10).map { lettere.random() }.joinToString("") // 10 lettere casuali
-    val fine = (1..6).map { numeri.random() }.joinToString("")   // 6 numeri casuali (OBBLIGATORI)
+    val inizio = (1..10).map { lettere.random() }.joinToString("")
+    val fine = (1..6).map { numeri.random() }.joinToString("")
 
-    // Unendoli otteniamo esattamente 16 caratteri che finiscono con 6 cifre!
     return "$inizio$fine"
 }

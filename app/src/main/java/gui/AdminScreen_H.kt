@@ -40,17 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.graphics.RectangleShape
-import gui.template.myCardInserzionePlaceholder
 import androidx.compose.foundation.layout.*
-
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-
-import coil.compose.AsyncImage // Importante per le foto reali!
 import DTO.InserzioneDTO
 import androidx.compose.material3.HorizontalDivider
 import androidx.navigation.NavController
-import com.example.progettoingsw.R
+import gui.template.MyCardInserzione
 import kotlinx.serialization.encodeToString
 import navigation.Screen
 
@@ -94,7 +88,6 @@ fun Modifier.simpleVerticalScrollbar(
                 color = color,
                 topLeft = Offset(size.width - width.toPx(), scrollbarOffsetY),
                 size = Size(width.toPx(), scrollbarHeight),
-                //alpha = alpha, // Rimuovi questo parametro se vuoi che sia sempre visibile
                 cornerRadius = CornerRadius(width.toPx() / 2, width.toPx() / 2)
             )
         }
@@ -127,7 +120,6 @@ fun ShowPopup_Sottoadmin(
     onSelectedChange: (String?) -> Unit,
     listaAgenti: List<String>,
     itemHeight: Dp,
-    // --- MODIFICA: Riceviamo la mappa che collega ogni agente alle sue inserzioni DTO ---
     mappaInserzioniAgenti: Map<String, List<InserzioneDTO>>,
     itemHeightImmobile: Dp,
     navController: NavController
@@ -137,7 +129,6 @@ fun ShowPopup_Sottoadmin(
     val visibleItemsCount = if(listaAgenti.isEmpty()) 1 else minOf(listaAgenti.size, maxItemsToShow)
     val heightColumnPopup = itemHeight * visibleItemsCount
 
-    // Stato per gestire l'apertura del popup dell'agente cliccato
     var popupAgenteSelection by remember { mutableStateOf<String?>(null) }
 
     Dialog(onDismissRequest = { onSelectedChange(null) }) {
@@ -203,7 +194,6 @@ fun ShowPopup_Sottoadmin(
                                     .fillMaxWidth()
                                     .height(50.dp)
                                     .clickable {
-                                        // Salviamo l'agente cliccato per aprire il suo popup
                                         popupAgenteSelection = agente
                                     },
                                 horizontalArrangement = Arrangement.Start,
@@ -230,9 +220,7 @@ fun ShowPopup_Sottoadmin(
             onSelectedChange = { nuovoValore ->
                 popupAgenteSelection = nuovoValore
             },
-            // FIX: Passiamo la lista di DTO corretta filtrando per l'agente selezionato
-            // Specifichiamo <InserzioneDTO> per non far arrabbiare il compilatore!
-            listaImmobili = mappaInserzioniAgenti[popupAgenteSelection] ?: emptyList<InserzioneDTO>(),
+            listaImmobili = mappaInserzioniAgenti[popupAgenteSelection] ?: emptyList(),
             itemHeight = itemHeightImmobile,
             navController = navController,
             onCloseAllPopups = { onSelectedChange(null) }
@@ -247,15 +235,13 @@ fun ShowPopup_Sottoadmin(
 fun ShowPopup_Agente(
     selected: String?,
     onSelectedChange: (String?) -> Unit,
-    listaImmobili: List<InserzioneDTO>, // MODIFICATO: Ora riceve la lista di DTO
+    listaImmobili: List<InserzioneDTO>,
     itemHeight: Dp,
     navController: NavController,
     onCloseAllPopups: () -> Unit = {}
 ){
     val liststateAgentePopup = rememberLazyListState()
 
-    // Decidiamo quanto spazio deve occupare il popup
-    // Se non ci sono immobili, mostriamo un'altezza minima per il testo "Vuoto"
     val maxItemsToShow = 2
     val visibleItemsCount = if(listaImmobili.isEmpty()) 1 else minOf(listaImmobili.size, maxItemsToShow)
     val heightColumnPopup = itemHeight * visibleItemsCount
@@ -271,7 +257,7 @@ fun ShowPopup_Agente(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp) // Leggermente più alto per far stare bene il testo su due righe
+                    .height(60.dp)
                     .background(mioBluScuro),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -323,10 +309,9 @@ fun ShowPopup_Agente(
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // CHIAMATA ALLA CARD REALE
-                                MyCardInserzioneReale(
-                                    immobile = immobile,
-                                    modifier = Modifier
+                                MyCardInserzione(
+                                    inserzione = immobile,
+                                    myModifier = Modifier
                                         .height(itemHeight - 20.dp)
                                         .width(260.dp),
                                     onClick = {
@@ -342,54 +327,6 @@ fun ShowPopup_Agente(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun MyCardInserzioneReale(
-    immobile: InserzioneDTO,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    // Prendiamo l'URL della prima immagine (Copertina)
-    val urlFoto = immobile.immagini.firstOrNull()?.url
-
-    Card(
-        modifier = modifier.clickable{ onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp),
-        border = BorderStroke(0.5.dp, Color.LightGray)
-    ) {
-        Column {
-            // IMMAGINE REALE DA SERVER
-            AsyncImage(
-                model = urlFoto,
-                contentDescription = "Foto immobile",
-                placeholder = painterResource(R.drawable.immobile_esempio_1), // Mentre carica
-                error = painterResource(R.drawable.immobile_esempio_1),       // Se l'URL è rotto
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(110.dp),
-                contentScale = ContentScale.Crop
-            )
-
-            // DATI REALI (Indirizzo e Prezzo)
-            Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = immobile.indirizzo,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    maxLines = 1,
-                    color = Color.Black
-                )
-                Text(
-                    text = "${immobile.prezzo} €",
-                    fontSize = 12.sp,
-                    color = mioBluScuro,
-                    fontWeight = FontWeight.Medium
-                )
             }
         }
     }

@@ -64,7 +64,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myBottomNavBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.RectangleShape
@@ -218,7 +217,6 @@ fun InserzioneScreen(
 
                 // --- INTESTAZIONE IMMOBILE (CON CONTROLLO AFFITTO/VENDITA) ---
 
-                // 1. Controlliamo se la categoria contiene la parola "AFFITTO" (ignorando maiuscole/minuscole)
                 val suffissoPrezzo = if (inserzione.categoria.name.contains("AFFITTO", ignoreCase = true)) " / mese" else ""
 
                 // 2. Mostriamo il prezzo dinamico
@@ -345,11 +343,9 @@ fun InserzioneScreen(
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
 
-                    // Mostriamo NOME E COGNOME veri (oppure l'username se c'è un errore di rete)
                     Text("Agente: $nomeAgente", fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Mostriamo il TELEFONO vero
                     Text(
                         text = "+39 $numeroTelefono",
                         fontSize = 24.sp,
@@ -370,7 +366,6 @@ fun InserzioneScreen(
                             clipboardManager.setPrimaryClip(clip)
                             Toast.makeText(context, "Numero copiato!", Toast.LENGTH_SHORT).show()
                         },
-                        // Se non ha scaricato il numero, disabilitiamo il tasto copia
                         enabled = agenteTrovato != null
                     ) { Text("Copia") }
 
@@ -380,7 +375,6 @@ fun InserzioneScreen(
                             context.startActivity(intent)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                        // Se non ha scaricato il numero, disabilitiamo la chiamata
                         enabled = agenteTrovato != null
                     ) {
                         Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp))

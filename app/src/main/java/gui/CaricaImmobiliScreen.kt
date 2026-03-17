@@ -24,30 +24,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-
 import androidx.compose.material3.Text
-
-import gui.template.myButton
-
+import gui.template.MyButton
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.ui.platform.LocalContext
 import connection.inviaImmagineAServer
 import kotlinx.coroutines.launch
-
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-
 import coil.compose.AsyncImage
 import connection.client
 import connection.inviaInserzioneAlServer
-import gui.template.myButtonErrore
+import gui.template.MyButtonErrore
+import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +63,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
     var textFieldCitta by remember { mutableStateOf("") }
     var textFieldComune by remember { mutableStateOf("") }
     var textFieldIndirizzo by remember { mutableStateOf("") }
-    var textFieldDescrizione by remember { mutableStateOf("") } // <--- NUOVA VARIABILE PER LA DESCRIZIONE
+    var textFieldDescrizione by remember { mutableStateOf("") }
 
     // --- VARIABILI DI STATO (Per i menu e valori in alto) ---
     var categoria by remember { mutableStateOf("-") }
@@ -122,7 +120,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
     ) { uri: Uri? ->
         if (uri != null) {
             planimetriaSelezionata = uri
-            if (showErrors && planimetriaSelezionata != null) showErrors = false
+            if (showErrors) showErrors = false
         }
     }
 
@@ -136,9 +134,9 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                 hostState = snackbarHostState,
                 modifier = Modifier.padding(horizontal = 35.dp, vertical = 5.dp)
             ) { data ->
-                androidx.compose.material3.Snackbar(
+                Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                    containerColor = Color(0xFFB00020),
                     contentColor = Color.White
                 )
             }
@@ -223,7 +221,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             )
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
 
-            RigaSlider(
+            RigaSliderAgente(
                 icona = Icons.Default.FlashOn,
                 testo = "Classe\nenergetica",
                 valoreAttuale = classeEnergeticaScelta,
@@ -257,7 +255,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             Spacer(modifier = Modifier.height(24.dp))
 
 
-            myButtonErrore(
+            MyButtonErrore(
                 myClick = { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 testo = "Inserisci foto (${fotoSelezionate.size}/10)",
                 isError = showErrors && fotoSelezionate.isEmpty()
@@ -288,10 +286,8 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ==========================================
             // BOTTONE E ANTEPRIMA PLANIMETRIA (SINGOLA)
-            // ==========================================
-            myButtonErrore(
+            MyButtonErrore(
                 myClick = { planimetriaPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 testo = if (planimetriaSelezionata == null) "Inserisci planimetria" else "Planimetria (1/1)",
                 isError = showErrors && planimetriaSelezionata == null
@@ -342,26 +338,24 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                 label = { Text("Descrizione dell'immobile") },
                 isError = showErrors && textFieldDescrizione.isBlank(),
                 modifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
-                singleLine = false, // Magia: permette di andare a capo!
-                minLines = 1        // Parte con altezza di una riga
+                singleLine = false,
+                minLines = 1
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- BOTTONE FINALE CON CONTROLLO GLOBALE E CHIAMATA KTOR ---
-            myButton(
+            MyButton(
                 myClick = {
                     val menuValidi = categoria != "-" && piano != "-" && arredamento != "-"
                     val campiValidi = prezzo.isNotBlank() && quadratura.isNotBlank() && locali.isNotBlank() && bagni.isNotBlank()
 
-                    // Aggiunto il controllo anche per la descrizione!
                     val testiValidi = textFieldCitta.isNotBlank() && textFieldComune.isNotBlank() &&
                             textFieldIndirizzo.isNotBlank() && textFieldDescrizione.isNotBlank()
 
                     val fotoValide = fotoSelezionate.isNotEmpty()
                     val planimetriaValida = planimetriaSelezionata != null
 
-                    // Verifica che TUTTI i campi siano compilati
                     if (!(menuValidi && campiValidi && testiValidi && fotoValide && planimetriaValida)) {
                         showErrors = true
                         coroutineScope.launch {
@@ -369,7 +363,6 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                             snackbarHostState.showSnackbar("Compila tutti i campi in rosso e inserisci le immagini mancanti!")
                         }
                     } else {
-                        // TUTTO OK: Nascondi gli errori e inizia il processo
                         showErrors = false
 
                         coroutineScope.launch {
@@ -457,7 +450,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                     citta = textFieldCitta,
                                     comune = textFieldComune,
                                     indirizzo = textFieldIndirizzo,
-                                    descrizione = textFieldDescrizione, // <--- ECCO LA DESCRIZIONE AGGIUNTA QUI!
+                                    descrizione = textFieldDescrizione,
                                     agenteCreatore = username,
 
                                     latitudine = latReale,
@@ -475,7 +468,7 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
 
                                 if (caricamentoDbOk) {
                                     Toast.makeText(context, "Immobile pubblicato con successo!", Toast.LENGTH_LONG).show()
-                                    // navController.popBackStack() // Torna alla home
+                                    navController.popBackStack()
                                 } else {
                                     snackbarHostState.showSnackbar("Impossibile salvare l'inserzione sul database.")
                                 }
@@ -491,6 +484,93 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
             )
 
             Spacer(modifier = Modifier.height(30.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RigaSliderAgente(
+    icona: ImageVector,
+    testo: String,
+    valoreAttuale: String,
+    onValueChange: (String) -> Unit
+) {
+    val opzioni = listOf("Bassa", "Media", "Alta")
+
+    val initialIndex = opzioni.indexOf(valoreAttuale).toFloat()
+    val sliderPos = if (initialIndex >= 0f) initialIndex else 0f
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icona,
+            contentDescription = null,
+            modifier = Modifier.size(28.dp),
+            tint = mioBluScuro
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text = testo, fontSize = 16.sp, modifier = Modifier.width(80.dp), lineHeight = 18.sp)
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+
+            val sliderColors = SliderDefaults.colors(
+                activeTrackColor = mioBluScuro,
+                inactiveTrackColor = Color(0xFFEBE6ED),
+                activeTickColor = mioGialloOcra,
+                inactiveTickColor = mioBluScuro
+            )
+
+            Slider(
+                value = sliderPos,
+                onValueChange = { nuovaPos ->
+                    val index = nuovaPos.roundToInt()
+                    onValueChange(opzioni[index])
+                },
+                valueRange = 0f..2f,
+                steps = 1,
+                colors = sliderColors,
+                thumb = {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .border(width = 2.dp, color = mioBluScuro, shape = CircleShape)
+                            .background(color = mioGialloOcra, shape = CircleShape)
+                    )
+                },
+                track = { sliderState ->
+                    SliderDefaults.Track(
+                        colors = sliderColors,
+                        sliderState = sliderState,
+                        thumbTrackGapSize = 0.dp
+                    )
+                }
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp)
+                    .offset(y = (-8).dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                opzioni.forEachIndexed { index, label ->
+                    val isSelected = sliderPos.roundToInt() == index
+
+                    Text(
+                        text = label,
+                        fontSize = 11.sp,
+                        color = if (isSelected) mioGialloOcra else mioBluScuro,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
         }
     }
 }

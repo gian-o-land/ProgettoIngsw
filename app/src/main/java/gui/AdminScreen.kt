@@ -25,10 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myBottomNavBar_Admin
-import gui.template.myButton
+import gui.template.MyBottomNavBar_Admin
+import gui.template.MyButton
 import androidx.compose.foundation.layout.Arrangement
-
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -54,7 +53,6 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
     // 2. Mappe per i Popup
     val mappaAgentiDeiSottoadmin = remember { mutableStateMapOf<String, List<String>>() }
 
-    // --- MODIFICA 1: La mappa ora contiene direttamente le liste di InserzioneDTO! ---
     val mappaInserzioniDegliAgenti = remember { mutableStateMapOf<String, List<InserzioneDTO>>() }
 
     val listStateSottoadmin = rememberLazyListState()
@@ -63,7 +61,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
     var isLoadingSottoadmin by remember { mutableStateOf(true) }
     var isLoadingAgenti by remember { mutableStateOf(true) }
 
-    // 3. LAUNCHED EFFECT: Popoliamo tutto dal DB.
+    // LAUNCHED EFFECT: Popoliamo tutto dal DB.
     LaunchedEffect(usernameAdmin) {
         val sottoadminScaricati = scaricaListaSottoadmin(usernameAdmin)
 
@@ -76,7 +74,6 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
                 val agentiDelSotto = scaricaListaAgenti(nomeSottoadmin)
                 mappaAgentiDeiSottoadmin[nomeSottoadmin] = if (agentiDelSotto.isNotEmpty()) agentiDelSotto else listOf("Nessun agente creato")
 
-                // 🔥 ECCO LA MAGIA AGGIUNTA:
                 // Diciamo all'app di scaricare le inserzioni anche per gli agenti dei Sottoadmin!
                 agentiDelSotto.forEach { nomeAgenteDelSotto ->
                     val inserzioniVereSotto = scaricaInserzioniAgente(nomeAgenteDelSotto)
@@ -102,7 +99,6 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
                 // Scarichiamo i dati REALI dal database tramite i DTO
                 val inserzioniVere = scaricaInserzioniAgente(nomeAgente)
 
-                // --- MODIFICA 2: Assegniamo direttamente la lista di DTO alla mappa ---
                 // Se è vuota, passerà semplicemente una lista vuota (emptyList) che il tuo popup saprà gestire
                 mappaInserzioniDegliAgenti[nomeAgente] = inserzioniVere
             }
@@ -145,7 +141,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
                 )
             })
         },
-        bottomBar = { myBottomNavBar_Admin(navController, usernameAdmin, agenziaAdmin) }
+        bottomBar = { MyBottomNavBar_Admin(navController, usernameAdmin, agenziaAdmin) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)
@@ -165,17 +161,14 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
                     titolo = "I tuoi Sottoadmin",
                     listaPopup = mappaAgentiDeiSottoadmin,
                     itemHeight = itemHeight,
-
-                    // --- MODIFICA QUI: Cambiato nome parametro e passata la mappa dei DTO ---
                     mappaInserzioniAgenti = mappaInserzioniDegliAgenti,
-
                     itemHeightImmobile = 200.dp,
                     navController = navController,
                     isLoading = isLoadingSottoadmin
                 )
             }
             Spacer(Modifier.height(10.dp))
-            myButton({
+            MyButton({
                 navController.navigate(Screen.CreazioneSottoadminScreen.withArgs(usernameAdmin, agenziaAdmin))
             }, "Crea Sottoadmin")
             Spacer(Modifier.height(60.dp))
@@ -191,7 +184,6 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
                     listState = listStateAgenti,
                     lista = listaAgenti,
                     titolo = "I tuoi Agenti",
-                    // --- MODIFICA 3: Passiamo la mappa con le vere InserzioneDTO! ---
                     listaPopup = mappaInserzioniDegliAgenti,
                     itemHeight = 200.dp,
                     navController = navController,
@@ -199,7 +191,7 @@ fun AdminScreen(usernameAdmin : String, navController : NavController, agenziaAd
                 )
             }
             Spacer(Modifier.height(10.dp))
-            myButton(
+            MyButton(
                 myClick = {
                     navController.navigate(Screen.CreazioneAgenteScreen.withArgs(usernameAdmin, agenziaAdmin))
                 },

@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,7 +43,6 @@ import gui.mieiTitoli
 import gui.mioBackgroung
 import gui.mioBluScuro
 import gui.simpleVerticalScrollbar
-import kotlin.collections.emptyMap
 
 
 @Composable
@@ -58,7 +56,6 @@ fun MyExpandableCard_Sottoadmin(
     titolo: String,
     listaPopup: Map<String, List<String>>, // Mappa Sottoadmin -> Suoi Agenti
     itemHeight: Dp,
-    // --- MODIFICA 1: Cambiato il tipo per accettare la mappa dei DTO reali ---
     mappaInserzioniAgenti: Map<String, List<InserzioneDTO>>,
     itemHeightImmobile: Dp,
     navController: NavController,
@@ -99,7 +96,7 @@ fun MyExpandableCard_Sottoadmin(
                 androidx.compose.material3.CircularProgressIndicator(
                     modifier = Modifier
                         .padding(end = 15.dp)
-                        .size(24.dp), // Lo facciamo piccolino per stare bene nella riga
+                        .size(24.dp),
                     color = mieiTitoli,
                     strokeWidth = 2.5.dp
                 )
@@ -153,7 +150,6 @@ fun MyExpandableCard_Sottoadmin(
             },
             listaAgenti = listaPopup[popupSelection] ?: listOf("Nessun agente trovato"),
             itemHeight = itemHeight,
-            // --- MODIFICA 2: Usiamo il nome parametro corretto "mappaInserzioniAgenti" ---
             mappaInserzioniAgenti = mappaInserzioniAgenti,
             itemHeightImmobile = itemHeightImmobile,
             navController = navController
@@ -206,7 +202,7 @@ fun MyExpandableCard_Agenti(
                 androidx.compose.material3.CircularProgressIndicator(
                     modifier = Modifier
                         .padding(end = 15.dp)
-                        .size(24.dp), // Lo facciamo piccolino per stare bene nella riga
+                        .size(24.dp),
                     color = mieiTitoli,
                     strokeWidth = 2.5.dp
                 )
@@ -249,88 +245,9 @@ fun MyExpandableCard_Agenti(
         ShowPopup_Agente(
             selected = popupSelection,
             onSelectedChange = { popupSelection = it },
-            // FIX ERRORE: Specifichiamo il tipo <InserzioneDTO>
-            listaImmobili = listaPopup[popupSelection] ?: emptyList<InserzioneDTO>(),
+            listaImmobili = listaPopup[popupSelection] ?: emptyList(),
             itemHeight = itemHeight,
             navController = navController
         )
-    }
-}
-
-@Composable
-fun MyExpandableCard_Prenotazioni(
-    animatedHeight: Dp,
-    headerHeight: Dp,
-    isExpanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    listState: LazyListState,
-    lista: List<String>,
-    titolo: String,
-    navController: NavController
-){
-    Card(
-        modifier = Modifier
-            .height(animatedHeight)
-            .width(300.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = mioBackgroung,
-        ),
-        border = BorderStroke(2.dp, mioBluScuro)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(mioBluScuro)
-                .height(headerHeight)
-                .clickable{ onExpandedChange(!isExpanded)},
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = titolo,
-                fontWeight = FontWeight.Normal,
-                fontSize = 17.sp,
-                color = mieiTitoli,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(start = 15.dp)
-            )
-            Icon(
-                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = "Espandi",
-                tint = mieiTitoli,
-                modifier = Modifier.padding(end = 10.dp)
-            )
-        }
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 2.dp)
-                .simpleVerticalScrollbar(
-                    state = listState
-                )
-        ) {
-            items(lista){ itemLista ->
-                Row(
-                    modifier = Modifier.height(1.dp)
-                        .fillMaxWidth()
-                        .background(Color.Black)
-                ) { }
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                        .height(50.dp)
-                        .clickable {
-                        },
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = itemLista,
-                        fontSize = 16.sp,
-                        color = mieScritte,
-                        modifier = Modifier.padding(start = 15.dp)
-                    )
-                }
-            }
-        }
     }
 }

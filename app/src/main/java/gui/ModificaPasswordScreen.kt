@@ -5,8 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import gui.template.myTextField_Password
-
+import gui.template.MyTextField_Password
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myButton
+import gui.template.MyButton
 
 import android.widget.Toast
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -86,7 +85,7 @@ fun ModificaPasswordScreen(
             ) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                    containerColor = Color(0xFFB00020),
                     contentColor = Color.White,
                     shape = RoundedCornerShape(8.dp)
                 )
@@ -105,7 +104,7 @@ fun ModificaPasswordScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             // --- TESTO VECCHIA PASSWORD ---
-            myTextField_Password(
+            MyTextField_Password(
                 myModifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 myLabel = "Vecchia Password",
                 myValue = textFieldVecchiaPassword,
@@ -114,7 +113,7 @@ fun ModificaPasswordScreen(
             Spacer(modifier = Modifier.height(15.dp))
 
             // --- TESTO NUOVA PASSWORD ---
-            myTextField_Password(
+            MyTextField_Password(
                 myModifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 myLabel = "Nuova Password",
                 myValue = textFieldPasswordModificata,
@@ -123,7 +122,7 @@ fun ModificaPasswordScreen(
             Spacer(modifier = Modifier.height(15.dp))
 
             // --- TESTO RIPETI NUOVA PASSWORD ---
-            myTextField_Password(
+            MyTextField_Password(
                 myModifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 myLabel = "Ripeti Nuova Password",
                 myValue = textFieldRipetiPasswordModificata,
@@ -134,19 +133,19 @@ fun ModificaPasswordScreen(
             if (isLoading) {
                 CircularProgressIndicator(color = mioBluScuro)
             } else {
-                myButton(
+                MyButton(
                     myClick = {
-                        // 1. Validazione base: campi vuoti e coincidenza
+                        // campi vuoti e coincidenza
                         if (textFieldVecchiaPassword.isBlank() || textFieldPasswordModificata.isBlank() || textFieldRipetiPasswordModificata.isBlank()) {
                             Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
-                            return@myButton
+                            return@MyButton
                         }
                         if (textFieldPasswordModificata != textFieldRipetiPasswordModificata) {
                             Toast.makeText(context, "Le nuove password non coincidono", Toast.LENGTH_SHORT).show()
-                            return@myButton
+                            return@MyButton
                         }
 
-                        // 2. Controllo stringente SOLO sulla nuova password
+                        // Controllo stringente SOLO sulla nuova password
                         val isValidLength = textFieldPasswordModificata.length > 8
                         val hasUpperCase = textFieldPasswordModificata.any { it.isUpperCase() }
                         val hasLowerCase = textFieldPasswordModificata.any { it.isLowerCase() }
@@ -160,10 +159,10 @@ fun ModificaPasswordScreen(
                                     duration = SnackbarDuration.Short
                                 )
                             }
-                            return@myButton
+                            return@MyButton
                         }
 
-                        // 3. Chiamata al server con il nuovo DTO
+                        // Chiamata al server con il DTO
                         scope.launch {
                             isLoading = true
                             val dto = ModificaPasswordDTO(

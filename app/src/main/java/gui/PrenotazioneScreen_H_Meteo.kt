@@ -1,5 +1,6 @@
 package gui
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.BeachAccess
@@ -88,11 +89,9 @@ class OpenMeteoAdapter : FornitoreMeteo {
                 val data = risposta.daily.time[i]
                 val codiceOpenMeteo = risposta.daily.weathercode[i]
 
-                // Estraiamo le temperature dall'array restituito dall'API
                 val tMax = risposta.daily.temperature_2m_max[i]
                 val tMin = risposta.daily.temperature_2m_min[i]
 
-                // Traduciamo il codice Open-Meteo nel nostro standard
                 val condizione = when (codiceOpenMeteo) {
                     0 -> CondizioneMeteo.SOLE
                     1, 2, 3, 45, 48 -> CondizioneMeteo.NUVOLO
@@ -104,7 +103,7 @@ class OpenMeteoAdapter : FornitoreMeteo {
                 mappa[data] = InfoMeteo(condizione, tMax, tMin)
             }
         } catch (e: Exception) {
-            // Se c'è un errore (es. no connessione), ritorna mappa vuota in automatico
+            Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server: ${e.message}", e)
         }
         return mappa
     }
@@ -116,8 +115,8 @@ data class MeteoResponse(val daily: DailyData)
 data class DailyData(
     val time: List<String>,
     val weathercode: List<Int>,
-    val temperature_2m_max: List<Double>, // <--- Aggiunto per decodificare il JSON
-    val temperature_2m_min: List<Double>  // <--- Aggiunto per decodificare il JSON
+    val temperature_2m_max: List<Double>,
+    val temperature_2m_min: List<Double>
 )
 
 interface OpenMeteoApi {
@@ -125,7 +124,6 @@ interface OpenMeteoApi {
     suspend fun getPrevisioni(
         @Query("latitude") latitude: Double?,
         @Query("longitude") longitude: Double?,
-        // Richiediamo esplicitamente ad Open-Meteo di mandarci le temperature
         @Query("daily") daily: String = "weathercode,temperature_2m_max,temperature_2m_min",
         @Query("timezone") timezone: String = "auto",
         @Query("forecast_days") forecastDays: Int = 16

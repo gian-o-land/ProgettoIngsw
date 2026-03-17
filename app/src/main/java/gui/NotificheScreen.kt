@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myBottomNavBar
+import gui.template.MyBottomNavBar
 import DTO.D_stato
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,8 +59,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.window.Dialog
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
@@ -92,7 +90,6 @@ fun NotificheScreen(navController : NavController, email : String) {
     var listaNotifiche by remember { mutableStateOf<List<Notifica>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // 🔥 2. Variabile per controllare quale notifica è stata cliccata
     var popupSelection by remember { mutableStateOf<Notifica?>(null) }
 
     LaunchedEffect(email) {
@@ -105,16 +102,8 @@ fun NotificheScreen(navController : NavController, email : String) {
                     val inserzione = scaricaInserzione(p.codiceInserzione)
                     val agente = scaricaAgente(p.usernameAgente)
 
-                    val indirizzoImmobile = if (inserzione != null) {
-                        inserzione.indirizzo
-                    } else {
-                        "Indirizzo sconosciuto"
-                    }
-                    val comuneImmobile = if (inserzione != null) {
-                        inserzione.comune
-                    } else {
-                        "Comune sconosciuto"
-                    }
+                    val indirizzoImmobile = inserzione?.indirizzo ?: "Indirizzo sconosciuto"
+                    val comuneImmobile = inserzione?.comune ?: "Comune sconosciuto"
                     val nomeCompletoAgente = if (agente != null) "${agente.nome} ${agente.cognome}" else p.usernameAgente
 
                     Notifica(
@@ -123,7 +112,6 @@ fun NotificheScreen(navController : NavController, email : String) {
                         contenuto = nomeCompletoAgente,
                         stato = p.stato,
                         codiceInserzione = p.codiceInserzione,
-                        // Salviamo anche i dati extra dell'agente
                         mailAgente = agente?.email ?: "Email non disponibile",
                         telefonoAgente = agente?.telefono ?: "Telefono non disponibile",
                         dataOra = p.dataOra
@@ -162,7 +150,7 @@ fun NotificheScreen(navController : NavController, email : String) {
 
         },
         bottomBar = {
-            myBottomNavBar(
+            MyBottomNavBar(
                 navController = navController,
                 email = email
             )
@@ -235,14 +223,13 @@ fun NotificheScreen(navController : NavController, email : String) {
                             ) {
                                 Column(modifier = Modifier.weight(1f).padding(16.dp)) {
 
-                                    // 1. TESTO DEL TITOLO MULTI-COLORE
                                     Text(
                                         text = buildAnnotatedString {
                                             withStyle(style = SpanStyle(color = mioBluScuro)) {
                                                 append("Visita in \n")
                                             }
                                             withStyle(style = SpanStyle(color = Color.Black)) {
-                                                append("${notifica.indirizzo}\n") // Questo ora è l'indirizzo!
+                                                append("${notifica.indirizzo}\n")
                                             }
                                             withStyle(style = SpanStyle(color = Color.Black)) {
                                                 append(notifica.comune)
@@ -251,14 +238,13 @@ fun NotificheScreen(navController : NavController, email : String) {
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 16.sp
                                     )
-                                    // 2. TESTO DEL CONTENUTO MULTI-COLORE
                                     Text(
                                         text = buildAnnotatedString {
                                             withStyle(style = SpanStyle(color = mioBluScuro)) {
                                                 append("Richiesta visita con agente:\n")
                                             }
                                             withStyle(style = SpanStyle(color = Color.Black)) {
-                                                append(notifica.contenuto) // Questo ora è il nome!
+                                                append(notifica.contenuto)
                                             }
                                                                     },
                                         fontSize = 14.sp,
@@ -302,9 +288,7 @@ fun PopupNotificaUtente(
     emailUtente: String
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
 
-    // Ci serve per poter lanciare il download dell'inserzione al click del bottone!
     val coroutineScope = rememberCoroutineScope()
 
     Dialog(onDismissRequest = { onSelectedChange(null) }) {
@@ -323,10 +307,9 @@ fun PopupNotificaUtente(
                 Icon(Icons.Default.Close, "Chiudi", tint = mioGialloOcra, modifier = Modifier.padding(end = 10.dp).height(25.dp).width(25.dp).clickable { onSelectedChange(null) })
             }
 
-            // Usiamo Start per allineare i testi a sinistra e non al centro
             Column(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.Start) {
 
-                // 1. VIA (Etichetta in blu scuro, valore in nero)
+                // 1. VIA
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(color = mioBluScuro, fontWeight = FontWeight.Bold)) { append("Via: ") }
@@ -339,7 +322,7 @@ fun PopupNotificaUtente(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // 2. DATA E ORA (Formattata per essere più leggibile)
+                // 2. DATA E ORA
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(color = mioBluScuro, fontWeight = FontWeight.Bold)) { append("Data visita: ") }
@@ -395,16 +378,13 @@ fun PopupNotificaUtente(
                     onClick = {
                         selected?.codiceInserzione?.let { idInserzione ->
                             coroutineScope.launch {
-                                // 1. Scarichiamo l'inserzione completa in background
                                 val inserzioneCompleta = scaricaInserzione(idInserzione)
 
                                 if (inserzioneCompleta != null) {
-                                    // 2. Passiamo l'oggetto alla pagina Inserzione tramite lo zainetto
                                     val json = kotlinx.serialization.json.Json.encodeToString(inserzioneCompleta)
                                     navController.currentBackStackEntry?.savedStateHandle?.set("inserzione_json", json)
                                     navController.currentBackStackEntry?.savedStateHandle?.set("email_utente", emailUtente)
 
-                                    // 3. Spegniamo il popup e viaggiamo!
                                     onSelectedChange(null)
                                     navController.navigate(Screen.InserzioneScreen.route)
                                 }
@@ -422,16 +402,15 @@ fun PopupNotificaUtente(
                     Spacer(modifier = Modifier.height(10.dp))
                     Button(
                         onClick = {
-                            onSelectedChange(null) // Chiude il popup
+                            onSelectedChange(null)
 
-                            // Reindirizza l'utente direttamente alla schermata di prenotazione per QUELLA inserzione
                             selected.codiceInserzione.let { idInserzione ->
                                 val rotta = "${Screen.PrenotazioneScreen.route}?email=$emailUtente&idInserzione=${idInserzione}"
                                 navController.navigate(rotta)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White, // Lo facciamo bianco con bordo rosso per differenziarlo
+                            containerColor = Color.White,
                             contentColor = Color.Red
                         ),
                         border = BorderStroke(1.dp, Color.Red),

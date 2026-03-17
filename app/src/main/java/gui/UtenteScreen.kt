@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import gui.template.myBottomNavBar
+import gui.template.MyBottomNavBar
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -82,31 +82,25 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
         val datiAggiornati = scaricaUtente(emailUtente)
 
         if (datiAggiornati != null) {
-            // Aggiorniamo le variabili a schermo
             nomeUtente = datiAggiornati.nome
             cognomeUtente = datiAggiornati.cognome
 
-            // Salviamo i dati freschi in memoria
             connection.SessionManager.salvaNomeCognome(context, datiAggiornati.nome, datiAggiornati.cognome)
         }
 
-        // Spegniamo il caricamento a schermo intero
         isLoading = false
     }
 
-    // 1. GESTORE PERMESSI NOTIFICHE (Per Android 13+)
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {}
 
     // AVVIO DEL LAVORATORE IN BACKGROUND APP CHIUSA (WORKMANAGER)
     LaunchedEffect(emailUtente) {
-        // Creiamo una richiesta per eseguire il controllo periodicamente
         val workRequest = PeriodicWorkRequestBuilder<connection.NotificheWorker>(
-            15, TimeUnit.MINUTES // Minimo consentito da Android
+            15, TimeUnit.MINUTES
         ).build()
 
-        // Diciamo ad Android di metterlo in coda (KEEP significa che non lo duplica se esiste già)
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             "ControlloNotificheServer",
             ExistingPeriodicWorkPolicy.KEEP,
@@ -131,18 +125,13 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
             val notificheGiaViste = GestoreNotifiche.conteggioNotificheLette + GestoreNotifiche.conteggioNotificheNonLette.value
 
-            //Se ci sono meno notifiche sul server rispetto a quelle salvate...
             if (notificheChiuse < notificheGiaViste) {
-                // Eseguiamo l'auto-correzione al ribasso!
                 GestoreNotifiche.sincronizzaCancellazioni(context, notificheChiuse, emailUtente)
             }
-            // SE INVECE CI SONO NUOVE NOTIFICHE DAL SERVER, SUONIAMO!
             else if (notificheChiuse > notificheGiaViste) {
 
-                // Salviamo in memoria
                 GestoreNotifiche.salvaNuoveNotifiche(context, notificheChiuse, emailUtente)
 
-                // Lanciamo la notifica
                 mostraNotificaAndroid(
                     context = context,
                     titolo = "Aggiornamento Prenotazione",
@@ -150,7 +139,6 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 )
             }
 
-            // Pausa veloce di soli 10 secondi!
             delay(10000L)
         }
     }
@@ -194,12 +182,11 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
 
             },
             bottomBar = {
-                myBottomNavBar(navController, emailUtente)
+                MyBottomNavBar(navController, emailUtente)
             }
 
         ) { innerPadding ->
 
-            // Appena si apre la pagina utente, chiediamo il permesso per le notifiche
             LaunchedEffect(Unit) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -217,7 +204,6 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                     fontSize = 20.sp,
                     modifier = Modifier.fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                    //.padding(vertical = 20.dp),
                     textAlign = TextAlign.Center,
                     color = Color.Black
                 )
@@ -258,8 +244,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 Spacer(modifier = Modifier.height(30.dp))
 
                 Row(modifier = Modifier
-                    //.fillMaxWidth(),
-                    .padding(start = 30.dp), // Padding esterno per allineamento
+                    .padding(start = 30.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween){
 
@@ -292,10 +277,9 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        //.padding(start = 30.dp, end = 30.dp)
                         .horizontalScroll(scrollState),
 
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
 
                     ) {
                     Spacer(modifier = Modifier.width(20.dp))
@@ -314,9 +298,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Column(modifier = Modifier
-                            .fillMaxWidth(),
-                            // verticalAlignment = Alignment.CenterVertically,
-                            // horizontalArrangement = Arrangement.Absolute.Center
+                            .fillMaxWidth()
                         ){
                             Image(painterResource(
                                 id = R.drawable.anteprima_napoli),
@@ -344,9 +326,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Column(modifier = Modifier
-                            .fillMaxWidth(),
-                            // verticalAlignment = Alignment.CenterVertically,
-                            // horizontalArrangement = Arrangement.Absolute.Center
+                            .fillMaxWidth()
                         ){
                             Image(painterResource(
                                 id = R.drawable.anteprima_milano),
@@ -373,9 +353,7 @@ fun UtenteScreen(emailUtente:String,navController : NavController) {
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Column(modifier = Modifier
-                            .fillMaxWidth(),
-                            // verticalAlignment = Alignment.CenterVertically,
-                            // horizontalArrangement = Arrangement.Absolute.Center
+                            .fillMaxWidth()
                         ){
                             Image(painterResource(
                                 id = R.drawable.anteprima_roma),

@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myBottomNavBar_Agente
+import gui.template.MyBottomNavBar_Agente
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -62,12 +62,10 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Usiamo la nuova classe NotificaAgente!
     var listaNotifiche by remember { mutableStateOf<List<NotificaAgente>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var popupSelection by remember { mutableStateOf<NotificaAgente?>(null) }
 
-    // Ricarica la lista (scaricando in parallelo i dati dell'utente)
     fun ricaricaDati() {
         isLoading = true
         coroutineScope.launch {
@@ -76,20 +74,11 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
             listaNotifiche = coroutineScope {
                 prenotazioni.map { p ->
                     async {
-                        // Scarichiamo inserzione e UTENTE
                         val inserzione = connection.scaricaInserzione(p.codiceInserzione)
                         val utente = connection.scaricaUtente(p.mailUtente)
 
-                        val indirizzoImmobile = if (inserzione != null) {
-                            "${inserzione.indirizzo}"
-                        } else {
-                            "Indirizzo sconosciuto"
-                        }
-                        val comuneImmobile = if (inserzione != null) {
-                            inserzione.comune
-                        } else {
-                            "Comune sconosciuto"
-                        }
+                        val indirizzoImmobile = inserzione?.indirizzo ?: "Indirizzo sconosciuto"
+                        val comuneImmobile = inserzione?.comune ?: "Comune sconosciuto"
 
                         val nomeCompletoUtente = if (utente != null) "${utente.nome} ${utente.cognome}" else p.mailUtente
 
@@ -124,7 +113,7 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
             title = { Text("Notifiche", fontWeight = FontWeight.Bold, color = mieiTitoli) },
             navigationIcon = { Image(painterResource(id = R.drawable.logo), "Logo", modifier = Modifier.height(50.dp).width(50.dp)) }
         )},
-        bottomBar = { myBottomNavBar_Agente(navController, username) }
+        bottomBar = { MyBottomNavBar_Agente(navController, username) }
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding).fillMaxSize()
@@ -172,14 +161,13 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
                         ) {
                             Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                                 Column(modifier = Modifier.weight(1f).padding(16.dp)) {
-                                    // 1. VIA IN DUE COLORI
                                     Text(
                                         text = buildAnnotatedString {
                                             withStyle(style = SpanStyle(color = mioBluScuro)) {
                                                 append("Visita in \n")
                                             }
                                             withStyle(style = SpanStyle(color = Color.Black)) {
-                                                append("${notifica.indirizzo}\n") // Questo ora è l'indirizzo!
+                                                append("${notifica.indirizzo}\n")
                                             }
                                             withStyle(style = SpanStyle(color = Color.Black)) {
                                                 append(notifica.comune)
@@ -187,7 +175,6 @@ fun NotificheAgenteScreen(navController: NavController, username: String) {
                                         },
                                         fontWeight = FontWeight.SemiBold, fontSize = 16.sp
                                     )
-                                    // 2. NOME UTENTE IN DUE COLORI
                                     Text(
                                         text = buildAnnotatedString {
                                             withStyle(style = SpanStyle(color = mioBluScuro)) { append("Richiesta da:\n") }
@@ -308,7 +295,6 @@ fun PopupNotificaAgente(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // MOSTRA I BOTTONI ACCETTA/RIFIUTA SOLO SE LO STATO È "ATTESA"
                 if (selected?.stato == D_stato.ATTESA) {
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                         Button(

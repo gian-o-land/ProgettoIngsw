@@ -45,8 +45,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import connection.SessionManager
-import gui.template.myBottomNavBar_Agente
-import gui.template.myButton
+import gui.template.MyBottomNavBar_Agente
+import gui.template.MyButton
 import navigation.Screen
 
 @Composable
@@ -83,7 +83,7 @@ fun ProfiloAgenteScreen(navController : NavController, username: String) {
 
         },
         bottomBar = {
-            myBottomNavBar_Agente(
+            MyBottomNavBar_Agente(
                 navController = navController,
                 username = username
             )
@@ -109,11 +109,11 @@ fun ProfiloAgenteScreen(navController : NavController, username: String) {
                 )
             }
             Spacer(modifier = Modifier.height(40.dp))
-            myButton({navController.navigate(Screen.ModificaCredenzialiAgenteScreen.withMailAgente(username))}, "Modifica Credenziali")
+            MyButton({navController.navigate(Screen.ModificaCredenzialiAgenteScreen.withMailAgente(username))}, "Modifica Credenziali")
             Spacer(modifier = Modifier.height(30.dp))
-            myButton({navController.navigate(Screen.ModificaPasswordScreen.withArgs(username, D_tipoUtente.AGENTE))}, "Modifica Password")
+            MyButton({navController.navigate(Screen.ModificaPasswordScreen.withArgs(username, D_tipoUtente.AGENTE))}, "Modifica Password")
             Spacer(modifier = Modifier.height(30.dp))
-            myButton(
+            MyButton(
                 {mostraDialogConferma = true},
                 "Esci (Logout)"
             )
@@ -195,7 +195,6 @@ fun ProfiloAgenteScreen(navController : NavController, username: String) {
                         }
                         Button(
                             onClick = {
-                                //Spegniamo il popup
                                 mostraDialogConferma = false
 
                                 SessionManager.eseguiLogout(context)

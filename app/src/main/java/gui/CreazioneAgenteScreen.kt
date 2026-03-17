@@ -18,14 +18,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
-import gui.template.myButton
-import gui.template.myTextField
-import gui.template.myTextField_Password
+import gui.template.MyButton
+import gui.template.MyTextField
+import gui.template.MyTextField_Password
 import DTO.CreazioneAgenteDTO
 import androidx.compose.ui.graphics.Color
 import connection.creaNuovoAgente
 import androidx.compose.foundation.layout.width
-
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,15 +39,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-
 import androidx.compose.ui.text.input.KeyboardType
-
 import DTO.source.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-
 import androidx.compose.material3.CircularProgressIndicator
-
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.painterResource
 import com.example.progettoingsw.R
@@ -96,7 +91,6 @@ fun CreazioneAgenteScreen(
                 }
             )
         },
-        // Rimosso il bottomBar vuoto che causava la striscia blu!
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
@@ -104,7 +98,7 @@ fun CreazioneAgenteScreen(
             ) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                    containerColor = Color(0xFFB00020),
                     contentColor = Color.White,
                     shape = RoundedCornerShape(8.dp)
                 )
@@ -116,7 +110,7 @@ fun CreazioneAgenteScreen(
                 .fillMaxSize()
                 // 1. Spingiamo giù il blocco solo per non coprire la TopBar blu
                 .padding(top = innerPadding.calculateTopPadding())
-                // 2. Coloriamo tutto lo spazio rimanente di bianco (fino in fondo allo schermo!)
+                // 2. Coloriamo tutto lo spazio rimanente di bianco
                 .background(
                     color = mioBackgroung,
                     shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
@@ -145,13 +139,13 @@ fun CreazioneAgenteScreen(
             )
             Spacer(modifier = Modifier.height(30.dp))
 
-            myTextField(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Nome", nome) { nome = it }
+            MyTextField(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Nome", nome) { nome = it }
             Spacer(modifier = Modifier.height(20.dp))
 
-            myTextField(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Cognome", cognome) { cognome = it }
+            MyTextField(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Cognome", cognome) { cognome = it }
             Spacer(modifier = Modifier.height(20.dp))
 
-            myTextField(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Email", email) { email = it }
+            MyTextField(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Email", email) { email = it }
             Spacer(modifier = Modifier.height(20.dp))
 
             // --- SEZIONE TELEFONO ---
@@ -240,23 +234,22 @@ fun CreazioneAgenteScreen(
                     )
                 )
             }
-            // ------------------------
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            myTextField_Password(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Password", password) { password = it }
+            MyTextField_Password(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Password", password) { password = it }
             Spacer(modifier = Modifier.height(40.dp))
 
             if (isLoading) {
                 CircularProgressIndicator(color = mioBluScuro)
             } else {
-                myButton(
+                MyButton(
                     testo = "Crea Agente",
                     myClick = {
                         // 1. Controllo base campi vuoti
                         if (email.isBlank() || nome.isBlank() || cognome.isBlank() || telefono.isBlank() || password.isBlank()) {
                             Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
-                            return@myButton
+                            return@MyButton
                         }
 
                         // 2. Controllo stringente sulla nuova password spostato QUI!
@@ -273,7 +266,7 @@ fun CreazioneAgenteScreen(
                                     duration = SnackbarDuration.Short
                                 )
                             }
-                            return@myButton // Blocchiamo l'esecuzione se la password non rispetta i criteri
+                            return@MyButton // Blocchiamo l'esecuzione se la password non rispetta i criteri
                         }
 
                         // 3. Se tutto è corretto, facciamo la chiamata al server
@@ -294,7 +287,6 @@ fun CreazioneAgenteScreen(
                                 adminCreatore = usernameAdmin
                             )
 
-                            // usernameGenerato conterrà il testo inviato dal server, es: "Tecnocasa_AG0001"
                             val usernameGenerato = creaNuovoAgente(nuovoAgente)
                             isLoading = false
 

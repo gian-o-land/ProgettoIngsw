@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import gui.mioBluScuro
 import gui.mioGialloOcra
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState // Importante per l'evidenziazione automatica
+import androidx.navigation.compose.currentBackStackEntryAsState
 import navigation.Screen
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.compose.material3.Badge
@@ -30,7 +30,7 @@ import androidx.compose.material3.BadgedBox
 import gui.GestoreNotifiche
 
 @Composable
-fun myBottomNavBar(navController: NavController, email : String) {
+fun MyBottomNavBar(navController: NavController, email : String) {
 
     data class BottomNavItem(
         val label: String,
@@ -65,7 +65,7 @@ fun myBottomNavBar(navController: NavController, email : String) {
                 // Prendiamo la rotta attuale e la puliamo dai parametri
                 val baseCurrentRoute = destination.route?.substringBefore("?")?.substringBefore("/")
                 // Prendiamo la rotta dell'item e la puliamo dai parametri
-                val baseItemRoute = item.route.substringBefore("?")?.substringBefore("/")
+                val baseItemRoute = item.route.substringBefore("?").substringBefore("/")
 
                 // Confrontiamo solo i nomi puliti (es. "utente_screen" == "utente_screen")
                 baseCurrentRoute == baseItemRoute
@@ -111,7 +111,7 @@ fun myBottomNavBar(navController: NavController, email : String) {
 }
 
 @Composable
-fun myBottomNavBar_Admin(navController: NavController, username: String, agenziaAdmin: String) {
+fun MyBottomNavBar_Admin(navController: NavController, username: String, agenziaAdmin: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -138,8 +138,6 @@ fun myBottomNavBar_Admin(navController: NavController, username: String, agenzia
         )
     ) {
         items.forEach { item ->
-            // --- MODIFICA CRUCIALE QUI ---
-            // Tagliamo sia i parametri query (?) sia i parametri path (/)
             val isSelected = currentDestination?.hierarchy?.any { navDestination ->
                 val routeTemplate = navDestination.route ?: ""
                 val radiceAttuale = routeTemplate.substringBefore("?").substringBefore("/")
@@ -147,7 +145,6 @@ fun myBottomNavBar_Admin(navController: NavController, username: String, agenzia
 
                 radiceAttuale == radiceItem && radiceAttuale.isNotEmpty()
             } == true
-            // -----------------------------
 
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
@@ -163,7 +160,6 @@ fun myBottomNavBar_Admin(navController: NavController, username: String, agenzia
                         contentDescription = item.label
                     )
                 },
-                // Label (testo sotto)
                 label = { Text(item.label) },
 
                 // Logica di selezione visiva
@@ -186,7 +182,7 @@ fun myBottomNavBar_Admin(navController: NavController, username: String, agenzia
     }
 }
 @Composable
-fun myBottomNavBar_Sottoadmin(navController: NavController, username: String, agenziaAdmin: String) {
+fun MyBottomNavBar_Sottoadmin(navController: NavController, username: String, agenziaAdmin: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -214,8 +210,6 @@ fun myBottomNavBar_Sottoadmin(navController: NavController, username: String, ag
     ) {
 
         items.forEach { item ->
-            // --- MODIFICA DI SICUREZZA ---
-            // Tagliamo in modo robusto sia i "?" che i "/"
             val isSelected = currentDestination?.hierarchy?.any { navDestination ->
                 val routeTemplate = navDestination.route ?: ""
                 val radiceAttuale = routeTemplate.substringBefore("?").substringBefore("/")
@@ -223,7 +217,6 @@ fun myBottomNavBar_Sottoadmin(navController: NavController, username: String, ag
 
                 radiceAttuale == radiceItem && radiceAttuale.isNotEmpty()
             } == true
-            // -----------------------------
 
             NavigationBarItem(
                 colors = NavigationBarItemDefaults.colors(
@@ -239,7 +232,6 @@ fun myBottomNavBar_Sottoadmin(navController: NavController, username: String, ag
                         contentDescription = item.label
                     )
                 },
-                // Label (testo sotto)
                 label = { Text(item.label) },
 
                 // Logica di selezione visiva
@@ -262,7 +254,7 @@ fun myBottomNavBar_Sottoadmin(navController: NavController, username: String, ag
     }
 }
 @Composable
-fun myBottomNavBar_Agente(navController: NavController, username: String) {
+fun MyBottomNavBar_Agente(navController: NavController, username: String) {
 
     data class BottomNavItem(
         val label: String,
@@ -312,7 +304,6 @@ fun myBottomNavBar_Agente(navController: NavController, username: String) {
                         Icon(imageVector = item.icon, contentDescription = item.label)
                     }
                 },
-                // Label (testo sotto)
                 label = { Text(item.label) },
 
                 // Logica di selezione visiva

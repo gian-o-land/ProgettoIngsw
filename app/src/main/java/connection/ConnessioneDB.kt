@@ -37,7 +37,7 @@ val client = HttpClient(Android) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
-val urlServer = "http://13.60.255.20:8080"
+const val urlServer = "http://13.60.255.20:8080"
 
 
 suspend fun connessioneLogin(identificativo: String, passwordInserita: String): Int {
@@ -69,7 +69,7 @@ suspend fun connessioneLogin(identificativo: String, passwordInserita: String): 
         throw e
     } catch (e: Exception) {
         // Così l'app scriverà l'errore in rosso nella console di Android Studio (Logcat)!
-        android.util.Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server: ${e.message}", e)
+        Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server: ${e.message}", e)
         -1
     }
 }
@@ -96,7 +96,7 @@ suspend fun connessioneLoginGoogle(idTokenGoogle: String): Int {
         testoRisposta.toIntOrNull() ?: -1
 
     } catch (e: Exception) {
-        android.util.Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server (Google): ${e.message}", e)
+        Log.e("ERRORE_CONNESSIONE", "Impossibile collegarsi al server (Google): ${e.message}", e)
         -1
     }
 }
@@ -126,24 +126,24 @@ suspend fun inviaImmagineAServer(context: Context, uri: Uri): String? {
         if (risultato == "-1") null else risultato
 
     } catch (e: Exception) {
-        android.util.Log.e("UPLOAD_S3", "Errore invio immagine: ${e.message}", e)
+        Log.e("UPLOAD_S3", "Errore invio immagine: ${e.message}", e)
         null
     }
 }
 suspend fun scaricaUtente(email: String): UtenteDTO? {
-    return try {
+    try {
         // Usiamo GET invece di POST, l'email è già nell'URL!
         val risposta: HttpResponse = client.get("$urlServer/utente/$email")
 
-        if (risposta.status == HttpStatusCode.OK) {
-            return risposta.body()
+        return if (risposta.status == HttpStatusCode.OK) {
+            risposta.body()
         } else {
             // Se risponde NotFound (o altro), l'utente non c'è
-            return null
+            null
         }
 
     } catch (e: Exception) {
-        android.util.Log.e("ERRORE_RECUPERO", "Errore: ${e.message}", e)
+        Log.e("ERRORE_RECUPERO", "Errore: ${e.message}", e)
         return null
     }
 }
@@ -177,35 +177,18 @@ suspend fun inviaInserzioneAlServer(
         }
 
         if (risposta.status.isSuccess()) {
-            android.util.Log.d("API_INSERZIONE", "Inserzione caricata con successo su PostgreSQL!")
+            Log.d("API_INSERZIONE", "Inserzione caricata con successo su PostgreSQL!")
             true
         } else {
-            android.util.Log.e("API_INSERZIONE", "Errore dal server: ${risposta.status}")
+            Log.e("API_INSERZIONE", "Errore dal server: ${risposta.status}")
             false
         }
     } catch (e: Exception) {
-        android.util.Log.e("API_INSERZIONE", "Errore di connessione: ${e.message}")
+        Log.e("API_INSERZIONE", "Errore di connessione: ${e.message}")
         false
     }
 }
 
-suspend fun scaricaTutteLeInserzioni(): List<InserzioneDTO> {
-    return try {
-        // Facciamo una richiesta GET alla rotta che ci restituirà il JSON con tutte le case
-        val risposta: HttpResponse = client.get("$urlServer/inserzioni")
-
-        if (risposta.status == HttpStatusCode.OK) {
-            // Ktor converte magicamente l'array JSON in una List<Inserzione>
-            risposta.body()
-        } else {
-            android.util.Log.e("API_MAPPA", "Errore dal server: ${risposta.status}")
-            emptyList()
-        }
-    } catch (e: Exception) {
-        android.util.Log.e("API_MAPPA", "Impossibile scaricare le inserzioni: ${e.message}")
-        emptyList()
-    }
-}
 suspend fun scaricaInserzioniAgente(usernameAgente: String): List<InserzioneDTO> {
     return try {
         val risposta: HttpResponse = client.get("$urlServer/agente/$usernameAgente/inserzioni")
@@ -214,26 +197,26 @@ suspend fun scaricaInserzioniAgente(usernameAgente: String): List<InserzioneDTO>
         } else {
             emptyList()
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         emptyList()
     }
 }
+
 suspend fun scaricaAgente(identificativo: String): AgenteDTO? {
     return withContext(Dispatchers.IO) {
         try {
-            // Usa il tuo indirizzo IP corretto al posto di 10.0.2.2 o quello che stai usando
             val response = client.get("$urlServer/agente/$identificativo")
 
             if (response.status.isSuccess()) {
                 val agente = response.body<AgenteDTO>()
-                android.util.Log.d("API_AGENTE", "Agente scaricato: ${agente.username}")
+                Log.d("API_AGENTE", "Agente scaricato: ${agente.username}")
                 agente
             } else {
-                android.util.Log.e("API_AGENTE", "Errore dal server: ${response.status}")
+                Log.e("API_AGENTE", "Errore dal server: ${response.status}")
                 null
             }
         } catch (e: Exception) {
-            android.util.Log.e("API_AGENTE", "Errore di connessione: ${e.message}")
+            Log.e("API_AGENTE", "Errore di connessione: ${e.message}")
             null
         }
     }
@@ -262,7 +245,7 @@ suspend fun modificaCredenzialiAgente(
             }
             response.status.isSuccess()
         } catch (e: Exception) {
-            android.util.Log.e("API_MODIFICA_AGENTE", "Errore: ${e.message}")
+            Log.e("API_MODIFICA_AGENTE", "Errore: ${e.message}")
             false
         }
     }
@@ -277,7 +260,6 @@ suspend fun modificaCredenzialiUtente(
 ): Boolean {
     return withContext(Dispatchers.IO) {
         try {
-            // Nota l'URL: usiamo "utente" e l'emailOriginale per identificare chi modificare
             val response = client.put("$urlServer/utente/$emailOriginale/credenziali") {
                 contentType(ContentType.Application.Json)
                 setBody(
@@ -292,7 +274,7 @@ suspend fun modificaCredenzialiUtente(
             }
             response.status.isSuccess()
         } catch (e: Exception) {
-            android.util.Log.e("API_MODIFICA_UTENTE", "Errore: ${e.message}")
+            Log.e("API_MODIFICA_UTENTE", "Errore: ${e.message}")
             false
         }
     }
@@ -309,14 +291,14 @@ suspend fun completaProfiloGoogle(utente: UtenteDTO): Boolean {
 
         // Se il server risponde con OK (200), l'aggiornamento è andato a buon fine
         if (risposta.status.isSuccess()) {
-            android.util.Log.d("API_GOOGLE_UPDATE", "Profilo aggiornato con successo!")
+            Log.d("API_GOOGLE_UPDATE", "Profilo aggiornato con successo!")
             true
         } else {
-            android.util.Log.e("API_GOOGLE_UPDATE", "Errore dal server: ${risposta.status}")
+            Log.e("API_GOOGLE_UPDATE", "Errore dal server: ${risposta.status}")
             false
         }
     } catch (e: Exception) {
-        android.util.Log.e("API_GOOGLE_UPDATE", "Errore di connessione: ${e.message}")
+        Log.e("API_GOOGLE_UPDATE", "Errore di connessione: ${e.message}")
         false
     }
 }
@@ -327,10 +309,10 @@ suspend fun eliminaUtenteGoogleIncompleto(email: String) {
         try {
             val risposta = client.delete("$urlServer/eliminaUtenteGoogle/$email")
             if (risposta.status.isSuccess()) {
-                android.util.Log.d("API_DELETE", "Utente fantasma $email eliminato.")
+                Log.d("API_DELETE", "Utente fantasma $email eliminato.")
             }
         } catch (e: Exception) {
-            android.util.Log.e("API_DELETE", "Errore eliminazione utente: ${e.message}")
+            Log.e("API_DELETE", "Errore eliminazione utente: ${e.message}")
         }
     }
 }
@@ -355,7 +337,7 @@ suspend fun scaricaInserzioniFiltrate(
                 emptyList()
             }
         } catch (e: Exception) {
-            android.util.Log.e("API_RICERCA", "Errore durante la ricerca: ${e.message}")
+            Log.e("API_RICERCA", "Errore durante la ricerca: ${e.message}")
             emptyList()
         }
     }
@@ -369,15 +351,15 @@ suspend fun scaricaInserzione(idInserzione: String): InserzioneDTO? {
             if (risposta.status == HttpStatusCode.OK) {
                 val inserzioneTrovata: InserzioneDTO = risposta.body()
 
-                android.util.Log.d("API_INSERZIONE", "Inserzione $idInserzione scaricata con successo!")
+                Log.d("API_INSERZIONE", "Inserzione $idInserzione scaricata con successo!")
                 inserzioneTrovata
             } else {
                 // Se risponde 404 Not Found o altro
-                android.util.Log.e("API_INSERZIONE", "Errore dal server: ${risposta.status}")
+                Log.e("API_INSERZIONE", "Errore dal server: ${risposta.status}")
                 null
             }
         } catch (e: Exception) {
-            android.util.Log.e("API_INSERZIONE", "Impossibile scaricare l'inserzione: ${e.message}")
+            Log.e("API_INSERZIONE", "Impossibile scaricare l'inserzione: ${e.message}")
             null
         }
     }
@@ -394,14 +376,14 @@ suspend fun inviaPrenotazione(prenotazione: PrenotazioneDTO): Boolean {
 
         // Se Ktor ci risponde con 201 (Created)
         if (risposta.status == HttpStatusCode.Created) {
-            android.util.Log.d("API_PRENOTAZIONE", "Prenotazione salvata con successo!")
+            Log.d("API_PRENOTAZIONE", "Prenotazione salvata con successo!")
             true
         } else {
-            android.util.Log.e("API_PRENOTAZIONE", "Errore dal server: ${risposta.status}")
+            Log.e("API_PRENOTAZIONE", "Errore dal server: ${risposta.status}")
             false
         }
     } catch (e: Exception) {
-        android.util.Log.e("API_PRENOTAZIONE", "Errore di connessione: ${e.message}")
+        Log.e("API_PRENOTAZIONE", "Errore di connessione: ${e.message}")
         false
     }
 }
@@ -415,7 +397,7 @@ suspend fun scaricaPrenotazioniUtente(email: String): List<PrenotazioneDTO> {
             } else {
                 emptyList()
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }
@@ -429,7 +411,7 @@ suspend fun aggiornaPasswordServer(dati: ModificaPasswordDTO): Boolean {
             }
             response.status == HttpStatusCode.OK
         } catch (e: Exception) {
-            android.util.Log.e("API_PASSWORD", "Errore aggiornamento password: ${e.message}")
+            Log.e("API_PASSWORD", "Errore aggiornamento password: ${e.message}")
             false
         }
     }
@@ -466,7 +448,7 @@ suspend fun scaricaPrenotazioniAgente(username: String): List<PrenotazioneDTO> {
         try {
             val risposta = client.get("$urlServer/prenotazioni/agente/$username")
             if (risposta.status == HttpStatusCode.OK) risposta.body() else emptyList()
-        } catch (e: Exception) { emptyList() }
+        } catch (_: Exception) { emptyList() }
     }
 }
 
@@ -478,7 +460,7 @@ suspend fun aggiornaStatoPrenotazione(idPrenotazione: String, nuovoStato: D_stat
                 setBody(mapOf("stato" to nuovoStato.name))
             }
             response.status.isSuccess()
-        } catch (e: Exception) { false }
+        } catch (_: Exception) { false }
     }
 }
 
@@ -507,7 +489,7 @@ suspend fun creaNuovoAgente(agente: CreazioneAgenteDTO): String? {
             }
 
             if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
-                // Leggiamo la stringa inviata dal server (es. "Tecnocasa_AG0001") e la restituiamo
+                // Leggiamo la stringa inviata dal server e la restituiamo
                 response.bodyAsText()
             } else {
                 Log.e("API_CREA_AGENTE", "Errore dal server: ${response.status}")
@@ -526,8 +508,6 @@ suspend fun scaricaAdmin(username: String): AdminDTO? {
             val response = client.get("$urlServer/admin/$username")
 
             if (response.status == HttpStatusCode.OK) {
-                // Se il server risponde 200 OK, Ktor e kotlinx.serialization
-                // trasformeranno magicamente il JSON nel tuo AdminDTO (incluso l'Enum!)
                 response.body<AdminDTO>()
             } else {
                 Log.e("API_SCARICA_ADMIN", "Errore dal server: ${response.status}")
@@ -550,7 +530,7 @@ suspend fun creaNuovoSottoadmin(sottoadmin: CreazioneSottoadminDTO): String? {
             }
 
             if (response.status == HttpStatusCode.Created || response.status == HttpStatusCode.OK) {
-                // Leggiamo la stringa inviata dal server (es. "Sadmin001") e la restituiamo
+                // Leggiamo la stringa inviata dal server e la restituiamo
                 response.bodyAsText()
             } else {
                 Log.e("API_CREA_SOTTOADMIN", "Errore dal server: ${response.status}")
@@ -586,20 +566,6 @@ suspend fun scaricaListaAgenti(usernameAdmin: String): List<String> {
             } else emptyList()
         } catch (e: Exception) {
             Log.e("API_LISTA_AGENTI", "Errore: ${e.message}")
-            emptyList()
-        }
-    }
-}
-
-suspend fun scaricaInserzioniiAgente(usernameAgente: String): List<String> {
-    return withContext(Dispatchers.IO) {
-        try {
-            val response = client.get("$urlServer/agente/$usernameAgente/inserzioni")
-            if (response.status == HttpStatusCode.OK) {
-                response.body<List<String>>() // Ktor lo trasforma in List<String> in automatico!
-            } else emptyList()
-        } catch (e: Exception) {
-            Log.e("API_IMMOBILI", "Errore: ${e.message}")
             emptyList()
         }
     }

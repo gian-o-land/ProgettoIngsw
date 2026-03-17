@@ -60,7 +60,7 @@ fun mappaCategoria(valoreUI: String): D_catInser {
     return when (valoreUI) {
         "In vendita" -> D_catInser.VENDITA
         "In affitto" -> D_catInser.AFFITTO
-        else -> D_catInser.VENDITA // Valore di sicurezza
+        else -> D_catInser.VENDITA
     }
 }
 
@@ -74,7 +74,6 @@ fun mappaArredamento(valoreUI: String): D_arred {
 }
 
 fun mappaClasseEnergetica(valoreUI: String): D_energ {
-    // Se il tuo slider restituisce lettere (es. "A", "G") o parole intere, le gestiamo entrambe
     return when (valoreUI.uppercase()) {
         "ALTA"-> D_energ.ALTA
         "MEDIA"-> D_energ.MEDIA
@@ -88,13 +87,12 @@ fun RigaCliccabileConErrore(
     testo: String,
     valoreAttuale: String,
     opzioni: List<String>,
-    isError: Boolean = false,                  // <--- AGGIUNTO: Riceve il segnale di errore
-    onValoreCambiato: (String) -> Unit = {}    // <--- AGGIUNTO: Comunica la scelta alla schermata
+    isError: Boolean = false,
+    onValoreCambiato: (String) -> Unit = {}
 ) {
     var menuEspanso by remember { mutableStateOf(false) }
 
     // --- COLORI DINAMICI ---
-    // Se c'è un errore diventano rossi, altrimenti usano i tuoi colori originali
     val coloreIcona = if (isError) Color(0xFFB00020) else mioBluScuro
     val coloreTesto = if (isError) Color(0xFFB00020) else Color.Black
     val coloreTestoValore = if (isError) Color(0xFFB00020) else Color.DarkGray
@@ -117,13 +115,13 @@ fun RigaCliccabileConErrore(
                 imageVector = icona,
                 contentDescription = null,
                 modifier = Modifier.size(28.dp),
-                tint = coloreIcona // <--- Usa il colore dinamico
+                tint = coloreIcona
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = testo,
                 fontSize = 16.sp,
-                color = coloreTesto // <--- Usa il colore dinamico
+                color = coloreTesto
             )
         }
 
@@ -135,17 +133,16 @@ fun RigaCliccabileConErrore(
             contentAlignment = Alignment.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Non usa più "selezioneAttuale", ma "valoreAttuale" passato dalla schermata
                 Text(
                     text = valoreAttuale,
                     fontSize = 16.sp,
-                    color = coloreTestoValore // <--- Usa il colore dinamico
+                    color = coloreTestoValore
                 )
                 val iconaFreccia = if (menuEspanso) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowRight
                 Icon(
                     imageVector = iconaFreccia,
                     contentDescription = null,
-                    tint = coloreIcona // <--- Usa il colore dinamico
+                    tint = coloreIcona
                 )
             }
 
@@ -218,7 +215,7 @@ fun RigaValoreConErrore(
             onValoreCambiato = onValoreCambiato,
             isError = isError,
             label = "Valore",
-            suffisso = suffisso // <--- AGGIUNTO IL PASSAGGIO DEL SUFFISSO
+            suffisso = suffisso
         )
     }
 }
@@ -232,7 +229,7 @@ fun BoxInputValore(
     valore: String,
     onValoreCambiato: (String) -> Unit,
     isError: Boolean = false,
-    suffisso: String? = null               // <--- 1. AGGIUNTO: Riceve il suffisso opzionale
+    suffisso: String? = null
 ) {
     // --- COLORI DINAMICI PER L'ERRORE ---
     val coloreBordo = if (isError) Color(0xFFB00020) else Color.Black
@@ -249,8 +246,6 @@ fun BoxInputValore(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
 
         modifier = Modifier
-            // ⚠️ PICCOLO CONSIGLIO: ho aumentato leggermente la larghezza da 90.dp a 110.dp
-            // perché con numeri lunghi + simbolo € + la "X", lo spazio iniziava a stare stretto!
             .width(110.dp)
             .height(45.dp)
             .background(Color.White, RoundedCornerShape(4.dp))
@@ -263,23 +258,16 @@ fun BoxInputValore(
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalArrangement = Arrangement.Center
             ) {
-                // Etichetta (es. "Valore")
                 Text(text = label, fontSize = 10.sp, color = coloreEtichetta)
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
 
                     Box(modifier = Modifier.weight(1f)) {
-                        // Placeholder "Input"
                         if (valore.isEmpty()) {
                             Text(text = "Input", fontSize = 14.sp, color = Color.Gray)
                         }
-                        // Testo digitato
                         innerTextField()
                     }
-
-                    // --- 2. IL SUFFISSO MAGICO ---
-                    // Lo mostriamo solo se è stato passato e se c'è un valore inserito
-                    // (così non si sovrappone visivamente alla scritta "Input")
                     if (suffisso != null && valore.isNotEmpty()) {
                         Text(
                             text = suffisso,
@@ -290,7 +278,6 @@ fun BoxInputValore(
                         )
                     }
 
-                    // Icona "X" per cancellare
                     if (valore.isNotEmpty()) {
                         Icon(
                             imageVector = Icons.Default.Cancel,
@@ -300,8 +287,6 @@ fun BoxInputValore(
                                 .clickable {
                                     onValoreCambiato("")
                                 },
-                            // Assicurati che 'mioBluScuro' sia accessibile qui,
-                            // sennò usa un colore come Color.Gray o coloreBordo
                             tint = mioBluScuro
                         )
                     }

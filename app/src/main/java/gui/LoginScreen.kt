@@ -44,9 +44,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import connection.connessioneLogin
-import gui.template.myButton
-import gui.template.myTextField
-import gui.template.myTextField_Password
+import gui.template.MyButton
+import gui.template.MyTextField
+import gui.template.MyTextField_Password
 import kotlinx.coroutines.launch
 import navigation.Screen
 import androidx.credentials.CredentialManager
@@ -132,7 +132,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 ) { data ->
                     androidx.compose.material3.Snackbar(
                         snackbarData = data,
-                        containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                        containerColor = Color(0xFFB00020),
                         contentColor = Color.White
                     )
                 }
@@ -160,8 +160,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                 if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                                     val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
 
-                                    // ✨ ECCO IL PASSAGGIO CHIAVE: Recuperiamo la mail! ✨
-                                    // La proprietà ".id" di GoogleIdTokenCredential contiene l'email dell'utente
+                                    // Recuperiamo la mail
                                     val mailUtente = googleIdTokenCredential.id
 
                                     // Estraiamo anche l'idToken crittografato da mandare al backend
@@ -240,25 +239,25 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                 ) { data ->
                     androidx.compose.material3.Snackbar(
                         snackbarData = data,
-                        containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                        containerColor = Color(0xFFB00020),
                         contentColor = Color.White
                     )
                 }
-                myTextField(
+                MyTextField(
                     Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                     "Email/Username",
                     textFieldEmail,
                     {nuovoTesto -> textFieldEmail = nuovoTesto}
                 )
                 Spacer(modifier = Modifier.height(15.dp))
-                myTextField_Password(
+                MyTextField_Password(
                     Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                     "Password",
                     textFieldPassword,
                     {nuovoTesto -> textFieldPassword = nuovoTesto}
                 )
                 Spacer(modifier = Modifier.height(30.dp))
-                myButton(
+                MyButton(
                     myClick = {
                         coroutineScope.launch {
                             val risposta = connessioneLogin(textFieldEmail, textFieldPassword)
@@ -336,7 +335,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                     fontSize = 17.sp
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                myButton(
+                MyButton(
                     myClick = {
                         navController.navigate(Screen.RegisterScreen.route)
                     },

@@ -44,9 +44,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import connection.SessionManager
-import gui.template.myBottomNavBar_Admin
-import gui.template.myBottomNavBar_Sottoadmin
-import gui.template.myButton
+import gui.template.MyBottomNavBar_Admin
+import gui.template.MyBottomNavBar_Sottoadmin
+import gui.template.MyButton
 import navigation.Screen
 
 @Composable
@@ -84,8 +84,8 @@ fun ProfiloAdminScreen(username: String, navController: NavController, ruolo: In
         },
         bottomBar = {
             when (ruolo) {
-                2 -> myBottomNavBar_Sottoadmin(navController, username, agenziaAdmin)
-                1 -> myBottomNavBar_Admin(navController, username, agenziaAdmin)
+                2 -> MyBottomNavBar_Sottoadmin(navController, username, agenziaAdmin)
+                1 -> MyBottomNavBar_Admin(navController, username, agenziaAdmin)
             }
         }
     ) { innerPadding ->
@@ -202,9 +202,9 @@ fun ProfiloAdminScreen(username: String, navController: NavController, ruolo: In
                 )
             }
             Spacer(modifier = Modifier.height(40.dp))
-            myButton({navController.navigate(Screen.ModificaPasswordScreen.withArgs(username, D_tipoUtente.ADMIN))}, "Modifica Password")
+            MyButton({navController.navigate(Screen.ModificaPasswordScreen.withArgs(username, D_tipoUtente.ADMIN))}, "Modifica Password")
             Spacer(modifier = Modifier.height(30.dp))
-            myButton(
+            MyButton(
                 {mostraDialogConferma = true},
                 "Esci (Logout)"
             )

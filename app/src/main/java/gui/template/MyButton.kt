@@ -21,7 +21,7 @@ import gui.mioGialloOcra
 import gui.mioBluScuro
 
 @Composable
-fun myButton(myClick :() -> Unit, testo: String){
+fun MyButton(myClick :() -> Unit, testo: String){
 
     Button(
         onClick = myClick,
@@ -39,8 +39,8 @@ fun myButton(myClick :() -> Unit, testo: String){
 
 @Composable
 
-fun RowScope.myBottoneOrario(
-    id: java.time.LocalTime?,
+fun RowScope.MyBottoneOrario(
+    id: LocalTime?,
     text: String,
     selezionato: LocalTime?,
     onClick: () -> Unit
@@ -51,21 +51,19 @@ fun RowScope.myBottoneOrario(
     OutlinedButton(
         onClick = onClick,
         modifier = Modifier
-            .weight(1f) // Fai in modo che i bottoni occupino lo stesso spazio (50% e 50%)
+            .weight(1f) // Fa in modo che i bottoni occupino lo stesso spazio (50% e 50%)
             .height(50.dp),
         shape = CircleShape,
 
         // GESTIONE COLORI ATTIVO/DISATTIVO
         colors = ButtonDefaults.outlinedButtonColors(
-            // Se selezionato -> Giallo Ocra, Altrimenti -> Trasparente (o Bianco)
             containerColor = if (isSelected) mioGialloOcra else mioBluScuro,
 
-            // Se selezionato -> Bianco, Altrimenti -> Blu Scuro (o Grigio)
             contentColor = if (isSelected) mioBluScuro else Color.White
         ),
         // GESTIONE BORDO
         border = BorderStroke(
-            width = if (isSelected) 0.dp else 1.dp, // Togli il bordo se è pieno
+            width = if (isSelected) 0.dp else 1.dp,
             color = if (isSelected) Color.Transparent else Color.Gray
         )
     ) {
@@ -74,18 +72,18 @@ fun RowScope.myBottoneOrario(
 }
 
 @Composable
-fun myButtonErrore(
+fun MyButtonErrore(
     myClick: () -> Unit,
     testo: String,
-    isError: Boolean = false // <--- 1. AGGIUNGI QUESTO PARAMETRO
+    isError: Boolean = false
 ) {
-    // 2. CREA IL COLORE DINAMICO: Rosso se c'è errore, altrimenti il tuo Blu
+    // CREA IL COLORE DINAMICO: Rosso se c'è errore, altrimenti il tuo Blu
     val coloreSfondo = if (isError) Color(0xFFB00020) else mioGialloOcra
 
     Button(
         onClick = myClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = coloreSfondo // <--- 3. APPLICA IL COLORE QUI
+            containerColor = coloreSfondo
         ),
         modifier = Modifier.height(50.dp)
             .fillMaxWidth()

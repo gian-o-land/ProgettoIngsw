@@ -26,8 +26,6 @@ fun mostraNotificaAndroid(context: Context, titolo: String, messaggio: String) {
     val intent = Intent(context, MainActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
-
-    // Il PendingIntent è l'involucro che diamo alla notifica
     val pendingIntent: PendingIntent = PendingIntent.getActivity(
         context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
@@ -38,19 +36,17 @@ fun mostraNotificaAndroid(context: Context, titolo: String, messaggio: String) {
         .setContentText(messaggio)
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         .setContentIntent(pendingIntent)
-        .setAutoCancel(true) // Fa scomparire la notifica dopo averla premuta
+        .setAutoCancel(true)
 
     val notificaId = System.currentTimeMillis().toInt()
     notificationManager.notify(notificaId, builder.build())
 }
 
-// Oggetto globale che vive per tutta la durata dell'app
 object GestoreNotifiche {
     var haNuoveNotifiche = mutableStateOf(false)
     var conteggioNotificheLette = 0
     var conteggioNotificheNonLette = mutableStateOf(0)
 
-    // Funzione per ottenere il nome del file basato sull'utente e sul tipo
     private fun getPrefsName(id: String): String = "NotifichePrefs_$id"
 
     fun caricaStato(context: Context, id: String) {

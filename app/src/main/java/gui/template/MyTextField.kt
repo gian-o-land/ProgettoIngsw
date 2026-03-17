@@ -24,7 +24,7 @@ import gui.mioBackgroung
 import gui.mioBluScuro
 
 @Composable
-fun myTextField(myModifier: Modifier,myLabel: String, myValue:String,myOnValueChange: (String) -> Unit) {
+fun MyTextField(myModifier: Modifier, myLabel: String, myValue:String, myOnValueChange: (String) -> Unit) {
 
     OutlinedTextField(
         value = myValue,
@@ -49,7 +49,7 @@ fun myTextField(myModifier: Modifier,myLabel: String, myValue:String,myOnValueCh
 }
 
 @Composable
-fun myTextField_Password(myModifier: Modifier,myLabel: String, myValue:String,myOnValueChange: (String) -> Unit) {
+fun MyTextField_Password(myModifier: Modifier, myLabel: String, myValue:String, myOnValueChange: (String) -> Unit) {
     var passwordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(

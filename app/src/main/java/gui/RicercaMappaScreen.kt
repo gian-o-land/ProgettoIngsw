@@ -44,11 +44,9 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.SphericalUtil
 import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -66,8 +64,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.runtime.saveable.rememberSaveable
 import connection.scaricaInserzioniFiltrate
-import connection.scaricaTutteLeInserzioni
-import gui.template.myCardInserzione
+import gui.template.MyCardInserzione
 import kotlinx.serialization.encodeToString
 import androidx.compose.animation.core.animateDpAsState
 
@@ -104,14 +101,10 @@ fun RicercaMappaScreen(
             initialValue = SheetValue.Hidden,
             skipHiddenState = false,
             confirmValueChange = { nuovoStato ->
-                // Se il nuovo stato verso cui sta andando è 'Hidden' (cioè si sta chiudendo del tutto)...
                 if (nuovoStato == SheetValue.Hidden) {
-                    // ...lo permettiamo SOLO se noi dal codice abbiamo azzerato l'altezza.
-                    // Se l'altezza è > 0 (es. 58.dp), significa che ci sono case trovate
-                    // e l'utente sta provando a chiuderla col dito. In quel caso blocchiamo (false).
                     currentPeekHeight == 0.dp
                 } else {
-                    true // Permettiamo liberamente di fare su e giù tra PartiallyExpanded ed Expanded
+                    true
                 }
             }
         )
@@ -131,7 +124,6 @@ fun RicercaMappaScreen(
     // --- SCARICHIAMO I DATI AL CARICAMENTO DELLA PAGINA CON I FILTRI ---
     LaunchedEffect(location, filtri) {
         isLoadingData = true
-        // 1. Chiamata API POST con i filtri
         listaTutteLeInserzioni = scaricaInserzioniFiltrate(
             lat = location.latitude,
             lng = location.longitude,
@@ -139,9 +131,8 @@ fun RicercaMappaScreen(
         )
         isLoadingData = false
 
-        // 2. Simuliamo subito un "cerchio" attorno alla località cercata per mostrare i risultati subito
         puntoSelezionato = location
-        isPannelloSliderVisibile = true // Mostriamo lo slider per permettere all'utente di aggiustare il raggio
+        isPannelloSliderVisibile = true
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -154,7 +145,7 @@ fun RicercaMappaScreen(
                 puntoSelezionato = null
 
                 scope.launch {
-                    try { scaffoldState.bottomSheetState.hide() } catch (e: Exception) {}
+                    try { scaffoldState.bottomSheetState.hide() } catch (_: Exception) {}
                 }
                 pulisciAlRitorno = false
             }
@@ -182,12 +173,10 @@ fun RicercaMappaScreen(
                     }
                 }
                 .addOnFailureListener { exception ->
-                    // ECCO IL RAGGI X: Questo ti dirà esattamente perché Google rifiuta la chiamata!
                     android.util.Log.e("PLACES_API", "Errore suggerimenti: ${exception.message}")
                     listaSuggerimenti = emptyList()
                 }
         } else {
-            // Pulisce i suggerimenti se la barra di ricerca torna vuota
             listaSuggerimenti = emptyList()
         }
     }
@@ -228,7 +217,6 @@ fun RicercaMappaScreen(
     }
 
     // --- CALCOLO DINAMICO DEGLI ANGOLI ---
-    // Se la tendina si sta espandendo, il raggio va a 24.dp, altrimenti resta piatto a 0.dp
     val targetRadius = if (scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded) 24.dp else 0.dp
     val cornerRadius by animateDpAsState(targetValue = targetRadius, label = "radiusAnimation")
 
@@ -254,7 +242,6 @@ fun RicercaMappaScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // --- CAROSELLO DELLE CARD (HorizontalPager) ---
                 HorizontalPager(
                     state = pagerState,
                     contentPadding = PaddingValues(horizontal = 30.dp),
@@ -264,7 +251,7 @@ fun RicercaMappaScreen(
 
                     val inserzione = listaInserzioniNelCerchio[pageIndex]
 
-                    myCardInserzione(
+                    MyCardInserzione(
                         inserzione = inserzione,
                         myModifier = Modifier
                             .fillMaxWidth()
@@ -288,7 +275,6 @@ fun RicercaMappaScreen(
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
-                // properties = remember { MapProperties(mapStyleOptions = MapStyleOptions(jsonStyleChiaro)) },
                 onMapClick = { coordinataCliccata ->
                     puntoSelezionato = coordinataCliccata
                     isPannelloSliderVisibile = true
@@ -362,12 +348,10 @@ fun RicercaMappaScreen(
                     onActiveChange = { nuovoStato ->
                         active = nuovoStato
                         if (nuovoStato) {
-                            // Quando l'utente tocca la barra per cercare, nascondiamo lo slider
                             isPannelloSliderVisibile = false
                             currentPeekHeight = 0.dp
                             scope.launch { scaffoldState.bottomSheetState.hide() }
                         } else {
-                            // Quando chiude la ricerca, rimettiamo lo slider (se aveva già scelto un punto)
                             if (puntoSelezionato != null) {
                                 isPannelloSliderVisibile = true
                             }
@@ -384,12 +368,12 @@ fun RicercaMappaScreen(
                     },
                     colors = SearchBarDefaults.colors(
                         containerColor = Color.White,
-                        dividerColor = Color.LightGray // Una riga sottile e pulita
+                        dividerColor = Color.LightGray
                     ),
                     modifier = if (active) {
-                        Modifier.fillMaxWidth() // Nessun padding, occupa il 100% dello spazio!
+                        Modifier.fillMaxWidth()
                     } else {
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp) // Torna piccola quando chiusa
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
                     }
                 ) {
                     LazyColumn(
@@ -454,7 +438,7 @@ fun RicercaMappaScreen(
 
                                 listaInserzioniNelCerchio = risultati
                                 isPannelloSliderVisibile = false
-                                isBottomSheetEnabled = true // Permettiamo lo swipe del menu inferiore
+                                isBottomSheetEnabled = true
 
                                 if (risultati.isEmpty()) {
                                     currentPeekHeight = 0.dp

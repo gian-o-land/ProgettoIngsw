@@ -39,7 +39,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import com.google.android.gms.maps.model.LatLng
-import gui.template.myButton
+import gui.template.MyButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -61,7 +61,7 @@ fun FiltriScreen(navController: NavController, email: String) {
 
     var textLocalita by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
-    var showErrors by remember { mutableStateOf(false) } // Per il bordo rosso del TextField
+    var showErrors by remember { mutableStateOf(false) }
 
     // --- VARIABILI DI STATO PER I FILTRI ---
     var statoCategoria by remember { mutableStateOf("Indifferente") }
@@ -113,7 +113,7 @@ fun FiltriScreen(navController: NavController, email: String) {
             ) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                    containerColor = Color(0xFFB00020),
                     contentColor = Color.White
                 )
             }
@@ -128,7 +128,7 @@ fun FiltriScreen(navController: NavController, email: String) {
                     Text(
                         text = "Filtri",
                         fontWeight = FontWeight.Bold,
-                        color = Color.White, // Stile CaricaImmobili
+                        color = Color.White,
                         textAlign = TextAlign.Center
                     )
                 },
@@ -161,8 +161,6 @@ fun FiltriScreen(navController: NavController, email: String) {
             )
 
             // --- LISTA FILTRI ---
-
-            // Sostituito con RigaCliccabileConErrore (isError sempre false perché i filtri sono opzionali)
             RigaCliccabileConErrore(
                 icona = Icons.Default.LocationCity,
                 testo = "Categoria",
@@ -281,7 +279,7 @@ fun FiltriScreen(navController: NavController, email: String) {
                 value = textLocalita,
                 onValueChange = { textLocalita = it },
                 label = { Text("Località (obbligatorio)") },
-                isError = showErrors && textLocalita.isBlank(), // Diventa rosso se clicchi Cerca senza compilare
+                isError = showErrors && textLocalita.isBlank(),
                 singleLine = true,
                 modifier = Modifier.padding(horizontal = 35.dp).fillMaxWidth()
             )
@@ -289,7 +287,7 @@ fun FiltriScreen(navController: NavController, email: String) {
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- BOTTONE DI RICERCA CON PASSAGGIO FILTRI E LOGICA SNACKBAR ---
-            myButton(
+            MyButton(
                 myClick = {
                     val ciSonoErroriMinMax = errorePrezzo || erroreQuadratura || erroreLocali
 
@@ -375,60 +373,6 @@ fun FiltriScreen(navController: NavController, email: String) {
         }
     }
 }
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RigaCliccabile(
-    icona: ImageVector,
-    testo: String,
-    valoreAttuale: String,
-    opzioni: List<String>,
-    onValueChange: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(imageVector = icona, contentDescription = testo, tint = Color.Gray)
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(text = testo, fontSize = 16.sp, modifier = Modifier.weight(1f))
-
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
-            OutlinedTextField(
-                value = valoreAttuale,
-                onValueChange = {},
-                readOnly = true, // L'utente non può scriverci dentro, può solo cliccare
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier
-                    .menuAnchor()
-                    .width(150.dp),
-                singleLine = true,
-                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp)
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(Color.White)
-            ) {
-                opzioni.forEach { opzione ->
-                    DropdownMenuItem(
-                        text = { Text(opzione) },
-                        onClick = {
-                            onValueChange(opzione) // Aggiorna la variabile madre!
-                            expanded = false       // Chiude la tendina
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun RigaMinMax(
@@ -449,7 +393,6 @@ fun RigaMinMax(
         Icon(imageVector = icona, contentDescription = testo, tint = mioBluScuro)
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Fissiamo la larghezza del testo a 90.dp così tutte le righe restano allineate
         Text(text = testo, fontSize = 16.sp, modifier = Modifier.width(90.dp))
 
         Row(
@@ -485,84 +428,13 @@ fun RigaMinMax(
     }
 }
 
-
-
-
-
-@Composable
-fun BoxInputMinMax(label: String) {
-    // Variabile di stato che salva ciò che l'utente digita
-    var testoInserito by remember { mutableStateOf("") }
-
-    BasicTextField(
-        value = testoInserito,
-
-        // 1. FILTRO: Accetta solo i numeri
-        onValueChange = { nuovoTesto ->
-            testoInserito = nuovoTesto.filter { it.isDigit() }
-        },
-
-        singleLine = true,
-        textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
-
-        // 2. TASTIERA NUMERICA
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-
-        // --- MODIFICA ESTETICA QUI ---
-        modifier = Modifier
-            .width(90.dp)
-            .height(45.dp)
-            // Imposta lo sfondo bianco con gli angoli arrotondati
-            .background(Color.White, RoundedCornerShape(4.dp))
-            // Aggiunge il bordino nero spesso 1.dp
-            .border(1.dp, Color.Black, RoundedCornerShape(4.dp)),
-        // -----------------------------
-
-        decorationBox = { innerTextField ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Etichetta (Min / Max)
-                Text(text = label, fontSize = 10.sp, color = Color.DarkGray)
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-
-                    Box(modifier = Modifier.weight(1f)) {
-                        // Placeholder "Input"
-                        if (testoInserito.isEmpty()) {
-                            Text(text = "Input", fontSize = 14.sp, color = Color.Gray)
-                        }
-                        // Testo digitato
-                        innerTextField()
-                    }
-
-                    // Icona "X" per cancellare
-                    if (testoInserito.isNotEmpty()) {
-                        Icon(
-                            imageVector = Icons.Default.Cancel,
-                            contentDescription = "Cancella",
-                            modifier = Modifier
-                                .size(16.dp)
-                                .clickable { testoInserito = "" },
-                            tint = mioBluScuro
-                        )
-                    }
-                }
-            }
-        }
-    )
-}
-
 @Composable
 fun RigaBottoni(
     icona: ImageVector,
     testo: String,
-    valoreAttuale: String, // <-- Aggiunto
+    valoreAttuale: String,
     opzioni: List<String>,
-    onValueChange: (String) -> Unit // <-- Aggiunto
+    onValueChange: (String) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -581,7 +453,6 @@ fun RigaBottoni(
 
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             opzioni.forEach { opzione ->
-                // Ora controlliamo se l'opzione è quella passata dalla schermata madre
                 val isSelected = valoreAttuale == opzione
                 Box(
                     modifier = Modifier
@@ -589,7 +460,7 @@ fun RigaBottoni(
                         .clip(RoundedCornerShape(8.dp))
                         .background(if (isSelected) mioGialloOcra else mioBluScuro)
                         .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
-                        .clickable { onValueChange(opzione) }, // <-- Avvisiamo la schermata madre!
+                        .clickable { onValueChange(opzione) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -610,7 +481,6 @@ fun RigaSlider(
     valoreAttuale: String,
     onValueChange: (String) -> Unit
 ) {
-    // ABBIAMO AGGIUNTO "Indifferente"
     val opzioni = listOf("Indifferente", "Bassa", "Media", "Alta")
 
     val initialIndex = opzioni.indexOf(valoreAttuale).toFloat()
@@ -626,7 +496,7 @@ fun RigaSlider(
             imageVector = icona,
             contentDescription = null,
             modifier = Modifier.size(28.dp),
-            tint = Color(0xFF000080) // mioBluScuro
+            tint = mioBluScuro
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = testo, fontSize = 16.sp, modifier = Modifier.width(80.dp), lineHeight = 18.sp)
@@ -636,10 +506,10 @@ fun RigaSlider(
         Column(modifier = Modifier.weight(1f)) {
 
             val sliderColors = SliderDefaults.colors(
-                activeTrackColor = Color(0xFF000080),
+                activeTrackColor = mioBluScuro,
                 inactiveTrackColor = Color(0xFFEBE6ED),
-                activeTickColor = Color(0xFFDAA520),
-                inactiveTickColor = Color(0xFF000080)
+                activeTickColor = mioGialloOcra,
+                inactiveTickColor = mioBluScuro
             )
 
             Slider(
@@ -648,15 +518,15 @@ fun RigaSlider(
                     val index = nuovaPos.roundToInt()
                     onValueChange(opzioni[index])
                 },
-                valueRange = 0f..3f, // <-- ORA VA DA 0 A 3
-                steps = 2,           // <-- 2 TACCHE INTERMEDIE (per avere 4 posizioni totali)
+                valueRange = 0f..3f,
+                steps = 2,
                 colors = sliderColors,
                 thumb = {
                     Box(
                         modifier = Modifier
                             .size(16.dp)
-                            .border(width = 2.dp, color = Color(0xFF000080), shape = CircleShape)
-                            .background(color = Color(0xFFDAA520), shape = CircleShape)
+                            .border(width = 2.dp, color = mioBluScuro, shape = CircleShape)
+                            .background(color = mioGialloOcra, shape = CircleShape)
                     )
                 },
                 track = { sliderState ->
@@ -677,13 +547,12 @@ fun RigaSlider(
             ) {
                 opzioni.forEachIndexed { index, label ->
                     val isSelected = sliderPos.roundToInt() == index
-                    // Mostriamo solo l'iniziale per non accavallare i testi, tranne per Indifferente
                     val displayLabel = if (label == "Indifferente") "Ind." else label
 
                     Text(
                         text = displayLabel,
                         fontSize = 11.sp,
-                        color = if (isSelected) Color(0xFFDAA520) else Color(0xFF000080),
+                        color = if (isSelected) mioGialloOcra else mioBluScuro,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
@@ -702,7 +571,7 @@ fun BottoneCaratteristica(
     val textColor = if (selezionato) mioBluScuro else Color.White
 
     Button(
-        onClick = onClick, // Segnala il click alla schermata madre!
+        onClick = onClick,
         modifier = modifier.height(45.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,

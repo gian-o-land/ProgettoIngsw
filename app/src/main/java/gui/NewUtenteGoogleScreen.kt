@@ -50,8 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myButton
-import gui.template.myTextField
+import gui.template.MyButton
+import gui.template.MyTextField
 import kotlinx.coroutines.launch
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.SnackbarHost
@@ -83,9 +83,7 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
 
     BackHandler {
         coroutineScope.launch {
-            // Eliminiamo l'utente dal DB
             connection.eliminaUtenteGoogleIncompleto(email)
-            // Torniamo indietro alla schermata precedente
             navController.popBackStack()
         }
     }
@@ -150,7 +148,7 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
                 )
             }
             Spacer(modifier = Modifier.height(15.dp))
-            myTextField(
+            MyTextField(
                 Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 "Nome",
                 textFieldNomeModificato,
@@ -158,7 +156,7 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
             )
             Spacer(modifier = Modifier.height(10.dp))
 
-            myTextField(
+            MyTextField(
                 Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                 "Cognome",
                 textFieldCognomeModificato,
@@ -251,7 +249,7 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
             }
 
             Spacer(modifier = Modifier.height(40.dp))
-            myButton(
+            MyButton(
                 myClick = {
                     // 1. Controllo campi vuoti
                     if (textFieldNomeModificato.isBlank() ||
@@ -259,13 +257,13 @@ fun NewUtenteGoogleScreen(navController: NavController, email: String){
                         textFieldTelefonoModificato.isBlank()
                     ) {
                         android.widget.Toast.makeText(context, "Per favore, compila tutti i campi", android.widget.Toast.LENGTH_SHORT).show()
-                        return@myButton
+                        return@MyButton
                     }
 
                     // 2. Controllo lunghezza numero di telefono (esattamente 10 cifre)
                     if (textFieldTelefonoModificato.trim().length != 10) {
                         android.widget.Toast.makeText(context, "Il numero di telefono deve essere di 10 cifre", android.widget.Toast.LENGTH_SHORT).show()
-                        return@myButton
+                        return@MyButton
                     }
 
                     // Se i controlli passano, procediamo con la chiamata al server

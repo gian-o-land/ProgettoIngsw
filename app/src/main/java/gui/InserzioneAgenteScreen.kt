@@ -144,8 +144,6 @@ fun InserzioneAgenteScreen(
                 }
 
                 // --- INTESTAZIONE IMMOBILE (CON CONTROLLO AFFITTO/VENDITA) ---
-
-                // 1. Controlliamo se la categoria contiene la parola "AFFITTO" (ignorando maiuscole/minuscole)
                 val suffissoPrezzo = if (inserzione.categoria.name.contains("AFFITTO", ignoreCase = true)) " / mese" else ""
 
                 // 2. Mostriamo il prezzo dinamico

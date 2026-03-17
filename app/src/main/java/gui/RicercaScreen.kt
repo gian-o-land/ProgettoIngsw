@@ -34,8 +34,7 @@ import navigation.Screen
 fun RicercaScreen(navController : NavController) {
 
     var query by remember { mutableStateOf("") }
-    var active by remember { mutableStateOf(true) } //la barra si apre subito
-    // Lista finta di risultati per l'esempio
+    var active by remember { mutableStateOf(true) }
     val searchHistory = listOf("Roma", "Milano", "Napoli")
 
     Scaffold(
@@ -48,8 +47,7 @@ fun RicercaScreen(navController : NavController) {
                 query = query,
                 onQueryChange = { query = it },
                 onSearch = {
-                    active = false // Chiude la lista quando premi invio
-                    // QUI FAI PARTIRE LA LOGICA DI GEOCODING O NAVIGAZIONE
+                    active = false
                     println("Cercando: $it")
 
                     navController.navigate(Screen.FiltriScreen.route)
@@ -62,7 +60,6 @@ fun RicercaScreen(navController : NavController) {
                     Icon(Icons.Default.Search, contentDescription = "Cerca")
                 },
                 trailingIcon = {
-                    // Mostra la X solo se c'è testo
                     if (active) {
                         IconButton(
                             onClick = {
@@ -73,19 +70,16 @@ fun RicercaScreen(navController : NavController) {
                     }
                 },
                 modifier = Modifier
-                    .align(Alignment.TopCenter) // Posizionata in alto al centro
-                    // Se non è attiva, diamo un po' di margine dai bordi
+                    .align(Alignment.TopCenter)
                     .padding(if (!active) 16.dp else 0.dp)
             ) {
-                // 3. IL CONTENUTO DEI SUGGERIMENTI (appare quando active = true)
                 searchHistory.forEach { item ->
                     ListItem(
                         headlineContent = { Text(item) },
                         leadingContent = { Icon(Icons.Default.Search, contentDescription = null) },
                         modifier = Modifier.clickable {
                             query = item
-                            active = false // Chiudi la ricerca
-                            // Fai partire la navigazione per "item"
+                            active = false
                         }
                     )
                 }

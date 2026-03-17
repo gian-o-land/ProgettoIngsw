@@ -4,10 +4,8 @@ import DTO.InserzioneDTO
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -26,10 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
-import gui.template.myBottomNavBar_Sottoadmin
-import gui.template.myButton
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.shape.RoundedCornerShape
+import gui.template.MyBottomNavBar_Sottoadmin
+import gui.template.MyButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -38,7 +34,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
 import connection.scaricaInserzioniAgente
 import connection.scaricaListaAgenti
 import gui.template.MyExpandableCard_Agenti
@@ -51,29 +46,25 @@ fun SottoadminScreen(
     navController: NavController,
     agenziaAdmin: String
 ) {
-    // Dimensioni standard per coerenza grafica
     val headerHeight = 35.dp
     val itemHeight = 51.dp
 
-    // 1. STATO DEI DATI
+    //STATO DEI DATI
     val listStateAgenti = rememberLazyListState()
     val listaAgenti = remember { mutableStateListOf<String>() }
 
-    // Mappa che collega ogni Agente alle sue inserzioni reali (DTO)
     val mappaInserzioniDegliAgenti = remember { mutableStateMapOf<String, List<InserzioneDTO>>() }
 
     var isLoadingAgenti by remember { mutableStateOf(true) }
 
-    // 2. RECUPERO DATI DAL SERVER
+    // RECUPERO DATI DAL SERVER
     LaunchedEffect(usernameSottoadmin) {
-        // Scarichiamo gli agenti creati da questo Sottoadmin
         val agentiScaricati = scaricaListaAgenti(usernameSottoadmin)
 
         if (agentiScaricati.isNotEmpty()) {
             listaAgenti.clear()
             listaAgenti.addAll(agentiScaricati)
 
-            // Per ogni agente scaricato, recuperiamo le sue inserzioni dal DB
             agentiScaricati.forEach { nomeAgente ->
                 val inserzioniVere = scaricaInserzioniAgente(nomeAgente)
                 mappaInserzioniDegliAgenti[nomeAgente] = inserzioniVere
@@ -86,7 +77,6 @@ fun SottoadminScreen(
         isLoadingAgenti = false
     }
 
-    // Stati per l'animazione della card
     var isExpandedAgenti by remember { mutableStateOf(false) }
     val animatedHeightAgenti = animatedHeight(listaAgenti, isExpandedAgenti, headerHeight, itemHeight)
 
@@ -114,10 +104,9 @@ fun SottoadminScreen(
             )
         },
         bottomBar = {
-            myBottomNavBar_Sottoadmin(navController, usernameSottoadmin, agenziaAdmin)
+            MyBottomNavBar_Sottoadmin(navController, usernameSottoadmin, agenziaAdmin)
         }
     ) { innerPadding ->
-        // Foglio bianco arrotondato che riempie lo schermo
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -140,7 +129,6 @@ fun SottoadminScreen(
 
             Spacer(Modifier.height(30.dp))
 
-            // CARD ESPANDIBILE AGENTI
             MyExpandableCard_Agenti(
                 animatedHeight = animatedHeightAgenti,
                 headerHeight = headerHeight,
@@ -149,7 +137,6 @@ fun SottoadminScreen(
                 listState = listStateAgenti,
                 lista = listaAgenti,
                 titolo = "I tuoi Agenti",
-                // Passiamo la mappa di DTO: l'errore Argument Mismatch sparisce qui!
                 listaPopup = mappaInserzioniDegliAgenti,
                 itemHeight = 200.dp,
                 navController = navController,
@@ -158,8 +145,7 @@ fun SottoadminScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // BOTTONE CREAZIONE
-            myButton(
+            MyButton(
                 myClick = {
                     navController.navigate(Screen.CreazioneAgenteScreen.withArgs(usernameSottoadmin, agenziaAdmin))
                 },

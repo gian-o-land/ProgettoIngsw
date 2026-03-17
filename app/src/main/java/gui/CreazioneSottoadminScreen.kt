@@ -1,8 +1,6 @@
 package gui
 
 import DTO.CreazioneSottoadminDTO
-
-
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,19 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
-import gui.template.myButton
-import gui.template.myTextField
-import gui.template.myTextField_Password
-import com.example.progettoingsw.R // Assicurati che l'import del logo sia corretto
+import gui.template.MyButton
+import gui.template.MyTextField_Password
+import com.example.progettoingsw.R
 import connection.creaNuovoSottoadmin
-
-// 1. Aggiungi questo DTO nel tuo file dei DTO (o lascialo qui e spostalo dopo)
-data class CreazioneSottoadminDTO(
-    val username: String,
-    val password: String,
-    val nomeAgenzia: String,
-    val adminCreatore: String
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,19 +61,6 @@ fun CreazioneSottoadminScreen(
                     )
                 }
             )
-        },
-        snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.padding(horizontal = 35.dp, vertical = 20.dp)
-            ) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = Color(0xFFB00020),
-                    contentColor = Color.White,
-                    shape = RoundedCornerShape(8.dp)
-                )
-            }
         }
     ) { innerPadding ->
         Column(
@@ -118,19 +94,30 @@ fun CreazioneSottoadminScreen(
             )
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Un solo textfield necessario!
-            myTextField_Password(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Password", password) { password = it }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(horizontal = 35.dp, vertical = 5.dp)
+            ) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color(0xFFB00020),
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+
+            MyTextField_Password(Modifier.padding(horizontal = 35.dp).fillMaxWidth(), "Password", password) { password = it }
             Spacer(modifier = Modifier.height(50.dp))
 
             if (isLoading) {
                 CircularProgressIndicator(color = mioBluScuro)
             } else {
-                myButton(
+                MyButton(
                     testo = "Crea Sottoadmin",
                     myClick = {
                         if (password.isBlank()) {
                             Toast.makeText(context, "Inserisci una password", Toast.LENGTH_SHORT).show()
-                            return@myButton
+                            return@MyButton
                         }
 
                         val isValidLength = password.length > 8
@@ -146,7 +133,7 @@ fun CreazioneSottoadminScreen(
                                     duration = SnackbarDuration.Short
                                 )
                             }
-                            return@myButton
+                            return@MyButton
                         }
 
                         scope.launch {

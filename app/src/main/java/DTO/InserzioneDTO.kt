@@ -1,5 +1,4 @@
 package DTO
-import com.google.android.gms.maps.model.LatLng
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,13 +10,4 @@ data class InserzioneDTO(
     val latitudine: Double, val longitudine: Double,
     val immagini: MutableList<ImmagineDTO>,
     val descrizione : String
-)
-
-
-
-data class InserzioneTemp(
-    val nome: String,
-    val coordinate: LatLng,
-    val nomeImmagine:String ,//per inserzione temporanea è solo 1 immagine
-    val idInserzione: String
 )

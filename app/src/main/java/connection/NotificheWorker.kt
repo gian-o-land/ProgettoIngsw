@@ -25,7 +25,6 @@ class NotificheWorker(
         GestoreNotifiche.caricaStato(applicationContext, emailUtente)
 
         try {
-            // Assicurati che l'ID passato sia IDENTICO a quello usato negli Screen
             GestoreNotifiche.caricaStato(applicationContext, emailUtente)
 
             // 3. Facciamo la chiamata al server
@@ -55,7 +54,7 @@ class NotificheWorker(
                 )
             }
             return Result.success()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return Result.retry() // Se non c'è internet, riprova più tardi
         }
     }
@@ -79,7 +78,6 @@ class NotificheWorkerAgente(
         GestoreNotifiche.caricaStato(applicationContext, usernameAgente)
 
         try {
-            // Assicurati che l'ID passato sia IDENTICO a quello usato negli Screen
             GestoreNotifiche.caricaStato(applicationContext, usernameAgente)
 
             // 3. Scarichiamo le prenotazioni dell'agente
@@ -90,13 +88,13 @@ class NotificheWorkerAgente(
                 return Result.success()
             }
 
-            // LA MAGIA: L'agente è interessato SOLO a quelle in ATTESA!
+            // L'agente è interessato SOLO a quelle in ATTESA!
             val notificheInAttesa = prenotazioni.count { it.stato == D_stato.ATTESA }
 
             // Calcoliamo quante notifiche in attesa conoscevamo già
             val notificheGiaViste = GestoreNotifiche.conteggioNotificheLette + GestoreNotifiche.conteggioNotificheNonLette.value
 
-            // 4. AUTO-CORREZIONE (Es. un utente ha annullato la sua prenotazione mentre l'app era chiusa)
+            // 4. AUTO-CORREZIONE
             if (notificheInAttesa < notificheGiaViste) {
                 GestoreNotifiche.sincronizzaCancellazioni(applicationContext, notificheInAttesa, usernameAgente)
             }
@@ -112,7 +110,7 @@ class NotificheWorkerAgente(
                 )
             }
             return Result.success()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return Result.retry() // Se non c'è internet, riprova più tardi
         }
     }

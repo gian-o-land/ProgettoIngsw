@@ -53,9 +53,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import gui.template.myButton
-import gui.template.myTextField
-import gui.template.myTextField_Password
+import gui.template.MyButton
+import gui.template.MyTextField
+import gui.template.MyTextField_Password
 import DTO.source.*
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -103,7 +103,7 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
     var currentHeaderHeightPx by remember { mutableFloatStateOf(headerMaxHeightPx) }
     val listState = rememberLazyListState()
 
-    // --- LOGICA NESTED SCROLL (CUORE DEL MOVIMENTO)
+    // --- LOGICA NESTED SCROLL
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
@@ -189,21 +189,21 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                             .padding(horizontal = 40.dp)
                     )
                     Spacer(modifier = Modifier.height(20.dp))
-                    myTextField(
+                    MyTextField(
                         Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                         "Email",
                         email,
                         { nuovoTesto -> email = nuovoTesto }
                     )
                     Spacer(modifier = Modifier.height(20.dp))
-                    myTextField(
+                    MyTextField(
                         Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                         "Nome",
                         nome,
                         { nuovoTesto -> nome = nuovoTesto }
                     )
                     Spacer(modifier = Modifier.height(20.dp))
-                    myTextField(
+                    MyTextField(
                         Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                         "Cognome",
                         cognome,
@@ -297,14 +297,14 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
-                    myTextField_Password(
+                    MyTextField_Password(
                         Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                         "Password",
                         password,
                         { nuovoTesto -> password = nuovoTesto }
                     )
                     Spacer(modifier = Modifier.height(20.dp))
-                    myTextField_Password(
+                    MyTextField_Password(
                         Modifier.padding(horizontal = 35.dp).fillMaxWidth(),
                         "Reinserisci password",
                         testPassword,
@@ -318,15 +318,15 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                             CircularProgressIndicator(color = mioBluScuro)
                         }
                     } else {
-                        myButton(
+                        MyButton(
                             myClick = {
                                 if (email.isBlank() || nome.isBlank() || cognome.isBlank() || telefono.isBlank() || password.isBlank()) {
                                     Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
-                                    return@myButton
+                                    return@MyButton
                                 }
                                 if (password != testPassword) {
                                     Toast.makeText(context, "Le password non coincidono", Toast.LENGTH_SHORT).show()
-                                    return@myButton
+                                    return@MyButton
                                 }
 
                                 // --- NUOVO CONTROLLO PASSWORD DAL DATABASE ---
@@ -343,9 +343,8 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
                                             duration = SnackbarDuration.Short
                                         )
                                     }
-                                    return@myButton
+                                    return@MyButton
                                 }
-                                // --------------------------------------------
 
                                 scope.launch {
                                     isLoading = true
@@ -409,14 +408,14 @@ fun RegisterScreen(painter: Painter, descrizione: String?, navController: NavCon
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
-                .align(Alignment.BottomCenter) // Lo posiziona in basso, sopra tutti gli altri contenuti
+                .align(Alignment.BottomCenter)
                 .padding(horizontal = 35.dp, vertical = 20.dp)
         ) { data ->
             Snackbar(
                 snackbarData = data,
-                containerColor = Color(0xFFB00020), // Colore rosso errore scuro
+                containerColor = Color(0xFFB00020),
                 contentColor = Color.White,
-                shape = RoundedCornerShape(8.dp) // Leggera smussatura per abbellirlo
+                shape = RoundedCornerShape(8.dp)
             )
         }
     }
