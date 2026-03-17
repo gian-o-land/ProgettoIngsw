@@ -54,6 +54,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import connection.modificaCredenzialiAgente
+import connection.modificaCredenzialiUtente
 import connection.scaricaAgente
 import kotlinx.coroutines.launch
 
@@ -261,41 +262,55 @@ fun ModificaCredenzialiAgenteScreen(navController : NavController, username: Str
                 // --- BOTTONE ---
                 myButton(
                     myClick = {
-                        // Controlliamo che tutti i campi siano pieni
-                        if (textFieldEmailModificato.isNotBlank() &&
-                            textFieldTelefonoModificato.isNotBlank() &&
-                            textFieldNomeModificato.isNotBlank() &&
-                            textFieldCognomeModificato.isNotBlank()) {
-
-                            coroutineScope.launch {
-                                isUpdating = true
-
-                                val prefissoOriginale = selectedPrefix.displayName
-                                val prefissoPulito = prefissoOriginale
-                                    .replace("(", "")
-                                    .replace(")", "")
-                                    .trim()
-
-                                // Passiamo anche nome e cognome alla funzione
-                                val successo = modificaCredenzialiAgente(
-                                    username = username,
-                                    nuovoNome = textFieldNomeModificato,
-                                    nuovoCognome = textFieldCognomeModificato,
-                                    nuovaEmail = textFieldEmailModificato,
-                                    nuovoTelefono = textFieldTelefonoModificato,
-                                    nuovoPrefisso = prefissoPulito
-                                )
-
-                                if (successo) {
-                                    Toast.makeText(context, "Profilo aggiornato con successo!", Toast.LENGTH_SHORT).show()
-                                    navController.popBackStack()
-                                } else {
-                                    Toast.makeText(context, "Errore durante l'aggiornamento.", Toast.LENGTH_SHORT).show()
-                                }
-                                isUpdating = false
-                            }
-                        } else {
+                        // REGOLA 1: Controllo campi vuoti
+                        if (textFieldEmailModificato.isBlank() ||
+                            textFieldTelefonoModificato.isBlank() ||
+                            textFieldNomeModificato.isBlank() ||
+                            textFieldCognomeModificato.isBlank()
+                        ) {
                             Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
+                            return@myButton // Blocca l'esecuzione
+                        }
+
+                        // REGOLA 2: Controllo lunghezza telefono (esattamente 10 cifre)
+                        if (textFieldTelefonoModificato.length != 10) {
+                            Toast.makeText(context, "Il numero di telefono non valido", Toast.LENGTH_SHORT).show()
+                            return@myButton
+                        }
+
+                        // REGOLA 3: Controllo formato email (deve contenere @ e .)
+                        val emailRegex = "^.+@.+\\..+$".toRegex()
+                        if (!textFieldEmailModificato.matches(emailRegex)) {
+                            Toast.makeText(context, "Indirizzo email non valido", Toast.LENGTH_SHORT).show()
+                            return@myButton
+                        }
+
+                        // Se supera tutti i controlli, procediamo.
+                        coroutineScope.launch {
+                            isUpdating = true
+
+                            val prefissoPulito = selectedPrefix.displayName
+                                .replace("(", "")
+                                .replace(")", "")
+                                .trim()
+
+                            // Chiamiamo la funzione per l'AGENTE
+                            val successo = modificaCredenzialiAgente(
+                                username = username,
+                                nuovoNome = textFieldNomeModificato,
+                                nuovoCognome = textFieldCognomeModificato,
+                                nuovaEmail = textFieldEmailModificato,
+                                nuovoTelefono = textFieldTelefonoModificato,
+                                nuovoPrefisso = prefissoPulito
+                            )
+
+                            if (successo) {
+                                Toast.makeText(context, "Profilo aggiornato con successo!", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
+                            } else {
+                                Toast.makeText(context, "Errore durante l'aggiornamento.", Toast.LENGTH_SHORT).show()
+                            }
+                            isUpdating = false
                         }
                     },
                     testo = if (isUpdating) "Salvataggio..." else "Conferma"

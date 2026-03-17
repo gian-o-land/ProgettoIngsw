@@ -249,39 +249,55 @@ fun ModificaCredenzialiUtenteScreen(navController: NavController, emailOriginale
                 // --- BOTTONE DI SALVATAGGIO ---
                 myButton(
                     myClick = {
-                        if (textFieldEmailModificato.isNotBlank() &&
-                            textFieldTelefonoModificato.isNotBlank() &&
-                            textFieldNomeModificato.isNotBlank() &&
-                            textFieldCognomeModificato.isNotBlank()
+                        // REGOLA 1: Controllo campi vuoti
+                        if (textFieldEmailModificato.isBlank() ||
+                            textFieldTelefonoModificato.isBlank() ||
+                            textFieldNomeModificato.isBlank() ||
+                            textFieldCognomeModificato.isBlank()
                         ) {
-                            coroutineScope.launch {
-                                isUpdating = true
-
-                                val prefissoPulito = selectedPrefix.displayName
-                                    .replace("(", "")
-                                    .replace(")", "")
-                                    .trim()
-
-                                // Chiamiamo la funzione per l'UTENTE
-                                val successo = modificaCredenzialiUtente(
-                                    emailOriginale = emailOriginale, // Passiamo la vecchia mail per trovarlo nel DB
-                                    nuovoNome = textFieldNomeModificato,
-                                    nuovoCognome = textFieldCognomeModificato,
-                                    nuovaEmail = textFieldEmailModificato,
-                                    nuovoTelefono = textFieldTelefonoModificato,
-                                    nuovoPrefisso = prefissoPulito
-                                )
-
-                                if (successo) {
-                                    Toast.makeText(context, "Profilo aggiornato con successo!", Toast.LENGTH_SHORT).show()
-                                    navController.popBackStack()
-                                } else {
-                                    Toast.makeText(context, "Errore durante l'aggiornamento.", Toast.LENGTH_SHORT).show()
-                                }
-                                isUpdating = false
-                            }
-                        } else {
                             Toast.makeText(context, "Compila tutti i campi", Toast.LENGTH_SHORT).show()
+                            return@myButton // Blocca l'esecuzione
+                        }
+
+                        // REGOLA 2: Controllo lunghezza telefono (esattamente 10 cifre)
+                        if (textFieldTelefonoModificato.length != 10) {
+                            Toast.makeText(context, "Il numero di telefono non valido", Toast.LENGTH_SHORT).show()
+                            return@myButton
+                        }
+
+                        // REGOLA 3: Controllo formato email (deve contenere @ e .)
+                        val emailRegex = "^.+@.+\\..+$".toRegex()
+                        if (!textFieldEmailModificato.matches(emailRegex)) {
+                            Toast.makeText(context, "Indirizzo email non valido", Toast.LENGTH_SHORT).show()
+                            return@myButton
+                        }
+
+                        // Se supera tutti i controlli, procediamo.
+                        coroutineScope.launch {
+                            isUpdating = true
+
+                            val prefissoPulito = selectedPrefix.displayName
+                                .replace("(", "")
+                                .replace(")", "")
+                                .trim()
+
+                            // Chiamiamo la funzione per l'UTENTE
+                            val successo = modificaCredenzialiUtente(
+                                emailOriginale = emailOriginale, // Passiamo la vecchia mail per trovarlo nel DB
+                                nuovoNome = textFieldNomeModificato,
+                                nuovoCognome = textFieldCognomeModificato,
+                                nuovaEmail = textFieldEmailModificato,
+                                nuovoTelefono = textFieldTelefonoModificato,
+                                nuovoPrefisso = prefissoPulito
+                            )
+
+                            if (successo) {
+                                Toast.makeText(context, "Profilo aggiornato con successo!", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
+                            } else {
+                                Toast.makeText(context, "Errore durante l'aggiornamento.", Toast.LENGTH_SHORT).show()
+                            }
+                            isUpdating = false
                         }
                     },
                     testo = if (isUpdating) "Salvataggio..." else "Conferma"
