@@ -65,19 +65,21 @@ fun Navigation() {
     val context = LocalContext.current
 
     val emailSalvata = SessionManager.leggiEmail(context)
+    val usernameSalvato = SessionManager.leggiUsername(context)
     val ruoloSalvato = SessionManager.leggiRuolo(context)
     val agenziaSalvata = SessionManager.leggiAgenzia(context)
 
 
-    val schermataDiPartenza = if (emailSalvata != null && ruoloSalvato != -1) {
-        when (ruoloSalvato) {
-            0 -> Screen.UtenteScreen.withMailUtente(emailSalvata)
-            1 -> Screen.AdminScreen.withArgs(emailSalvata, agenziaSalvata)
-            2 -> Screen.SottoadminScreen.withArgs(emailSalvata,agenziaSalvata)
-            3 -> Screen.AgenteScreen.withMailAgente(emailSalvata)
+    val schermataDiPartenza = if (emailSalvata != null && ruoloSalvato == 0) {
+        Screen.UtenteScreen.withMailUtente(emailSalvata)
+    }else if(usernameSalvato != null && ruoloSalvato != -1) {
+        when(ruoloSalvato){
+            1 -> Screen.AdminScreen.withArgs(usernameSalvato, agenziaSalvata);
+            2 -> Screen.SottoadminScreen.withArgs(usernameSalvato, agenziaSalvata);
+            3 -> Screen.AgenteScreen.withMailAgente(usernameSalvato);
             else -> Screen.LoginScreen.route
         }
-    } else {
+    }else {
         Screen.LoginScreen.route
     }
 

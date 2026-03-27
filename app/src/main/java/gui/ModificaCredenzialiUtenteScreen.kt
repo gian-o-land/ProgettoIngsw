@@ -57,6 +57,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import connection.modificaCredenzialiUtente
+import navigation.Screen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -288,8 +289,24 @@ fun ModificaCredenzialiUtenteScreen(navController: NavController, emailOriginale
                             )
 
                             if (successo) {
+                                val ruoloAttuale = connection.SessionManager.leggiRuolo(context)
+
+                                connection.SessionManager.salvaSessioneUtente(
+                                    context = context,
+                                    email = textFieldEmailModificato,
+                                    ruolo = ruoloAttuale
+                                )
+
+                                connection.SessionManager.salvaNomeCognome(
+                                    context = context,
+                                    nome = textFieldNomeModificato,
+                                    cognome = textFieldCognomeModificato
+                                )
+
                                 Toast.makeText(context, "Profilo aggiornato con successo!", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
+                                navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmailModificato)){
+                                    popUpTo(0)
+                                }
                             } else {
                                 Toast.makeText(context, "Errore durante l'aggiornamento.", Toast.LENGTH_SHORT).show()
                             }

@@ -305,7 +305,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                                 val agente = scaricaAgente(textFieldEmail)
                                 val agenziaAgente = agente?.nomeAgenzia ?: "Nessuna Agenzia"
 
-                                SessionManager.salvaSessione(context, agente?.username, 3, agenziaAgente)
+                                SessionManager.salvaSessioneAgente(context, agente?.username, agente?.email, 3, agenziaAgente)
 
                                 isLoading = false
                                 navController.navigate(Screen.AgenteScreen.withMailAgente(agente?.username)){

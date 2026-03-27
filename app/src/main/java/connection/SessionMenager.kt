@@ -5,6 +5,7 @@ import android.content.Context
 object SessionManager {
     private const val NOME_FILE_PREFERENZE = "DietiSession"
     private const val CHIAVE_EMAIL = "email_salvata"
+    private const val CHIAVE_USERNAME = "username_salvato"
     private const val CHIAVE_RUOLO = "ruolo_salvato"
     private const val CHIAVE_NOME = "nome_salvato"
     private const val CHIAVE_COGNOME = "cognome_salvato"
@@ -21,9 +22,19 @@ object SessionManager {
             .putInt(CHIAVE_RUOLO, ruolo)
             .apply() // .apply() salva in background senza bloccare l'app
     }
-    fun salvaSessione(context: Context, email: String?, ruolo: Int, agenzia: String) {
+    fun salvaSessione(context: Context, username: String?, ruolo: Int, agenzia: String) {
         val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
         prefs.edit()
+            .putString(CHIAVE_USERNAME, username)
+            .putInt(CHIAVE_RUOLO, ruolo)
+            .putString(CHIAVE_AGENZIA, agenzia)
+            .apply() // .apply() salva in background senza bloccare l'app
+    }
+
+    fun salvaSessioneAgente(context: Context, username: String?, email: String?, ruolo: Int, agenzia: String) {
+        val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(CHIAVE_USERNAME, username)
             .putString(CHIAVE_EMAIL, email)
             .putInt(CHIAVE_RUOLO, ruolo)
             .putString(CHIAVE_AGENZIA, agenzia)
@@ -34,6 +45,11 @@ object SessionManager {
     fun leggiEmail(context: Context): String? {
         val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
         return prefs.getString(CHIAVE_EMAIL, null)
+    }
+
+    fun leggiUsername(context: Context): String? {
+        val prefs = context.getSharedPreferences(NOME_FILE_PREFERENZE, Context.MODE_PRIVATE)
+        return prefs.getString(CHIAVE_USERNAME, null)
     }
 
     // 3. Legge il ruolo (Restituisce -1 se non hai mai fatto l'accesso)

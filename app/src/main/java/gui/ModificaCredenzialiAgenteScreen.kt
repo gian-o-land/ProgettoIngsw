@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import connection.modificaCredenzialiAgente
 import connection.scaricaAgente
 import kotlinx.coroutines.launch
+import navigation.Screen
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -301,8 +302,27 @@ fun ModificaCredenzialiAgenteScreen(navController : NavController, username: Str
                             )
 
                             if (successo) {
+                                val ruoloAttuale = connection.SessionManager.leggiRuolo(context)
+                                val agenziaAttuale = connection.SessionManager.leggiAgenzia(context) ?: ""
+
+                                connection.SessionManager.salvaSessioneAgente(
+                                    context = context,
+                                    email = textFieldEmailModificato,
+                                    ruolo = ruoloAttuale,
+                                    agenzia = agenziaAttuale,
+                                    username = username
+                                )
+
+                                connection.SessionManager.salvaNomeCognome(
+                                    context = context,
+                                    nome = textFieldNomeModificato,
+                                    cognome = textFieldCognomeModificato
+                                )
+
                                 Toast.makeText(context, "Profilo aggiornato con successo!", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
+                                navController.navigate(Screen.AgenteScreen.withMailAgente(username)){
+                                    popUpTo(0)
+                                }
                             } else {
                                 Toast.makeText(context, "Errore durante l'aggiornamento.", Toast.LENGTH_SHORT).show()
                             }

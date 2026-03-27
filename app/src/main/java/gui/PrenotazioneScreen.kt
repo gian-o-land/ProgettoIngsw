@@ -400,13 +400,13 @@ fun PrenotazioneScreen(
                                     usernameAgente = inserzioneTrovata!!.agenteCreatore
                                 )
 
-                                val successo = connection.inviaPrenotazione(nuovaPrenotazione)
+                                val successo= connection.inviaPrenotazione(nuovaPrenotazione)
 
                                 if (successo) {
                                     prenotazioneEffettuata = true
                                 } else {
                                     coroutineScope.launch {
-                                        snackbarHostState.showSnackbar("errorre di connessione")
+                                        snackbarHostState.showSnackbar("Errore di connessione")
                                     }
                                     android.util.Log.e("PRENOTAZIONE", "Errore: Impossibile salvare la prenotazione")
                                 }
