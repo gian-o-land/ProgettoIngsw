@@ -28,7 +28,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.outlined.Apartment
 import androidx.compose.material.icons.outlined.Balcony
 import androidx.compose.material.icons.outlined.Bathtub
@@ -38,7 +37,6 @@ import androidx.compose.material.icons.outlined.Elevator
 import androidx.compose.material.icons.outlined.SquareFoot
 import androidx.compose.material.icons.outlined.Stairs
 import androidx.compose.material.icons.outlined.ViewQuilt
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -65,7 +63,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progettoingsw.R
 import androidx.compose.material3.Icon
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -75,12 +72,14 @@ import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
 import navigation.Screen
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import connection.scaricaAgente
 
@@ -336,14 +335,26 @@ fun InserzioneScreen(
 
     // --- POPUP CONTATTI ---
     if (mostraPopupContatti) {
-        AlertDialog(
-            onDismissRequest = { mostraPopupContatti = false },
-            icon = { Icon(Icons.Default.ContactPhone, contentDescription = null, tint = mioBluScuro) },
-            title = { Text(text = "Contatta l'inserzionista") },
-            text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-
-                    Text("Agente: $nomeAgente", fontWeight = FontWeight.Medium)
+        Dialog(onDismissRequest = {mostraPopupContatti = false}){
+            Card(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = BorderStroke(2.dp, mioBluScuro),
+                elevation = CardDefaults.cardElevation(8.dp)
+            ){
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(50.dp).background(mioBluScuro),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Contatta l'inserzionista", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = mieiTitoli, modifier = Modifier.padding(start = 15.dp))
+                    Icon(Icons.Default.Close, "Chiudi", tint = mioGialloOcra, modifier = Modifier.padding(end = 10.dp).height(25.dp).width(25.dp).clickable { mostraPopupContatti = false })
+                }
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally){
+                    Row(horizontalArrangement = Arrangement.Center) {
+                        Text("Agente: ", fontWeight = FontWeight.Medium, color = mioBluScuro)
+                        Text(nomeAgente, fontWeight = FontWeight.Medium)
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
@@ -352,41 +363,41 @@ fun InserzioneScreen(
                         fontWeight = FontWeight.Bold,
                         color = mioBluScuro
                     )
-                }
-            },
-            confirmButton = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = {
-                            val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText("Numero Telefono", numeroTelefono)
-                            clipboardManager.setPrimaryClip(clip)
-                            Toast.makeText(context, "Numero copiato!", Toast.LENGTH_SHORT).show()
-                        },
-                        enabled = agenteTrovato != null
-                    ) { Text("Copia") }
-
-                    Button(
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_DIAL).apply { data = Uri.parse("tel:$numeroTelefono") }
-                            context.startActivity(intent)
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                        enabled = agenteTrovato != null
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Chiama")
+                        Button(
+                            modifier = Modifier.padding(start = 5.dp).width(130.dp),
+                            onClick = {
+                                val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("Numero Telefono", numeroTelefono)
+                                clipboardManager.setPrimaryClip(clip)
+                                Toast.makeText(context, "Numero copiato!", Toast.LENGTH_SHORT).show()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = mioGialloOcra),
+                            enabled = agenteTrovato != null
+                        ) { Text("Copia", color = mioBluScuro) }
+
+                        Button(
+                            modifier = Modifier.padding(end = 5.dp).width(130.dp),
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_DIAL).apply { data = Uri.parse("tel:$numeroTelefono") }
+                                context.startActivity(intent)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = mioGialloOcra),
+                            enabled = agenteTrovato != null
+                        ) {
+                            Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp), tint = mioBluScuro)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Chiama", color = mioBluScuro)
+                        }
                     }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { mostraPopupContatti = false }) { Text("Chiudi") }
             }
-        )
+        }
     }
 }
 
