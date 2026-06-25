@@ -62,6 +62,7 @@ import connection.SessionManager
 import connection.scaricaAdmin
 import connection.scaricaAgente
 import connection.scaricaUtente
+import connection.verificaSeAccountGoogle
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -261,7 +262,7 @@ fun LoginScreen(painter: Painter, descrizione: String?, navController : NavContr
                     myClick = {
                         coroutineScope.launch {
                             val risposta = connessioneLogin(textFieldEmail, textFieldPassword)
-                            if (risposta==0){
+                            if (risposta==0 && !verificaSeAccountGoogle(textFieldEmail)){
                                 SessionManager.salvaSessioneUtente(context, textFieldEmail, 0)
 
                                 navController.navigate(Screen.UtenteScreen.withMailUtente(textFieldEmail)){
