@@ -65,6 +65,12 @@ fun InserzioneAgenteScreen(
     val planimetriaUrl = inserzione.immagini.firstOrNull { it.tipologia == D_foto.PLANIMETRIA }?.url
 
     val pagerState = rememberPagerState(pageCount = { fotoList.size })
+    var valoreTerrazzo=""
+    if (inserzione.terrazzo){
+        valoreTerrazzo="Si"
+    }else {
+        valoreTerrazzo="No"
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize().background(color = Color.White),
         containerColor = Color.White,
@@ -211,6 +217,7 @@ fun InserzioneAgenteScreen(
                             CaratteristicaRiga(icona = Icons.Outlined.Bathtub, titolo = "Bagni", valore = "${inserzione.nBagni}")
                             CaratteristicaRiga(icona = Icons.Outlined.ViewQuilt, titolo = "Locali", valore = "${inserzione.nLocali}")
                             CaratteristicaRiga(icona = Icons.Outlined.Stairs, titolo = "Piano", valore = "${inserzione.piano}")
+                            CaratteristicaRiga(icona = Icons.Outlined.Deck, titolo = "Terrazzo", valore = valoreTerrazzo)
                         }
 
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {

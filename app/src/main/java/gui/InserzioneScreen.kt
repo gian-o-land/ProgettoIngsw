@@ -106,6 +106,12 @@ fun InserzioneScreen(
         agenteTrovato = scaricaAgente(inserzione.agenteCreatore)
     }
     val nomeAgente = if (agenteTrovato != null) "${agenteTrovato!!.nome} ${agenteTrovato!!.cognome}" else inserzione.agenteCreatore
+    var valoreTerrazzo=""
+    if (inserzione.terrazzo){
+         valoreTerrazzo="Si"
+    }else {
+         valoreTerrazzo="No"
+    }
     Scaffold(
         floatingActionButton = {
             Row(
@@ -283,6 +289,8 @@ fun InserzioneScreen(
                             CaratteristicaRiga(icona = Icons.Outlined.Bathtub, titolo = "Bagni", valore = "${inserzione.nBagni}")
                             CaratteristicaRiga(icona = Icons.Outlined.ViewQuilt, titolo = "Locali", valore = "${inserzione.nLocali}")
                             CaratteristicaRiga(icona = Icons.Outlined.Stairs, titolo = "Piano", valore = "${inserzione.piano}")
+                            CaratteristicaRiga(icona = Icons.Outlined.Deck, titolo = "Terrazzo", valore = valoreTerrazzo)
+
                         }
 
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
