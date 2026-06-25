@@ -78,13 +78,14 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
     var classeEnergeticaScelta by remember { mutableStateOf("G") }
 
     // --- VARIABILI CARATTERISTICHE BOOLEANE ---
+   /*
     var ascensore by remember { mutableStateOf(false) }
     var cucina by remember { mutableStateOf(false) }
     var piscina by remember { mutableStateOf(false) }
     var cantina by remember { mutableStateOf(false) }
     var balcone by remember { mutableStateOf(false) }
     var terrazzo by remember { mutableStateOf(false) }
-
+*/
     var statoAscensore by remember { mutableStateOf(false) }
     var statoCucina by remember { mutableStateOf(false) }
     var statoPiscina by remember { mutableStateOf(false) }
@@ -445,12 +446,12 @@ fun CaricaImmobiliScreen(navController: NavController, username: String) {
                                         arredamento = mappaArredamento(arredamento),
                                         classeEnergetica = mappaClasseEnergetica(classeEnergeticaScelta),
 
-                                        balcone = balcone,
-                                        ascensore = ascensore,
-                                        terrazzo = terrazzo,
-                                        cantina = cantina,
-                                        piscina = piscina,
-                                        cucina = cucina,
+                                        balcone = statoBalcone,
+                                        ascensore = statoAscensore,
+                                        terrazzo = statoTerrazzo,
+                                        cantina = statoCantina,
+                                        piscina = statoPiscina,
+                                        cucina = statoCucina,
 
                                         citta = textFieldCitta,
                                         comune = textFieldComune,

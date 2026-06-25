@@ -4,5 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.map.secret) apply false
+    id("org.sonarqube") version "7.1.0.6387"
 
 }
