@@ -1,7 +1,7 @@
 package DTO
 
 import kotlinx.serialization.Serializable
-
+//AdminDTO
 @Serializable
 data class AdminDTO(
     val username: String,
